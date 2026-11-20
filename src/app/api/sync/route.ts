@@ -37,10 +37,17 @@ export async function GET(request: Request) {
   ]);
 
   // The same loaders the screens use, so their view of the data is visible here.
-  const [plan, settings, openCandidates] = await Promise.all([
+  const [plan, settings, openCandidates, extractErrors] = await Promise.all([
     loadToday(user.id),
     loadSettings(user.id),
     prisma.candidate.count({ where: { userId: user.id, state: "open" } }),
+    // Reasons only, never email content.
+    prisma.eventLog.findMany({
+      where: { userId: user.id, kind: "gmail_extract_error" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { payload: true, createdAt: true },
+    }),
   ]);
 
   return Response.json({
@@ -69,6 +76,10 @@ export async function GET(request: Request) {
     },
     settings,
     openCandidates,
+    extractErrors: extractErrors.map((row) => ({
+      at: row.createdAt,
+      error: (row.payload as { error?: string } | null)?.error ?? "unknown",
+    })),
   });
 }
 
