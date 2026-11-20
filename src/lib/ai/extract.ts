@@ -9,19 +9,22 @@ import { CHAT_MODEL } from "./mistral";
  * The only place extraction happens, so the provider stays swappable
  * (docs/SPEC.md, "Email extraction with Mistral").
  */
+const emptyToNull = (value: unknown) => (value === "" || value === "null" ? null : value);
+
 export const extractedItem = z.object({
   kind: z.enum(["task", "appointment", "reminder", "later"]),
-  title: z.string().min(1).max(60),
-  due: z.string().nullable(),
-  start: z.string().nullable(),
-  duration_min: z.number().int().min(5).max(480).nullable(),
-  person: z.string().nullable(),
-  quote: z.string().max(200),
-  promise_by_me: z.boolean(),
-  confidence: z.number().min(0).max(1),
+  // A long title is cut rather than refused: the item is still right.
+  title: z.string().min(1).transform((title) => title.slice(0, 60)),
+  due: z.preprocess(emptyToNull, z.string().nullable()),
+  start: z.preprocess(emptyToNull, z.string().nullable()),
+  duration_min: z.preprocess(emptyToNull, z.coerce.number().int().min(5).max(480).nullable()),
+  person: z.preprocess(emptyToNull, z.string().nullable()),
+  quote: z.string().transform((quote) => quote.slice(0, 200)),
+  promise_by_me: z.coerce.boolean(),
+  confidence: z.coerce.number().min(0).max(1),
 });
 
-export const extraction = z.object({ items: z.array(extractedItem).max(5) });
+export const extraction = z.object({ items: z.array(extractedItem).max(8) });
 
 export type ExtractedItem = z.infer<typeof extractedItem>;
 
@@ -107,7 +110,13 @@ function instructions(context: ExtractContext): string {
     .join(" ");
 }
 
-async function ask(email: EmailForExtraction, context: ExtractContext): Promise<unknown> {
+class AnswerCutOff extends Error {}
+
+async function ask(
+  email: EmailForExtraction,
+  context: ExtractContext,
+  maxTokens: number,
+): Promise<unknown> {
   const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -117,7 +126,7 @@ async function ask(email: EmailForExtraction, context: ExtractContext): Promise<
     body: JSON.stringify({
       model: CHAT_MODEL,
       temperature: 0,
-      max_tokens: 700,
+      max_tokens: maxTokens,
       response_format: JSON_SCHEMA,
       messages: [
         { role: "system", content: instructions(context) },
@@ -140,9 +149,14 @@ async function ask(email: EmailForExtraction, context: ExtractContext): Promise<
     throw new Error(`Mistral extraction failed: ${response.status} ${(await response.text()).slice(0, 160)}`);
   }
 
-  const body = (await response.json()) as { choices?: { message?: { content?: string } }[] };
-  const content = body.choices?.[0]?.message?.content;
+  const body = (await response.json()) as {
+    choices?: { message?: { content?: string }; finish_reason?: string }[];
+  };
+  const choice = body.choices?.[0];
+  const content = choice?.message?.content;
   if (!content) throw new Error("Mistral returned no content");
+  // A long email can run the answer past the limit: ask again with more room.
+  if (choice?.finish_reason === "length") throw new AnswerCutOff("the answer was cut off");
   return JSON.parse(content);
 }
 
@@ -153,9 +167,12 @@ export async function extractFromEmail(
 ): Promise<ExtractionResult> {
   if (!process.env.MISTRAL_API_KEY?.trim()) return { ok: false, error: "MISTRAL_API_KEY is not set" };
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  let lastError = "the answer did not fit the schema twice";
+
+  for (const maxTokens of [1500, 3000]) {
     try {
-      const parsed = extraction.safeParse(await ask(email, context));
+      const answer = await ask(email, context, maxTokens);
+      const parsed = extraction.safeParse(answer);
       if (parsed.success) {
         return {
           ok: true,
@@ -166,12 +183,16 @@ export async function extractFromEmail(
           })),
         };
       }
+      // The reason, so a failure can be read later without the email.
+      lastError = `schema: ${parsed.error.issues[0]?.path.join(".") ?? "unknown"} ${
+        parsed.error.issues[0]?.message ?? ""
+      }`.slice(0, 160);
     } catch (error) {
-      if (attempt === 1) {
-        return { ok: false, error: error instanceof Error ? error.message.slice(0, 160) : "extraction failed" };
-      }
+      lastError = error instanceof Error ? error.message.slice(0, 160) : "extraction failed";
+      // Only a cut-off answer is worth asking again; a refusal or a 429 is not.
+      if (!(error instanceof AnswerCutOff) && !(error instanceof SyntaxError)) break;
     }
   }
 
-  return { ok: false, error: "the answer did not fit the schema twice" };
+  return { ok: false, error: lastError };
 }

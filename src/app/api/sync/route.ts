@@ -88,6 +88,7 @@ export async function GET(request: Request) {
  * shared secret, or by Juan's own session for an immediate sync.
  */
 export async function POST(request: Request) {
+  const body = (await request.json().catch(() => null)) as { retryErrors?: boolean } | null;
   if (!(await authorize(request))) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
@@ -95,6 +96,27 @@ export async function POST(request: Request) {
   const email = process.env.ALLOWED_EMAIL?.toLowerCase();
   const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
   if (!user) return Response.json({ error: "no user yet, sign in first" }, { status: 409 });
+
+  if (body?.retryErrors) {
+    // Forget that the failed messages were seen, so this run reads them again.
+    const failed = await prisma.eventLog.findMany({
+      where: { userId: user.id, kind: "gmail_extract_error" },
+      select: { payload: true },
+    });
+    const ids = new Set(
+      failed.map((row) => (row.payload as { id?: string } | null)?.id).filter(Boolean) as string[],
+    );
+    const seen = await prisma.eventLog.findMany({
+      where: { userId: user.id, kind: "gmail_message_seen" },
+      select: { id: true, payload: true },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+    const remove = seen
+      .filter((row) => ids.has((row.payload as { id?: string } | null)?.id ?? ""))
+      .map((row) => row.id);
+    if (remove.length) await prisma.eventLog.deleteMany({ where: { id: { in: remove } } });
+  }
 
   try {
     const result = await syncCalendars(user.id);

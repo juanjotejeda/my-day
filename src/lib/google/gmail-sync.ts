@@ -172,16 +172,17 @@ async function handleMessage(
     { ignoreTopics: settings.priorities.ignoreTopics },
   );
 
-  // Seen either way, so no message is read twice.
-  await prisma.eventLog.create({
-    data: {
-      userId,
-      kind: "gmail_message_seen",
-      payload: { id: messageId, skipped: decision.skip, why: decision.reason } as Prisma.InputJsonValue,
-    },
-  });
+  const markSeen = (why: string, skipped: boolean) =>
+    prisma.eventLog.create({
+      data: {
+        userId,
+        kind: "gmail_message_seen",
+        payload: { id: messageId, skipped, why } as Prisma.InputJsonValue,
+      },
+    });
 
   if (decision.skip || !body) {
+    await markSeen(decision.reason || "no readable text", true);
     out.skipped = true;
     return out;
   }
@@ -209,9 +210,16 @@ async function handleMessage(
         payload: { id: messageId, error: extracted.error } as Prisma.InputJsonValue,
       },
     });
+
+    // Left unseen so the next run tries again, but not for ever.
+    const failures = await prisma.eventLog.count({
+      where: { userId, kind: "gmail_extract_error", payload: { path: ["id"], equals: messageId } },
+    });
+    if (failures >= 3) await markSeen("extraction failed three times", true);
     return out;
   }
 
+  await markSeen("extracted", false);
   out.extracted = extracted.items.length;
   for (const item of extracted.items) {
     const stored = await storeCandidate(userId, {
