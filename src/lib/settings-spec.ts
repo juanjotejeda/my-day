@@ -531,3 +531,111 @@ export const PROFILE_SCREEN: ScreenSpec = {
     },
   ],
 };
+
+
+/** The onboarding steps, as saved settings fields. */
+export const RHYTHM_STEP: Field[][] = [
+  [
+    { kind: "time", section: "rhythm", key: "wake", label: "Wake up" },
+    { kind: "time", section: "rhythm", key: "bed", label: "Bedtime" },
+  ],
+  [
+    { kind: "pills", section: "work", key: "days", label: "Working days", choices: DAYS, multi: true },
+    { kind: "time", section: "work", key: "start", label: "Work starts" },
+    { kind: "time", section: "work", key: "end", label: "Work ends" },
+    { kind: "time", section: "work", key: "lunchStart", label: "Lunch" },
+  ],
+];
+
+export const ENERGY_STEP: Field[] = [
+  {
+    kind: "pills",
+    section: "rhythm",
+    key: "chronotype",
+    label: "Which sounds like you?",
+    choices: [
+      { value: "early", label: "Early bird" },
+      { value: "mid", label: "In between" },
+      { value: "late", label: "Night owl" },
+    ],
+  },
+];
+
+export const PRIORITIES_STEP: Field[][] = [
+  [
+    {
+      kind: "order",
+      section: "priorities",
+      key: "clashOrder",
+      label: "When things clash",
+      items: [
+        { value: "family", label: "Family" },
+        { value: "clients", label: "Clients" },
+        { value: "team", label: "Team" },
+        { value: "admin", label: "Admin" },
+      ],
+    },
+    { kind: "text", text: "Use the arrows to move a group up or down." },
+  ],
+  [
+    {
+      kind: "pills",
+      section: "priorities",
+      key: "vipPeople",
+      label: "Items from these people rank higher",
+      multi: true,
+      choices: [
+        { value: "cof", label: "Co-founder" },
+        { value: "lena", label: "Lena Hoffmann" },
+        { value: "school", label: "Thiago's school" },
+      ],
+    },
+  ],
+  [
+    { kind: "switch", section: "protectedTime", key: "exercise", label: "Exercise", sub: "Mon, Wed, Fri at 07:30" },
+    { kind: "switch", section: "protectedTime", key: "familyDinner", label: "Family dinner", sub: "Every day at 18:30" },
+    { kind: "switch", section: "protectedTime", key: "noWorkWeekends", label: "No work at weekends" },
+  ],
+];
+
+export const FOCUS_STEP: Field[] = [
+  {
+    kind: "pills",
+    section: "focus",
+    key: "blockLength",
+    label: "Focus block",
+    numeric: true,
+    choices: [
+      { value: "45", label: "45 min" },
+      { value: "60", label: "60 min" },
+      { value: "90", label: "90 min" },
+      { value: "120", label: "2 hours" },
+    ],
+  },
+  {
+    kind: "pills",
+    section: "focus",
+    key: "breakLength",
+    label: "Break after focus",
+    numeric: true,
+    choices: [
+      { value: "10", label: "10 min" },
+      { value: "15", label: "15 min" },
+      { value: "20", label: "20 min" },
+    ],
+  },
+  {
+    kind: "pills",
+    section: "focus",
+    key: "bufferMin",
+    label: "Buffer between meetings",
+    numeric: true,
+    choices: [
+      { value: "0", label: "None" },
+      { value: "5", label: "5 min" },
+      { value: "10", label: "10 min" },
+      { value: "15", label: "15 min" },
+    ],
+  },
+  { kind: "switch", section: "work", key: "hardStop", label: "Hard stop at end of work", sub: "Never plan work after the end of work" },
+];

@@ -68,6 +68,9 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   is gone and stops being read on 2026-12-01). Change a service there, then
   `railway config plan` and `railway config apply`. Variables stay unmanaged: they live in
   Railway, never in the repo.
+- Settings fields are declared once in `src/lib/settings-spec.ts` and rendered by
+  `SettingsFields`, which both the settings screens and the onboarding steps use, so an answer
+  given in onboarding is the same saved setting.
 - Settings save through `saveSection` in `src/lib/settings.ts`: Zod-validated, merged into the
   JSON column, with a `settings_history` row per change. Never write those columns directly.
 - `GET /api/sync` with the worker secret reports the commit, the day as the screens see it and

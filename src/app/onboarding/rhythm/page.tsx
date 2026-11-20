@@ -1,55 +1,46 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { ChoiceGroup, TimeRow } from "@/components/controls";
+import { SettingsFields } from "@/components/settings-fields";
 import {
-  FieldBlock,
+  ListCard,
   NoteCard,
   PrimaryLink,
   Screen,
   ScreenHeader,
-  SettingsSection,
+  SectionTitle,
   StepHeader,
 } from "@/components/ui";
+import { prisma } from "@/lib/prisma";
+import { loadSettings } from "@/lib/settings";
+import { RHYTHM_STEP } from "@/lib/settings-spec";
 
-const DAYS = [
-  { value: "mo", label: "Mon" },
-  { value: "tu", label: "Tue" },
-  { value: "we", label: "Wed" },
-  { value: "th", label: "Thu" },
-  { value: "fr", label: "Fri" },
-  { value: "sa", label: "Sat" },
-  { value: "su", label: "Sun" },
-];
-
-// O3 Your rhythm.
+// O3 Your rhythm. Every answer saves straight into the settings.
 export default async function Rhythm() {
   const session = await auth();
-  if (!session?.user) redirect("/signin");
+  if (!session?.user?.email) redirect("/signin");
+  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  if (!user) redirect("/signin");
+  const settings = await loadSettings(user.id);
 
   return (
     <Screen>
       <StepHeader back="/onboarding/connect" step={2} />
       <ScreenHeader title="Your rhythm" sub="When your day starts, when work happens and when it stops." />
 
-      <SettingsSection title="Day">
-        <TimeRow label="Wake up" defaultValue="06:45" />
-        <TimeRow label="Bedtime" defaultValue="23:00" />
-      </SettingsSection>
+      <section className="flex flex-col gap-1.5">
+        <SectionTitle>Day</SectionTitle>
+        <ListCard>
+          <SettingsFields fields={RHYTHM_STEP[0]} values={settings} />
+        </ListCard>
+      </section>
 
-      <SettingsSection title="Work">
-        <FieldBlock label="Working days">
-          <ChoiceGroup
-            label="Working days"
-            multi
-            choices={DAYS}
-            defaultValue={["mo", "tu", "we", "th", "fr"]}
-          />
-        </FieldBlock>
-        <TimeRow label="Work starts" defaultValue="08:30" />
-        <TimeRow label="Work ends" defaultValue="18:00" />
-        <TimeRow label="Lunch" defaultValue="12:00" />
-      </SettingsSection>
+      <section className="flex flex-col gap-1.5">
+        <SectionTitle>Work</SectionTitle>
+        <ListCard>
+          <SettingsFields fields={RHYTHM_STEP[1]} values={settings} />
+        </ListCard>
+      </section>
 
       <NoteCard label="WHAT THIS CHANGES">
         Nothing is placed before you wake up or in the last hour before bed. Work tasks stay inside

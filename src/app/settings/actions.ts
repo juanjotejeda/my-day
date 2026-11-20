@@ -1,8 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { auth } from "@/auth";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { dayDate, dayKey } from "@/lib/day";
+import { runPlan } from "@/lib/plan/run";
 import { SECTIONS, type SectionName, saveSection } from "@/lib/settings";
 
 type Calendar = { id: string; name: string; enabled: boolean };
@@ -21,6 +25,16 @@ export async function saveSettings(section: SectionName, values: Record<string, 
   if (!user) return { ok: false as const, error: "unauthorized" };
 
   await saveSection(user.id, section, values);
+
+  // Everything the scheduler reads reshapes the day straight away: changing the
+  // peak window moves deep work, which is milestone 4's test.
+  if (["rhythm", "work", "focus", "priorities", "protectedTime"].includes(section)) {
+    const now = new Date();
+    await runPlan(user.id, dayDate(dayKey(now)));
+    await runPlan(user.id, dayDate(dayKey(new Date(now.getTime() + 86_400_000))));
+    revalidatePath("/");
+  }
+
   return { ok: true as const };
 }
 
