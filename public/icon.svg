@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="My Day">
+  <rect width="512" height="512" fill="#243A63"/>
+  <rect x="104" y="232" width="304" height="48" rx="24" fill="#8AA9DE"/>
+  <rect x="104" y="232" width="152" height="48" rx="24" fill="#D5E1F5"/>
+  <circle cx="256" cy="256" r="20" fill="#FFFFFF"/>
+</svg>
