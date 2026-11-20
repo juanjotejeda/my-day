@@ -1,11 +1,20 @@
+import { DEFAULT_RHYTHM, type Rhythm } from "@/lib/plan/curve";
 import { energyTrack, stripBlocks } from "@/lib/plan/view";
 import { pct } from "@/lib/plan/format";
 import type { PlanItem } from "@/lib/plan/types";
 
 /** The whole day as one line: fixed blocks solid, flexible dashed, energy underneath. */
-export function DayStrip({ items, now }: { items: PlanItem[]; now: number }) {
+export function DayStrip({
+  items,
+  now,
+  rhythm = DEFAULT_RHYTHM,
+}: {
+  items: PlanItem[];
+  now: number;
+  rhythm?: Rhythm;
+}) {
   const blocks = stripBlocks(items);
-  const track = energyTrack();
+  const track = energyTrack(rhythm);
 
   return (
     <div className="flex flex-col gap-2 rounded-card border border-line bg-white p-[14px] pb-3">

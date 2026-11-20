@@ -171,6 +171,17 @@ test("a weekend keeps work out but allows personal items", () => {
   assert.ok(result.placements.some((p) => p.id === "gift"), "personal items still fit");
 });
 
+test("an errand waits for the shops, never 06:45", () => {
+  const result = plan({
+    day: MONDAY,
+    items: [task("gift", 30, { effort: "errand", category: "personal" })],
+    settings: SETTINGS,
+  });
+  const gift = result.placements.find((p) => p.id === "gift");
+  assert.ok(gift, "an errand must still be placed");
+  assert.ok(gift.start >= 9 * 60, `an errand should not start at ${gift.start}`);
+});
+
 test("rules add minutes and can move a category", () => {
   const result = plan({
     day: MONDAY,

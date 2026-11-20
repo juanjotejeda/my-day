@@ -1,4 +1,4 @@
-import { LEVELS, level, levelOf } from "./energy.ts";
+import { DEFAULT_RHYTHM, LEVELS, type Rhythm, levelAt, levelOf } from "./curve.ts";
 import { dur, fmt, pct } from "./format.ts";
 import type { PlanItem } from "./types.ts";
 
@@ -61,9 +61,9 @@ export function stripBlocks(items: PlanItem[]): StripBlock[] {
 }
 
 /** 30 cells of energy colour under the strip. */
-export function energyTrack(): string[] {
+export function energyTrack(rhythm: Rhythm = DEFAULT_RHYTHM): string[] {
   const cells: string[] = [];
-  for (let m = 7 * 60; m < 22 * 60; m += 30) cells.push(LEVELS[level(m + 15)].fill);
+  for (let m = 7 * 60; m < 22 * 60; m += 30) cells.push(LEVELS[levelAt(m + 15, rhythm)].fill);
   return cells;
 }
 

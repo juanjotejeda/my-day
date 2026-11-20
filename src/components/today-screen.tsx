@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
 
 import { AddBar } from "@/components/add-bar";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
@@ -10,7 +11,9 @@ import { Card, EnergyDot, PillLink, SectionTitle, TimeChip } from "@/components/
 
 import { fmt } from "@/lib/plan/format";
 import type { Draft, PlanItem } from "@/lib/plan/types";
-import { ahead, freeSlot, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
+import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
+import { addDraft, applyCorrection } from "@/app/actions";
+import type { Rhythm } from "@/lib/plan/curve";
 
 type View = "now" | "priority";
 
@@ -19,9 +22,10 @@ export function TodayScreen({
   date,
   now,
   workEnd,
-  items: initial,
+  items,
   banners,
   reviewCount,
+  rhythm,
 }: {
   weekday: string;
   date: string;
@@ -30,10 +34,11 @@ export function TodayScreen({
   items: PlanItem[];
   banners: string[];
   reviewCount: number;
+  rhythm: Rhythm;
 }) {
-  const [items, setItems] = useState(initial);
+  const router = useRouter();
+  const [, start] = useTransition();
   const [view, setView] = useState<View>("now");
-  const [done, setDone] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [restOpen, setRestOpen] = useState(true);
@@ -43,124 +48,55 @@ export function TodayScreen({
   function say(message: string) {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(""), 2800);
+    toastTimer.current = setTimeout(() => setToast(""), 5000);
   }
 
   const selectedItem = items.find((item) => item.id === selected) ?? null;
 
   function act(action: AdjustAction) {
     if (!selectedItem) return;
-    let message = "";
-    setItems((current) =>
-      current.map((item) => {
-        if (item.id !== selectedItem.id) return item;
-        const next = { ...item };
-        if (action === "tomorrow") {
-          if (next.fixed) message = "Calendar events are read-only here. Move it in Google Calendar.";
-          else if (next.moved) {
-            next.moved = false;
-            message = "Back on your list.";
-          } else {
-            next.moved = true;
-            message = "Moved to tomorrow. I will remember this for similar items.";
-          }
-        }
-        if (action === "important") {
-          next.important = !next.important;
-          if (next.important) next.rank = "must";
-          message = next.important
-            ? "Marked as important. Similar items rank higher from now on."
-            : "Back to normal priority.";
-        }
-        if (action === "time") {
-          if (next.fixed || next.later) message = "This item has no flexible duration.";
-          else {
-            next.end += 30;
-            message = "Added 30 minutes. I will plan more time for tasks like this.";
-          }
-        }
-        if (action === "personal") {
-          next.category = next.category === "personal" ? "work" : "personal";
-          message =
-            next.category === "personal" ? "Saved as a personal commitment." : "Saved as a work task.";
-        }
-        return next;
-      }),
-    );
+    const kind = action === "time" ? "more_time" : action === "personal" ? "category" : action;
     setSelected(null);
-    say(message);
+    say("Saving");
+    start(async () => {
+      const result = await applyCorrection(selectedItem.id, kind);
+      say(result.message);
+      router.refresh();
+    });
+  }
+
+  function markDone(id: string) {
+    start(async () => {
+      const result = await applyCorrection(id, "done");
+      if (!result.ok) say(result.message);
+      router.refresh();
+    });
   }
 
   function add(draft: Draft) {
-    const text = draft.text.trim();
-    if (!text) {
-      say("Type or say what to add first.");
-      return;
-    }
-
-    const item: PlanItem = {
-      id: `n${Date.now()}`,
-      title: text,
-      start: 0,
-      end: 0,
-      fixed: true,
-      category: "personal",
-      source: "Added by you",
-      why: "",
-      rank: "should",
-      effort: "Personal",
-    };
-    let message: string;
-
-    if (draft.type === "task") {
-      const start = freeSlot(items, Math.max(now, 510), draft.dur);
-      item.fixed = false;
-      item.category = "work";
-      item.effort = "Light task";
-      item.start = start;
-      item.end = start + draft.dur;
-      item.why = "Task you added. Placed in the next free slot that fits.";
-      message =
-        draft.day === "tomorrow"
-          ? "Task added for tomorrow."
-          : `Task added. Placed at ${fmt(start)}, the next free slot.`;
-    } else {
-      if (!draft.time) {
-        say(`Add a time for this ${draft.type === "reminder" ? "reminder." : "appointment."}`);
-        return;
-      }
-      const [hours, minutes] = draft.time.split(":").map(Number);
-      const start = hours * 60 + minutes;
-      item.start = start;
-      item.end = start + (draft.type === "reminder" ? 10 : 60);
-      item.rank = "must";
-      if (draft.type === "gcal") {
-        item.source = "Calendar";
-        item.category = "work";
-        item.effort = "Meeting";
-        item.why = "You added this. It is created in Google Calendar as a new event.";
-      } else if (draft.type === "appt") {
-        item.effort = "Meeting";
-        item.why = "Appointment you added.";
-      } else {
-        item.source = "Reminder";
-        item.effort = "Errand";
-        item.why = "Reminder you added.";
-      }
-      message = `${draft.type === "reminder" ? "Reminder" : "Appointment"} added for ${
-        draft.day === "tomorrow" ? "tomorrow" : "today"
-      } at ${draft.time}.`;
-    }
-
-    if (draft.day === "tomorrow") item.moved = true;
-    setItems((current) => [...current, item]);
-    say(message);
+    say("Adding");
+    start(async () => {
+      const result = await addDraft({
+        type: draft.type,
+        title: draft.text,
+        day: draft.day,
+        time: draft.time,
+        dur: draft.dur,
+        effort: draft.type === "task" ? "light" : "meeting",
+      });
+      say(result.message);
+      router.refresh();
+    });
   }
 
   const card = nowCard(items, now);
   const { next, rest } = ahead(items, now);
   const later = laterRows(items);
-  const sections = prioritySections(items, now, done);
+  const sections = prioritySections(
+    items,
+    now,
+    Object.fromEntries(items.filter((item) => item.done).map((item) => [item.id, true])),
+  );
   const bar = load(items);
 
   return (
@@ -195,7 +131,7 @@ export function TodayScreen({
         </div>
       ) : null}
 
-      <DayStrip items={items} now={now} />
+      <DayStrip items={items} now={now} rhythm={rhythm} />
 
       <div role="group" aria-label="View" className="grid grid-cols-2 gap-1 rounded-full bg-sky p-1">
         {(["now", "priority"] as const).map((key) => (
@@ -354,7 +290,7 @@ export function TodayScreen({
                     <button
                       type="button"
                       aria-label={`${row.done ? "Mark not done" : "Mark done"}: ${row.title}`}
-                      onClick={() => setDone((current) => ({ ...current, [row.id]: !row.done }))}
+                      onClick={() => markDone(row.id)}
                       className="flex h-11 w-11 flex-none items-center justify-center"
                     >
                       <span

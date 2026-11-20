@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { fmt } from "@/lib/plan/format";
-import { levelOf } from "@/lib/plan/energy";
+import { levelOf } from "@/lib/plan/curve";
 import type { PlanItem } from "@/lib/plan/types";
 
 export type AdjustAction = "important" | "tomorrow" | "time" | "personal";

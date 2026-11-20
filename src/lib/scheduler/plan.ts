@@ -87,6 +87,8 @@ const DAY_END = 24 * 60;
 const STEP = 15;
 const WEEKDAY_KEYS = ["su", "mo", "tu", "we", "th", "fr", "sa"];
 const RANK_ORDER: Record<Rank, number> = { must: 0, protected: 0, should: 1, could: 2, later: 3 };
+/** Errands mean leaving the house, so they wait for the day to open up. */
+const ERRAND_EARLIEST = 9 * 60;
 
 function weekdayKey(day: string): string {
   return WEEKDAY_KEYS[new Date(`${day}T12:00:00Z`).getUTCDay()];
@@ -271,7 +273,10 @@ export function plan({
     }
 
     // Where this item is allowed to sit at all.
-    const rangeStart = item.category === "work" ? Math.max(wake, workStart) : wake;
+    const rangeStart = Math.max(
+      item.category === "work" ? Math.max(wake, workStart) : wake,
+      item.effort === "errand" ? ERRAND_EARLIEST : 0,
+    );
     const rangeEnd =
       item.category === "work" && isWorkday && work.hardStop ? Math.min(workEnd, bed - 60) : bed - 60;
 

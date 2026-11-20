@@ -5,7 +5,7 @@ export const DAY_START_HOUR = 7;
 export const DAY_END_HOUR = 22;
 
 /** The calendar day a moment falls on, as YYYY-MM-DD in TIMEZONE. */
-export function dayKey(at: Date, timeZone = TIMEZONE): string {
+export function dayKey(at: Date, timeZone: string = TIMEZONE): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",

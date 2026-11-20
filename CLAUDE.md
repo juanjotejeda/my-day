@@ -74,6 +74,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   every settings value: use it to tell a stale screen from empty data.
 - A module that a `node --test` file imports uses relative imports with the `.ts`
   extension (`../day.ts`); Node cannot resolve the `@/` alias. App-only modules use `@/`.
+- Only the composer's Calendar button may create a Google Calendar event. A line of text or a
+  voice note never writes to Google, and the model is never allowed to choose that type.
+- The model may not invent a time: a draft's time comes from the deterministic parser, and a
+  timed type without a time becomes a task.
 - Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
   calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
 
@@ -93,6 +97,8 @@ is a per-screen job.
 | Screen | Route |
 | --- | --- |
 | Today, Now and Priority | `/` |
+| Add by text (for a phone shortcut) | `POST /api/add` with `{ text }` |
+| Add by voice | `POST /api/voice` with an audio file |
 | Review | `/review` |
 | Item detail | `/item/[id]` |
 | Tomorrow, End of day | `/tomorrow`, `/end-of-day` |
@@ -139,7 +145,10 @@ docs/SPEC.md        the build spec, the source of truth
 2. **Calendar** — done: encrypted-token Google client, calendar sync with sync tokens and a
    dated window fallback, `/api/sync`, the worker service, Today strip and lists from real
    events, Connection lost banner.
-3. Manual input and scheduler (the add bar and adjust sheet exist as screens; the parser,
-   Voxtral and the real scheduler are still to come). 4. Settings and onboarding (screens and
-   persistence exist; the plan does not read the settings yet). 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
+3. **Manual input and scheduler** — done: `lib/scheduler/plan.ts` is the pure scheduler,
+   `lib/parse/input.ts` the deterministic parser, `lib/ai/parse.ts` the Mistral parse,
+   `/api/voice` the Voxtral path, `lib/plan/add.ts` the add and correction writes, and
+   `lib/plan/run.ts` runs the plan and stores each placement with its reason. Corrections
+   persist to the corrections table. 4. Settings and onboarding (screens and persistence
+   exist; the scheduler already reads rhythm, work, focus and priorities). 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

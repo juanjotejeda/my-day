@@ -27,7 +27,12 @@ export function toPlanItem(item: Item): PlanItem {
   };
 }
 
-/** All-day events are banners, never blocks, so they stay out of the plan list. */
+/**
+ * All-day events are banners, never blocks. An item the scheduler could not
+ * place has no start, so it shows under Later with its reason.
+ */
 export function toPlanItems(items: Item[]): PlanItem[] {
-  return items.filter((item) => !item.allDay && item.start).map(toPlanItem);
+  return items
+    .filter((item) => !item.allDay)
+    .map((item) => (item.start ? toPlanItem(item) : { ...toPlanItem(item), later: true }));
 }

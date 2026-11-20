@@ -3,13 +3,12 @@ import { redirect } from "next/navigation";
 import { TodayScreen } from "@/components/today-screen";
 import { auth } from "@/auth";
 import { TIMEZONE, dayDate, dayKey } from "@/lib/day";
+import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
-import { mergeWithSample } from "@/lib/plan/merge";
-import { SAMPLE_DAY } from "@/lib/plan/sample";
+import { loadSettings } from "@/lib/settings";
 import { prisma } from "@/lib/prisma";
 
-// Work hours and the review count come from settings and Gmail in milestones 4 and 5.
-const WORK_END = "18:00";
+// The review count still comes from the Gmail work in milestone 5.
 const SAMPLE_REVIEW_COUNT = 4;
 
 export default async function Today() {
@@ -21,17 +20,19 @@ export default async function Today() {
   if (!user) redirect("/signin");
 
   const now = new Date();
-  const [stored, source] = await Promise.all([
+  const [stored, source, settings] = await Promise.all([
     prisma.item.findMany({
       where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" } },
       orderBy: [{ start: "asc" }, { title: "asc" }],
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
+    loadSettings(user.id),
   ]);
 
   if (source?.disconnectedAt) redirect("/connection-lost");
 
-  const items = mergeWithSample(toPlanItems(stored), SAMPLE_DAY);
+  // Real items only now: the scheduler fills the day, so no sample day here.
+  const items = toPlanItems(stored);
   const banners = stored.filter((item) => item.allDay).map((item) => item.title);
 
   const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, weekday: "long" }).format(now);
@@ -48,10 +49,18 @@ export default async function Today() {
       weekday={weekday}
       date={date}
       now={nowMinutes}
-      workEnd={WORK_END}
+      workEnd={settings.work.end}
       items={items}
       banners={banners}
       reviewCount={SAMPLE_REVIEW_COUNT}
+      rhythm={{
+        ...DEFAULT_RHYTHM,
+        peakStart: settings.rhythm.peakStart,
+        dip: settings.rhythm.dip,
+        secondWind: settings.rhythm.secondWind,
+        wake: settings.rhythm.wake,
+        bed: settings.rhythm.bed,
+      }}
     />
   );
 }

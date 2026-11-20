@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { level, levelOf } from "./energy.ts";
+import { levelAt as level, levelOf } from "./curve.ts";
 import { dur, fmt, pct } from "./format.ts";
 import { parseSpeech } from "./speech.ts";
 import { ahead, energyTrack, freeSlot, load, nowCard, prioritySections, protectedLine, stripBlocks } from "./view.ts";

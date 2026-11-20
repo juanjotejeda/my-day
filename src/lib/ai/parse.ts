@@ -55,8 +55,10 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
     `Today is ${context.today} in ${context.timezone}.`,
     context.people?.length ? `People who may be mentioned: ${context.people.join(", ")}.` : "",
     "Read the line into one entry for a personal day planner.",
-    "A reminder is a nudge at a set time. An appointment is a fixed meeting. A task has no fixed time and gets placed for the person.",
-    "Only say gcal when the line asks for a calendar event. Never invent a time that was not said: use an empty string.",
+    "A reminder is a nudge at a set time. An appointment is a fixed meeting at a stated time. A task has no stated time and gets placed for the person.",
+    "If the line states no clock time, the type is always task, whatever the wording sounds like.",
+    "Never invent a time that was not said: use an empty string.",
+    "Never answer gcal: creating a Google Calendar event is a choice the person makes by hand.",
     "effort: deep for focused writing or design, meeting for calls, errand for things done out of the house, light for replies and admin.",
   ]
     .filter(Boolean)
@@ -90,11 +92,19 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
     const parsed = schema.safeParse(JSON.parse(content));
     if (!parsed.success) return fallback;
 
+    // Two guards on the model, because both mistakes are expensive:
+    // a model-invented time, and a calendar write nobody asked for.
+    const time = fallback.time ? parsed.data.time || fallback.time : "";
+    const type =
+      parsed.data.type === "gcal" || (time === "" && parsed.data.type !== "task")
+        ? ("task" as const)
+        : parsed.data.type;
+
     return {
-      type: parsed.data.type,
+      type,
       title: parsed.data.title.trim().slice(0, 60),
       day: parsed.data.day,
-      time: parsed.data.time,
+      time,
       dur: parsed.data.duration_min,
       effort: parsed.data.effort,
     };

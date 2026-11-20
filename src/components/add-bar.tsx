@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { SAMPLE_TRANSCRIPT } from "@/lib/plan/sample";
-import { parseSpeech } from "@/lib/plan/speech";
+import { parseInput } from "@/lib/parse/input";
 import { EMPTY_DRAFT, type AddType, type Draft } from "@/lib/plan/types";
 
 const TYPES: { key: AddType; label: string; sub: string }[] = [
@@ -22,38 +21,98 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [heard, setHeard] = useState("");
   const [listening, setListening] = useState(false);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [notice, setNotice] = useState("");
+  const [parsed, setParsed] = useState<(Draft & { title?: string }) | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
 
-  // The spec rules out the browser speech API inside a home-screen app, so the
-  // composer plays the design's scripted transcript until Voxtral is wired up.
-  function openVoice() {
-    if (timer.current) clearInterval(timer.current);
+  // Recording happens here and goes to /api/voice, which transcribes it with
+  // Voxtral. The browser speech API is not used: the spec rules it out inside a
+  // home-screen app. The audio is never stored, here or on the server.
+  async function openVoice() {
     setMode("voice");
     setHeard("");
-    setListening(true);
-    let shown = 0;
-    timer.current = setInterval(() => {
-      shown += 2;
-      setHeard(SAMPLE_TRANSCRIPT.slice(0, shown));
-      if (shown >= SAMPLE_TRANSCRIPT.length) {
-        if (timer.current) clearInterval(timer.current);
+    setNotice("");
+
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setNotice("This browser cannot record. Type it instead.");
+      setListening(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ["audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) chunks.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
         setListening(false);
-      }
-    }, 55);
+        if (!chunks.length) return;
+
+        setNotice("Writing it down");
+        const audio = new Blob(chunks, { type: recorder.mimeType || "audio/mp4" });
+        const body = new FormData();
+        body.append("audio", audio, recorder.mimeType.includes("webm") ? "note.webm" : "note.mp4");
+
+        try {
+          const response = await fetch("/api/voice", { method: "POST", body });
+          const result = (await response.json()) as {
+            transcript?: string;
+            draft?: Draft & { title?: string };
+            error?: string;
+          };
+          if (!response.ok || !result.transcript) {
+            setNotice(result.error ?? "That did not come through. Try again.");
+            return;
+          }
+          setHeard(result.transcript);
+          setNotice("");
+          setParsed(result.draft ?? null);
+        } catch {
+          setNotice("That did not come through. Try again.");
+        }
+      };
+
+      recorderRef.current = recorder;
+      recorder.start();
+      setListening(true);
+      // 30 seconds is the limit, as the spec says.
+      timer.current = setTimeout(() => stopRecording(), 30_000);
+    } catch {
+      setNotice("Microphone access was refused.");
+      setListening(false);
+    }
+  }
+
+  function stopRecording() {
+    if (timer.current) clearTimeout(timer.current);
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    recorderRef.current = null;
   }
 
   useEffect(
     () => () => {
-      if (timer.current) clearInterval(timer.current);
+      if (timer.current) clearTimeout(timer.current);
+      const recorder = recorderRef.current;
+      if (recorder && recorder.state !== "inactive") recorder.stop();
     },
     [],
   );
 
   const set = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
   const close = () => {
+    stopRecording();
     setMode("");
     setDraft(EMPTY_DRAFT);
     setHeard("");
+    setNotice("");
+    setParsed(null);
   };
 
   const pillStyle = (on: boolean) =>
@@ -209,27 +268,48 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
               ))}
             </div>
             <span role="status" className="text-sm text-muted">
-              {listening ? "Listening" : "Got it. Review before adding."}
+              {listening ? "Listening, tap stop when you are done" : notice || "Got it. Review before adding."}
             </span>
           </div>
 
-          <p className="min-h-[58px] text-[22px] leading-snug font-light text-navy">{heard || "Speak now"}</p>
+          <p className="min-h-[58px] text-[22px] leading-snug font-light text-navy">
+            {heard || (listening ? "Speak now" : notice || "Tap the microphone to start")}
+          </p>
           <p className="text-xs leading-snug text-muted">
             Say what, when and what kind. For example: remind me to call the plumber tomorrow at 9.
           </p>
 
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setDraft(parseSpeech(heard || SAMPLE_TRANSCRIPT));
-                setHeard("");
-                setMode("type");
-              }}
-              className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white"
-            >
-              Review and add
-            </button>
+            {listening ? (
+              <button
+                type="button"
+                onClick={stopRecording}
+                className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white"
+              >
+                Stop
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={!heard}
+                onClick={() => {
+                  const read = parsed ?? parseInput(heard);
+                  setDraft({
+                    type: (read.type ?? "task") as AddType,
+                    text: (parsed?.title ?? parseInput(heard).title) || heard,
+                    time: read.time ?? "",
+                    day: (read.day ?? "today") as Draft["day"],
+                    dur: ((read as { dur?: number }).dur ?? 30) as Draft["dur"],
+                  });
+                  setHeard("");
+                  setParsed(null);
+                  setMode("type");
+                }}
+                className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white disabled:opacity-40"
+              >
+                Review and add
+              </button>
+            )}
             <button
               type="button"
               onClick={close}

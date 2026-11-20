@@ -78,3 +78,15 @@ test("the title keeps its own capitals and loses filler", () => {
   assert.equal(parseInput("please add a task to email the Northwind team").title, "Email the Northwind team");
   assert.equal(parseInput("i need to book flights for December").title, "Book flights for December");
 });
+
+test("a line with no clock time never becomes a timed entry", () => {
+  for (const line of [
+    "Write the Northwind proposal for 2 hours",
+    "Review the deck for 3 hours tomorrow",
+    "Reply to Marco about the invoice, 20 min",
+  ]) {
+    const draft = parseInput(line);
+    assert.equal(draft.time, "", `${line} should carry no time`);
+    assert.equal(draft.type, "task", `${line} should be a task`);
+  }
+});
