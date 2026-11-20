@@ -74,6 +74,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   every settings value: use it to tell a stale screen from empty data.
 - A module that a `node --test` file imports uses relative imports with the `.ts`
   extension (`../day.ts`); Node cannot resolve the `@/` alias. App-only modules use `@/`.
+- Delete removes only what My Day created: typed or spoken items, and events it inserted into
+  Google Calendar, which it also deletes there. Ownership is `items.createdHere` plus the
+  "Added in My Day" marker on the Google event. Everything else answers "Delete this in Google
+  Calendar". The rule is pure and tested in `lib/plan/deletable.ts`.
 - Only the composer's Calendar button may create a Google Calendar event. A line of text or a
   voice note never writes to Google, and the model is never allowed to choose that type.
 - The model may not invent a time: a draft's time comes from the deterministic parser, and a

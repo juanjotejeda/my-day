@@ -3,6 +3,7 @@ import { parseWithMistral } from "@/lib/ai/parse";
 import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
 import { createCalendarEvent, deleteCalendarEvent, isMyDayEvent } from "@/lib/google/calendar-write";
 import type { ParsedInput } from "@/lib/parse/input";
+import { CALENDAR_REFUSAL, deleteDecision } from "@/lib/plan/deletable";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
 
@@ -209,28 +210,20 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
   const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
   if (!item) return { ok: false, message: "That item is gone already." };
 
-  const fromCalendar = item.sourceKind === "calendar";
-  let ownsEvent = item.createdHere && fromCalendar;
+  const decision = deleteDecision({ sourceKind: item.sourceKind, createdHere: item.createdHere });
 
-  // An event created before this column existed still carries My Day's marker.
-  if (fromCalendar && !ownsEvent && item.sourceRef) {
-    ownsEvent = await isMyDayEvent(userId, item.sourceRef);
+  if (decision.kind === "refuse") {
+    return { ok: false, deletable: false, message: decision.message };
   }
 
-  if (fromCalendar && !ownsEvent) {
-    return {
-      ok: false,
-      deletable: false,
-      message: "This event came from your calendar. Delete this in Google Calendar.",
-    };
-  }
+  // An event created before the marker was stored locally still carries it in Google.
+  const ownsEvent =
+    decision.kind === "delete"
+      ? decision.inGoogle
+      : Boolean(item.sourceRef) && (await isMyDayEvent(userId, item.sourceRef as string));
 
-  if (!item.createdHere && !ownsEvent) {
-    return {
-      ok: false,
-      deletable: false,
-      message: "This item came from your email. Dismiss it in Review instead.",
-    };
+  if (decision.kind === "ask-google" && !ownsEvent) {
+    return { ok: false, deletable: false, message: CALENDAR_REFUSAL };
   }
 
   if (ownsEvent && item.sourceRef) {
