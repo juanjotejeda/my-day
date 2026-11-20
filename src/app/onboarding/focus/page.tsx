@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { ChoiceGroup, SwitchRow } from "@/components/controls";
 import { FieldBlock, NoteCard, PrimaryLink, Screen, ScreenHeader, SettingsSection, StepHeader } from "@/components/ui";
 
@@ -20,7 +23,10 @@ const BUFFERS = [
 ];
 
 // O6 Focus and breaks.
-export default function Focus() {
+export default async function Focus() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+
   return (
     <Screen>
       <StepHeader back="/onboarding/priorities" step={5} />

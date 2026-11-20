@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { ChoiceGroup, SwitchRow } from "@/components/controls";
 import {
   DetailRow,
@@ -18,7 +21,10 @@ const VIP = [
 ];
 
 // O5 What matters.
-export default function Priorities() {
+export default async function Priorities() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+
   return (
     <Screen>
       <StepHeader back="/onboarding/energy" step={4} />

@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { ChoiceGroup, TimeRow } from "@/components/controls";
 import {
   FieldBlock,
@@ -20,7 +23,10 @@ const DAYS = [
 ];
 
 // O3 Your rhythm.
-export default function Rhythm() {
+export default async function Rhythm() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+
   return (
     <Screen>
       <StepHeader back="/onboarding/connect" step={2} />

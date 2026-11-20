@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { ChoiceGroup } from "@/components/controls";
 import { EnergyCurve } from "@/components/energy-curve";
 import { FieldBlock, NoteCard, PrimaryLink, Screen, ScreenHeader, StepHeader } from "@/components/ui";
@@ -9,7 +12,10 @@ const CHRONO = [
 ];
 
 // O4 Your energy.
-export default function Energy() {
+export default async function Energy() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+
   return (
     <Screen>
       <StepHeader back="/onboarding/rhythm" step={3} />

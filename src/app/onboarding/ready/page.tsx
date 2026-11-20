@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { DetailRow, NoteCard, PanelCard, PrimaryLink, Screen, ScreenHeader, SecondaryLink } from "@/components/ui";
 import { TIMEZONE } from "@/lib/day";
 
 // O7 First day ready. The counts come from the real plan once the milestones land.
-export default function Ready() {
+export default async function Ready() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+
   const today = new Intl.DateTimeFormat("en-GB", {
     timeZone: TIMEZONE,
     weekday: "long",
