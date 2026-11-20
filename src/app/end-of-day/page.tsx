@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { ChoiceGroup } from "@/components/controls";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import {
   DetailRow,
   ListCard,
@@ -19,6 +20,7 @@ import { SAMPLE_END_OF_DAY } from "@/lib/plan/sample-screens";
 export default async function EndOfDay() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+  const waiting = await reviewCount();
 
   const day = SAMPLE_END_OF_DAY;
 
@@ -70,7 +72,7 @@ export default async function EndOfDay() {
       <PrimaryLink href="/">Close the day</PrimaryLink>
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={4} />
+      <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import {
   ItemRow,
   ListCard,
@@ -18,6 +19,7 @@ import { SAMPLE_TOMORROW } from "@/lib/plan/sample-screens";
 export default async function Tomorrow() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+  const waiting = await reviewCount();
 
   return (
     <Screen>
@@ -82,7 +84,7 @@ export default async function Tomorrow() {
       <SecondaryLink href="/">Adjust tomorrow</SecondaryLink>
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={4} />
+      <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
 }

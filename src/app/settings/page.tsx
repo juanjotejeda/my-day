@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import { DetailRow, LinkRow, ListCard, Screen, ScreenHeader, SettingsSection } from "@/components/ui";
 
 // S0 Settings hub.
 export default async function Settings() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+  const waiting = await reviewCount();
 
   return (
     <Screen>
@@ -46,7 +48,7 @@ export default async function Settings() {
       </SettingsSection>
 
       <div className="flex-1" />
-      <BottomNav active="settings" reviewCount={4} />
+      <BottomNav active="settings" reviewCount={waiting} />
     </Screen>
   );
 }

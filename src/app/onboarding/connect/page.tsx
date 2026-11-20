@@ -1,5 +1,5 @@
-import { SwitchRow } from "@/components/controls";
 import {
+  DetailRow,
   LinkRow,
   ListCard,
   NoteCard,
@@ -18,16 +18,18 @@ export default function Connect() {
       <StepHeader back="/onboarding" step={1} />
       <ScreenHeader title="Connect Google" sub="My Day reads two things. You choose both." />
 
-      <SettingsSection title="Access">
-        <SwitchRow
+      <SettingsSection title="What My Day reads">
+        <DetailRow
           label="Google Calendar"
-          sub="See your events and free time. Read-only."
-          defaultOn
+          sub="Your events and free time, so the day is planned around what is already fixed. It can add new events you create here, and never changes the ones you already have."
         />
-        <SwitchRow
-          label="Gmail"
-          sub="Find requests, deadlines and promises in your email. Read-only."
-          defaultOn
+        <DetailRow
+          label="Gmail, read-only"
+          sub="Recent messages, to find what you are asked to do or attend. Newsletters and promotions are filtered out before anything is read further."
+        />
+        <DetailRow
+          label="You choose both"
+          sub="Google asks you on the next screen, and you can withdraw either one in your Google account at any time."
         />
       </SettingsSection>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { ChoiceGroup } from "@/components/controls";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import { DetailRow, ListCard, Screen, ScreenHeader, SectionTitle, StatTile } from "@/components/ui";
 import { SAMPLE_INSIGHTS } from "@/lib/plan/sample-screens";
 
@@ -11,6 +12,7 @@ import { SAMPLE_INSIGHTS } from "@/lib/plan/sample-screens";
 export default async function Insights() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+  const waiting = await reviewCount();
 
   const data = SAMPLE_INSIGHTS;
 
@@ -77,7 +79,7 @@ export default async function Insights() {
       <p className="text-xs leading-relaxed text-muted">Sample data for the prototype.</p>
 
       <div className="flex-1" />
-      <BottomNav active="insights" reviewCount={4} />
+      <BottomNav active="insights" reviewCount={waiting} />
     </Screen>
   );
 }

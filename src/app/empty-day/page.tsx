@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import { ItemRow, ListCard, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
 import { TIMEZONE } from "@/lib/day";
 
@@ -12,6 +13,7 @@ import { TIMEZONE } from "@/lib/day";
 export default async function EmptyDay() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
+  const waiting = await reviewCount();
 
   const now = new Date();
   const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, weekday: "long" }).format(now);
@@ -56,7 +58,7 @@ export default async function EmptyDay() {
       </section>
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={4} />
+      <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
 }

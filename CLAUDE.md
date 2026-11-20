@@ -85,6 +85,9 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   voice note never writes to Google, and the model is never allowed to choose that type.
 - The model may not invent a time: a draft's time comes from the deterministic parser, and a
   timed type without a time becomes a task.
+- A quote shown to Juan is always a line the email really contains: `bestQuote` keeps an exact
+  copy, recovers the closest real line from a paraphrase, and otherwise shows none.
+- Pre-filters run before every AI call, so a newsletter never reaches the model.
 - Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
   calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
 
@@ -106,6 +109,7 @@ is a per-screen job.
 | Today, Now and Priority | `/` |
 | Add by text (for a phone shortcut) | `POST /api/add` with `{ text }` |
 | Add by voice | `POST /api/voice` with an audio file |
+| Review | `/review`, candidates from Gmail |
 | Review | `/review` |
 | Item detail | `/item/[id]` |
 | Tomorrow, End of day | `/tomorrow`, `/end-of-day` |
@@ -157,5 +161,9 @@ docs/SPEC.md        the build spec, the source of truth
    `/api/voice` the Voxtral path, `lib/plan/add.ts` the add and correction writes, and
    `lib/plan/run.ts` runs the plan and stores each placement with its reason. Corrections
    persist to the corrections table. 4. Settings and onboarding (screens and persistence
-   exist; the scheduler already reads rhythm, work, focus and priorities). 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
+   exist; the scheduler already reads rhythm, work, focus and priorities). 5. **Gmail and Review** — done: `lib/google/gmail-sync.ts` syncs with a history token and falls
+   back to a dated search, `lib/parse/email.ts` strips quoted replies and signatures and filters
+   newsletters, promotions and ignored topics before any AI call, `lib/ai/extract.ts` asks
+   Mistral for the fixed JSON shape and validates it with Zod, and `lib/plan/candidates.ts`
+   turns candidates into items. Review and item detail read real data. 6. Rules. 7. Notifications and the day loop.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

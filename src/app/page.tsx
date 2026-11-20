@@ -8,8 +8,6 @@ import { toPlanItems } from "@/lib/plan/from-db";
 import { loadSettings } from "@/lib/settings";
 import { prisma } from "@/lib/prisma";
 
-// The review count still comes from the Gmail work in milestone 5.
-const SAMPLE_REVIEW_COUNT = 4;
 
 export default async function Today() {
   const session = await auth();
@@ -20,13 +18,14 @@ export default async function Today() {
   if (!user) redirect("/signin");
 
   const now = new Date();
-  const [stored, source, settings] = await Promise.all([
+  const [stored, source, settings, openCandidates] = await Promise.all([
     prisma.item.findMany({
       where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" }, archivedAt: null },
       orderBy: [{ start: "asc" }, { title: "asc" }],
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
     loadSettings(user.id),
+    prisma.candidate.count({ where: { userId: user.id, state: "open" } }),
   ]);
 
   if (source?.disconnectedAt) redirect("/connection-lost");
@@ -52,7 +51,7 @@ export default async function Today() {
       workEnd={settings.work.end}
       items={items}
       banners={banners}
-      reviewCount={SAMPLE_REVIEW_COUNT}
+      reviewCount={openCandidates}
       rhythm={{
         ...DEFAULT_RHYTHM,
         peakStart: settings.rhythm.peakStart,

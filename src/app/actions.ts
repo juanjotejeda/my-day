@@ -14,6 +14,10 @@ import {
   type AddResult,
   type CorrectionKind,
 } from "@/lib/plan/add";
+import {
+  acceptCandidate as acceptCandidateFor,
+  dismissCandidate as dismissCandidateFor,
+} from "@/lib/plan/candidates";
 import { prisma } from "@/lib/prisma";
 
 export type { AddResult, CorrectionKind };
@@ -64,6 +68,23 @@ export async function restoreArchived(itemId: string): Promise<AddResult> {
   const result = await restoreItemFor(user.id, itemId);
   revalidatePath("/");
   revalidatePath("/settings/archive");
+  return result;
+}
+
+export async function acceptCandidate(candidateId: string): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await acceptCandidateFor(user.id, candidateId);
+  revalidatePath("/");
+  revalidatePath("/review");
+  return result;
+}
+
+export async function dismissCandidate(candidateId: string): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await dismissCandidateFor(user.id, candidateId);
+  revalidatePath("/review");
   return result;
 }
 

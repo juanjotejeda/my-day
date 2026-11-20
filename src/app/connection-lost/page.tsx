@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
+import { reviewCount } from "@/lib/plan/review-count";
 import { ItemRow, ListCard, NoteCard, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
 import { hhmm } from "@/lib/day";
 import { SAMPLE_LAST_KNOWN } from "@/lib/plan/sample-screens";
@@ -12,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 export default async function ConnectionLost() {
   const session = await auth();
   if (!session?.user?.email) redirect("/signin");
+  const waiting = await reviewCount();
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
   const source = user
@@ -64,7 +66,7 @@ export default async function ConnectionLost() {
       </NoteCard>
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={4} />
+      <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
 }

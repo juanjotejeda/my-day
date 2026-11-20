@@ -36,6 +36,8 @@ export const prioritiesSchema = z.object({
   urgentDue: z.boolean().default(true),
   urgentWaiting: z.boolean().default(true),
   urgentVip: z.boolean().default(true),
+  /** Candidates from priority people, sure enough to skip Review. */
+  autoAddVip: z.boolean().default(false),
 });
 
 export const protectedSchema = z.object({

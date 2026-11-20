@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { GoogleDisconnected } from "@/lib/google/client";
 import { syncCalendars } from "@/lib/google/calendar-sync";
+import { syncGmail } from "@/lib/google/gmail-sync";
 import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 import { loadSettings } from "@/lib/settings";
@@ -36,7 +37,11 @@ export async function GET(request: Request) {
   ]);
 
   // The same loaders the screens use, so their view of the data is visible here.
-  const [plan, settings] = await Promise.all([loadToday(user.id), loadSettings(user.id)]);
+  const [plan, settings, openCandidates] = await Promise.all([
+    loadToday(user.id),
+    loadSettings(user.id),
+    prisma.candidate.count({ where: { userId: user.id, state: "open" } }),
+  ]);
 
   return Response.json({
     commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 8) ?? "local",
@@ -63,6 +68,7 @@ export async function GET(request: Request) {
       headline: plan.current ? "NOW card" : plan.next.length ? "NEXT card" : plan.total ? "Nothing left today" : "Nothing planned",
     },
     settings,
+    openCandidates,
   });
 }
 
@@ -81,6 +87,10 @@ export async function POST(request: Request) {
 
   try {
     const result = await syncCalendars(user.id);
+    // Gmail runs after the calendar: a candidate's suggested slot reads the day.
+    const mail = await syncGmail(user.id).catch((error) => ({
+      error: error instanceof Error ? error.message.slice(0, 160) : "gmail sync failed",
+    }));
     // The scheduler runs after every sync, so new events reshape the day at once.
     const run = await runPlan(user.id, dayDate(dayKey(new Date())));
     const settings = await loadSettings(user.id);
@@ -88,7 +98,7 @@ export async function POST(request: Request) {
     await prisma.eventLog.create({
       data: { userId: user.id, kind: "calendar_sync", payload: result },
     });
-    return Response.json({ ok: true, ...result, planned: run.placed, later: run.later, purged });
+    return Response.json({ ok: true, ...result, gmail: mail, planned: run.placed, later: run.later, purged });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await prisma.eventLog.create({
