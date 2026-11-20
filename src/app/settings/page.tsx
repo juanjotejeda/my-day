@@ -34,6 +34,7 @@ export default async function Settings() {
 
       <SettingsSection title="Data">
         <LinkRow href="/settings/privacy" label="Privacy and data" sub="What is stored and for how long" />
+        <LinkRow href="/settings/archive" label="Archive" sub="Deleted items, kept for 30 days" />
       </SettingsSection>
 
       <SettingsSection title="About">

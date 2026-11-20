@@ -180,6 +180,8 @@ model Item {
   /// True when My Day created this: a typed or spoken item, or an event it
   /// inserted into Google Calendar. Only these may be deleted from the app.
   createdHere       Boolean     @default(false)
+  /// Deleted by Juan: kept for the retention window, then removed for good.
+  archivedAt        DateTime?
   reason            String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
@@ -190,6 +192,7 @@ model Item {
   @@unique([userId, sourceRef])
   @@index([userId, day])
   @@index([userId, status])
+  @@index([userId, archivedAt])
   @@map("items")
 }
 

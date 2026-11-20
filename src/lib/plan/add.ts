@@ -236,6 +236,7 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
   await prisma.correction.create({
     data: {
       userId,
+      itemId: item.id,
       kind: "dismissed",
       before: {
         title: item.title,
@@ -247,12 +248,94 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
     },
   });
 
-  await prisma.item.delete({ where: { id: item.id } });
+  // Deleted, not gone: the Archive keeps it for the retention window.
+  await prisma.item.update({
+    where: { id: item.id },
+    data: { archivedAt: new Date(), status: "dropped", start: null, end: null },
+  });
   if (item.day) await runPlan(userId, item.day);
 
   return {
     ok: true,
     deletable: true,
-    message: ownsEvent ? "Deleted here and in Google Calendar." : "Deleted.",
+    message: ownsEvent
+      ? "Deleted here and in Google Calendar. It is in the Archive for 30 days."
+      : "Deleted. It is in the Archive for 30 days.",
   };
+}
+
+/** Everything in the Archive, newest first, with the days it has left. */
+export async function loadArchive(userId: string, retentionDays: number, now = new Date()) {
+  const items = await prisma.item.findMany({
+    where: { userId, archivedAt: { not: null } },
+    orderBy: { archivedAt: "desc" },
+  });
+
+  return items.map((item) => {
+    const archivedAt = item.archivedAt as Date;
+    const daysKept = Math.floor((now.getTime() - archivedAt.getTime()) / 86_400_000);
+    return {
+      id: item.id,
+      title: item.title,
+      archivedAt,
+      daysLeft: Math.max(0, retentionDays - daysKept),
+      kind: item.type,
+      source: item.sourceKind,
+      wasCalendarEvent: item.sourceKind === "calendar" && item.createdHere,
+      day: item.day,
+    };
+  });
+}
+
+/** Puts an archived item back, and recreates the Google event if it had one. */
+export async function restoreItem(userId: string, itemId: string): Promise<AddResult> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId, archivedAt: { not: null } },
+  });
+  if (!item) return { ok: false, message: "That item is not in the Archive." };
+
+  let note = "";
+  let sourceRef = item.sourceRef;
+  let sourceUrl = item.sourceUrl;
+
+  if (item.sourceKind === "calendar" && item.createdHere) {
+    // The event was deleted in Google, so restoring means creating it again.
+    const day = item.day ?? dayFor("today");
+    const start = item.start ?? at(day, "09:00");
+    const end = item.end ?? new Date(start.getTime() + 60 * 60_000);
+    const created = await createCalendarEvent(userId, { title: item.title, start, end });
+    if (created.ok) {
+      sourceRef = created.sourceRef;
+      sourceUrl = created.htmlLink;
+      note = " The event is back in your Google Calendar.";
+    } else {
+      note = ` It is in My Day only: ${created.error}`;
+    }
+  }
+
+  await prisma.item.update({
+    where: { id: item.id },
+    data: { archivedAt: null, status: "planned", sourceRef, sourceUrl },
+  });
+
+  await prisma.correction.create({
+    data: {
+      userId,
+      itemId: item.id,
+      kind: "dismissed",
+      after: { restored: true, title: item.title } as Prisma.InputJsonValue,
+    },
+  });
+
+  if (item.day) await runPlan(userId, item.day);
+  return { ok: true, message: `Restored.${note}` };
+}
+
+/** Removes what has outstayed the retention window, as the privacy page promises. */
+export async function purgeArchive(userId: string, retentionDays: number, now = new Date()) {
+  const cutoff = new Date(now.getTime() - retentionDays * 86_400_000);
+  const { count } = await prisma.item.deleteMany({
+    where: { userId, archivedAt: { lt: cutoff } },
+  });
+  return count;
 }

@@ -101,7 +101,7 @@ export type PlanRun = {
 export async function runPlan(userId: string, day: Date, now = new Date()): Promise<PlanRun> {
   const key = dayKey(day, "UTC");
   const items = await prisma.item.findMany({
-    where: { userId, day: dayDate(key), status: { in: ["planned", "done"] } },
+    where: { userId, day: dayDate(key), status: { in: ["planned", "done"] }, archivedAt: null },
   });
 
   const plannable = items.filter((item) => !item.allDay);

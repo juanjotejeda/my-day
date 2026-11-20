@@ -4,6 +4,7 @@ import { syncCalendars } from "@/lib/google/calendar-sync";
 import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 import { loadSettings } from "@/lib/settings";
+import { purgeArchive } from "@/lib/plan/add";
 import { runPlan } from "@/lib/plan/run";
 import { loadToday } from "@/lib/today";
 
@@ -82,10 +83,12 @@ export async function POST(request: Request) {
     const result = await syncCalendars(user.id);
     // The scheduler runs after every sync, so new events reshape the day at once.
     const run = await runPlan(user.id, dayDate(dayKey(new Date())));
+    const settings = await loadSettings(user.id);
+    const purged = await purgeArchive(user.id, settings.privacy.retentionDays);
     await prisma.eventLog.create({
       data: { userId: user.id, kind: "calendar_sync", payload: result },
     });
-    return Response.json({ ok: true, ...result, planned: run.placed, later: run.later });
+    return Response.json({ ok: true, ...result, planned: run.placed, later: run.later, purged });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await prisma.eventLog.create({

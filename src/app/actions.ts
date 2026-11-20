@@ -7,6 +7,7 @@ import type { ParsedInput } from "@/lib/parse/input";
 import {
   addDraft as addDraftFor,
   deleteItem as deleteItemFor,
+  restoreItem as restoreItemFor,
   addFromText as addFromTextFor,
   applyCorrection as applyCorrectionFor,
   replanToday as replanTodayFor,
@@ -54,6 +55,15 @@ export async function deleteItem(itemId: string): Promise<AddResult> {
   if (!user) return { ok: false, message: "Not signed in." };
   const result = await deleteItemFor(user.id, itemId);
   revalidatePath("/");
+  return result;
+}
+
+export async function restoreArchived(itemId: string): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await restoreItemFor(user.id, itemId);
+  revalidatePath("/");
+  revalidatePath("/settings/archive");
   return result;
 }
 

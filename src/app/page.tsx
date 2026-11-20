@@ -22,7 +22,7 @@ export default async function Today() {
   const now = new Date();
   const [stored, source, settings] = await Promise.all([
     prisma.item.findMany({
-      where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" } },
+      where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" }, archivedAt: null },
       orderBy: [{ start: "asc" }, { title: "asc" }],
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
