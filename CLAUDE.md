@@ -64,10 +64,44 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 - Keep the AI provider behind `src/lib/ai` so models can change without touching features.
 - Scheduling stays plain TypeScript, a pure function `plan(day, items, settings, rules)`.
 - Build and lint after each step; fix errors before reporting done.
+- Settings save through `saveSection` in `src/lib/settings.ts`: Zod-validated, merged into the
+  JSON column, with a `settings_history` row per change. Never write those columns directly.
+- `GET /api/sync` with the worker secret reports the commit, the day as the screens see it and
+  every settings value: use it to tell a stale screen from empty data.
 - A module that a `node --test` file imports uses relative imports with the `.ts`
   extension (`../day.ts`); Node cannot resolve the `@/` alias. App-only modules use `@/`.
 - Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
   calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
+
+## Screens first
+
+`docs/design/` holds the 24 approved screen designs plus a README that explains the
+`.dc.html` format. They are the source of truth for layout, colour, type, spacing, copy and
+interactions. Where a design and `docs/SPEC.md` disagree on how a screen looks, the design
+wins; on data, behaviour or security, the spec wins (so S7's "OpenAI" and "STRATO" read as
+Mistral and Railway in the app).
+
+All 24 screens are built. Real synced calendar events fill Today; everywhere else the
+design's sample content stands in until its milestone lands. The sample data lives in
+`src/lib/plan/sample.ts` and `src/lib/plan/sample-screens.ts`, nowhere else, so replacing it
+is a per-screen job.
+
+| Screen | Route |
+| --- | --- |
+| Today, Now and Priority | `/` |
+| Review | `/review` |
+| Item detail | `/item/[id]` |
+| Tomorrow, End of day | `/tomorrow`, `/end-of-day` |
+| Insights | `/insights` |
+| Empty day, Connection lost | `/empty-day`, `/connection-lost` |
+| Onboarding O1 to O7 | `/onboarding`, `/onboarding/connect` … `/onboarding/ready` |
+| Settings S0 to S8 | `/settings`, `/settings/rhythm` … `/settings/profile` |
+| Privacy policy (public) | `/privacy` |
+
+Shared UI lives in `src/components/ui.tsx` (cards, rows, chips, headers, links) and
+`src/components/controls.tsx` (switch, choice pills, range, time). Reuse them before writing
+new markup. The settings screens are driven by data: add a field to `src/lib/settings-spec.ts`
+and `SettingsScreen` renders and saves it.
 
 ## Design rules
 
@@ -84,7 +118,8 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 ```
 src/app/            layout, globals.css, manifest.ts, page.tsx (Today), signin/, api/
 src/components/     shared UI
-src/lib/            prisma.ts, crypto.ts, day.ts, today.ts
+src/lib/            prisma.ts, crypto.ts, day.ts, today.ts, settings*.ts
+src/lib/plan/       types, energy curve, formatting, view maths, sample data, db conversion
 src/lib/google/     client.ts, calendar-sync.ts, map-event.ts (+ tests)
 worker/             index.mjs, the worker service: node-cron calling /api/sync
 src/generated/      Prisma client, generated, not committed
@@ -100,6 +135,7 @@ docs/SPEC.md        the build spec, the source of truth
 2. **Calendar** — done: encrypted-token Google client, calendar sync with sync tokens and a
    dated window fallback, `/api/sync`, the worker service, Today strip and lists from real
    events, Connection lost banner.
-3. Manual input and scheduler. 4. Settings and
-   onboarding. 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
+3. Manual input and scheduler (the add bar and adjust sheet exist as screens; the parser,
+   Voxtral and the real scheduler are still to come). 4. Settings and onboarding (screens and
+   persistence exist; the plan does not read the settings yet). 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

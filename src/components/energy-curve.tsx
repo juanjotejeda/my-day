@@ -24,10 +24,12 @@ export function EnergyCurve({
   defaultPeak = 9,
   defaultDip = true,
   defaultSecond = true,
+  onChange,
 }: {
   defaultPeak?: number;
   defaultDip?: boolean;
   defaultSecond?: boolean;
+  onChange?: (change: { key: "peakStart" | "dip" | "secondWind"; value: number | boolean }) => void;
 }) {
   const [peak, setPeak] = useState(defaultPeak);
   const [dip, setDip] = useState(defaultDip);
@@ -105,7 +107,11 @@ export function EnergyCurve({
           step={0.5}
           value={peak}
           aria-label="Peak window"
-          onChange={(event) => setPeak(Number(event.target.value))}
+          onChange={(event) => {
+            const next = Number(event.target.value);
+            setPeak(next);
+            onChange?.({ key: "peakStart", value: next });
+          }}
           className="h-11 w-full accent-[#4A6FAE]"
         />
       </label>
@@ -117,7 +123,14 @@ export function EnergyCurve({
             Energy drops for an hour or two after lunch
           </span>
         </div>
-        <Switch label="Dip after lunch" defaultOn={dip} onChange={setDip} />
+        <Switch
+          label="Dip after lunch"
+          defaultOn={dip}
+          onChange={(on) => {
+            setDip(on);
+            onChange?.({ key: "dip", value: on });
+          }}
+        />
       </div>
 
       <div className="flex min-h-14 items-center gap-3 border-t border-divider py-2">
@@ -125,7 +138,14 @@ export function EnergyCurve({
           <span className="text-base">Second wind</span>
           <span className="text-[13px] leading-snug text-muted">A smaller rise in the late afternoon</span>
         </div>
-        <Switch label="Second wind" defaultOn={second} onChange={setSecond} />
+        <Switch
+          label="Second wind"
+          defaultOn={second}
+          onChange={(on) => {
+            setSecond(on);
+            onChange?.({ key: "secondWind", value: on });
+          }}
+        />
       </div>
     </div>
   );

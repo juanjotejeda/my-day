@@ -3,6 +3,7 @@ import { GoogleDisconnected } from "@/lib/google/client";
 import { syncCalendars } from "@/lib/google/calendar-sync";
 import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
+import { loadSettings } from "@/lib/settings";
 import { loadToday } from "@/lib/today";
 
 /** The worker with the shared secret, or Juan's own session. */
@@ -32,8 +33,8 @@ export async function GET(request: Request) {
     prisma.item.count({ where: { userId: user.id } }),
   ]);
 
-  // The same loader the Today screen uses, so its own view of the day is visible here.
-  const plan = await loadToday(user.id);
+  // The same loaders the screens use, so their view of the data is visible here.
+  const [plan, settings] = await Promise.all([loadToday(user.id), loadSettings(user.id)]);
 
   return Response.json({
     commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 8) ?? "local",
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
       earlier: plan.earlier.length,
       headline: plan.current ? "NOW card" : plan.next.length ? "NEXT card" : plan.total ? "Nothing left today" : "Nothing planned",
     },
+    settings,
   });
 }
 
