@@ -3,21 +3,55 @@ import { GoogleDisconnected } from "@/lib/google/client";
 import { syncCalendars } from "@/lib/google/calendar-sync";
 import { prisma } from "@/lib/prisma";
 
+/** The worker with the shared secret, or Juan's own session. */
+async function authorize(request: Request): Promise<boolean> {
+  const secret = request.headers.get("x-worker-secret");
+  if (process.env.WORKER_SECRET && secret && secret === process.env.WORKER_SECRET) return true;
+  const session = await auth();
+  return session?.user?.email?.toLowerCase() === process.env.ALLOWED_EMAIL?.toLowerCase();
+}
+
+import { dayDate, dayKey } from "@/lib/day";
+
+/**
+ * What the server itself sees: when it last synced and how many items it holds.
+ * Useful for telling "the server has no events" apart from "this browser is
+ * showing an old page". No titles, no event content.
+ */
+export async function GET(request: Request) {
+  const allowed = await authorize(request);
+  if (!allowed) return Response.json({ error: "unauthorized" }, { status: 401 });
+
+  const email = process.env.ALLOWED_EMAIL?.toLowerCase();
+  const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+  if (!user) return Response.json({ error: "no user yet, sign in first" }, { status: 409 });
+
+  const [source, today, total] = await Promise.all([
+    prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
+    prisma.item.count({ where: { userId: user.id, day: dayDate(dayKey(new Date())) } }),
+    prisma.item.count({ where: { userId: user.id } }),
+  ]);
+
+  return Response.json({
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 8) ?? "local",
+    timezone: process.env.TZ ?? null,
+    day: dayKey(new Date()),
+    itemsToday: today,
+    itemsTotal: total,
+    calendarIds: source?.calendarIds ?? [],
+    lastSyncAt: source?.lastSyncAt ?? null,
+    lastError: source?.lastError ?? null,
+    disconnected: Boolean(source?.disconnectedAt),
+  });
+}
+
 /**
  * Runs a calendar sync. Called by the worker service every 5 minutes with the
  * shared secret, or by Juan's own session for an immediate sync.
  */
 export async function POST(request: Request) {
-  const secret = request.headers.get("x-worker-secret");
-  const fromWorker = Boolean(
-    process.env.WORKER_SECRET && secret && secret === process.env.WORKER_SECRET,
-  );
-
-  if (!fromWorker) {
-    const session = await auth();
-    if (session?.user?.email?.toLowerCase() !== process.env.ALLOWED_EMAIL?.toLowerCase()) {
-      return Response.json({ error: "unauthorized" }, { status: 401 });
-    }
+  if (!(await authorize(request))) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const email = process.env.ALLOWED_EMAIL?.toLowerCase();
