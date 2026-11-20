@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Palette and type from docs/SPEC.md and the canvas page "R2 minimal calm". */
+@theme {
+  --color-navy: #243a63; /* text, primary */
+  --color-muted: #56647d; /* secondary text */
+  --color-sky: #d5e1f5; /* base, borders, pressed */
+  --color-surface: #f4f7fc; /* cards, input fill */
+  --color-line: #e3ebf8; /* card borders */
+  --color-divider: #eaf0fa; /* rows inside cards */
+  --color-mid: #8aa9de; /* fixed blocks, now line */
+  --color-accent: #4a6fae; /* links, labels, badges */
+  --color-peak: #a3bde8; /* energy peak */
+
+  --font-sans: var(--font-roboto), system-ui, sans-serif;
+
+  --radius-card: 22px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  /* The home-screen app runs full screen; keep content clear of the home bar. */
+  padding-bottom: env(safe-area-inset-bottom);
+}

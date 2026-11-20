@@ -1,0 +1,286 @@
+// My Day data model, see docs/SPEC.md "Data model".
+// One items table holds every kind of entry; every item keeps its source and a link back.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SourceProvider {
+  google
+}
+
+enum ItemType {
+  calendar
+  appointment
+  reminder
+  task
+}
+
+enum ItemRank {
+  must
+  should
+  could
+  protected
+  later
+}
+
+enum Category {
+  work
+  personal
+}
+
+enum Effort {
+  deep
+  light
+  meeting
+  errand
+  break
+}
+
+enum ItemStatus {
+  planned
+  done
+  moved
+  dropped
+}
+
+enum ItemSource {
+  calendar
+  gmail
+  manual
+  voice
+}
+
+enum CandidateState {
+  open
+  accepted
+  dismissed
+}
+
+enum CorrectionKind {
+  tomorrow
+  important
+  more_time
+  category
+  done
+  moved_time
+  dismissed
+}
+
+enum RuleOrigin {
+  stated
+  learned
+  suggested
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  timezone  String   @default("Europe/Berlin")
+  locale    String   @default("en")
+  createdAt DateTime @default(now())
+
+  settings          Settings?
+  settingsHistory   SettingsHistory[]
+  sources           Source[]
+  items             Item[]
+  candidates        Candidate[]
+  corrections       Correction[]
+  rules             Rule[]
+  dayReviews        DayReview[]
+  pushSubscriptions PushSubscription[]
+  eventsLog         EventLog[]
+
+  @@map("users")
+}
+
+/// JSON columns, validated with Zod in the app. Every change also writes a SettingsHistory row.
+model Settings {
+  userId        String   @id
+  rhythm        Json     @default("{}")
+  work          Json     @default("{}")
+  focus         Json     @default("{}")
+  priorities    Json     @default("{}")
+  protectedTime Json     @default("[]")
+  notifications Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+model SettingsHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  settings  Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("settings_history")
+}
+
+/// Google connection. The refresh token is AES-256-GCM encrypted, never logged, never sent to the browser.
+model Source {
+  id                    String         @id @default(cuid())
+  userId                String
+  kind                  SourceProvider @default(google)
+  encryptedRefreshToken String?
+  scopes                String[]       @default([])
+  calendarIds           String[]       @default([])
+  calendarSyncToken     String?
+  gmailHistoryId        String?
+  lastSyncAt            DateTime?
+  lastError             String?
+  disconnectedAt        DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind])
+  @@map("sources")
+}
+
+model Item {
+  id                String      @id @default(cuid())
+  userId            String
+  type              ItemType
+  title             String
+  start             DateTime?
+  end               DateTime?
+  allDay            Boolean     @default(false)
+  fixed             Boolean     @default(false)
+  flexibleDuration  Int?
+  rank              ItemRank    @default(should)
+  important         Boolean     @default(false)
+  category          Category    @default(work)
+  effort            Effort?
+  status            ItemStatus  @default(planned)
+  day               DateTime?   @db.Date
+  sourceKind        ItemSource
+  sourceRef         String?
+  sourceUrl         String?
+  sourceQuote       String?
+  reason            String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  corrections Correction[]
+
+  @@unique([userId, sourceRef])
+  @@index([userId, day])
+  @@index([userId, status])
+  @@map("items")
+}
+
+/// The Review queue: what Mistral found in an email, before Juan accepts it.
+model Candidate {
+  id             String         @id @default(cuid())
+  userId         String
+  gmailMessageId String
+  threadId       String
+  from           String
+  subject        String
+  receivedAt     DateTime
+  quote          String?
+  extracted      Json
+  confidence     Float
+  state          CandidateState @default(open)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gmailMessageId])
+  @@index([userId, state])
+  @@map("candidates")
+}
+
+/// Raw feedback from the adjust sheet: the input for rules.
+model Correction {
+  id        String         @id @default(cuid())
+  userId    String
+  itemId    String?
+  kind      CorrectionKind
+  before    Json?
+  after     Json?
+  createdAt DateTime       @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@index([userId, kind, createdAt])
+  @@map("corrections")
+}
+
+model Rule {
+  id            String     @id @default(cuid())
+  userId        String
+  text          String
+  kind          String
+  params        Json       @default("{}")
+  origin        RuleOrigin
+  evidenceCount Int        @default(0)
+  active        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active])
+  @@map("rules")
+}
+
+model DayReview {
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime @db.Date
+  doneCount    Int      @default(0)
+  plannedCount Int      @default(0)
+  feeling      String?
+  planRight    String?
+  carryOver    Json     @default("[]")
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("day_reviews")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_subscriptions")
+}
+
+/// Plan accepted, screen opened, sync errors: the raw data for the evaluation.
+model EventLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  kind      String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([kind, createdAt])
+  @@map("events_log")
+}

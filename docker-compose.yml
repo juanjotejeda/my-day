@@ -1,0 +1,24 @@
+# Local Postgres for development. Production uses Railway Postgres.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: myday-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: myday
+      POSTGRES_PASSWORD: myday
+      POSTGRES_DB: myday
+      TZ: Europe/Berlin
+    ports:
+      # 5432 on the host is taken by another project, so My Day uses 5433.
+      - "5433:5432"
+    volumes:
+      - myday-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myday -d myday"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  myday-db:
