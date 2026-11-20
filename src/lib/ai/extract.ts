@@ -24,7 +24,10 @@ export const extractedItem = z.object({
   confidence: z.coerce.number().min(0).max(1),
 });
 
-export const extraction = z.object({ items: z.array(extractedItem).max(8) });
+export const extraction = z.object({ items: z.array(extractedItem) });
+
+/** One email rarely holds more than a few things Juan must do. */
+export const MAX_ITEMS = 5;
 
 export type ExtractedItem = z.infer<typeof extractedItem>;
 
@@ -105,6 +108,7 @@ function instructions(context: ExtractContext): string {
     "quote must be copied from the email, word for word, at most 200 characters.",
     "confidence is how sure you are that this is really his to do, from 0 to 1.",
     "Use later for something with no date that can wait.",
+    `Return at most ${MAX_ITEMS} items: the ones he really has to act on.`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -176,11 +180,12 @@ export async function extractFromEmail(
       if (parsed.success) {
         return {
           ok: true,
-          // The quote has to be a line the email really contains.
-          items: parsed.data.items.map((item) => ({
-            ...item,
-            quote: bestQuote(email.text, item.quote),
-          })),
+          // The quote has to be a line the email really contains. A long list is
+          // trimmed to the most confident few rather than refused.
+          items: parsed.data.items
+            .sort((a, b) => b.confidence - a.confidence)
+            .slice(0, MAX_ITEMS)
+            .map((item) => ({ ...item, quote: bestQuote(email.text, item.quote) })),
         };
       }
       // The reason, so a failure can be read later without the email.
