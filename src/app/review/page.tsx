@@ -1,13 +1,12 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Placeholder() {
-  return (
-    <main className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center gap-3 px-5 py-16">
-      <h1 className="text-[28px] font-light">Next group</h1>
-      <p className="text-base leading-relaxed text-muted">This screen arrives in the next push.</p>
-      <Link href="/" className="text-sm text-accent">
-        Back to Today
-      </Link>
-    </main>
-  );
+import { ReviewScreen } from "@/components/review-screen";
+import { auth } from "@/auth";
+import { SAMPLE_CANDIDATES } from "@/lib/plan/sample-screens";
+
+// Real candidates arrive with the Gmail extraction in milestone 5.
+export default async function Review() {
+  const session = await auth();
+  if (!session?.user) redirect("/signin");
+  return <ReviewScreen candidates={SAMPLE_CANDIDATES} />;
 }

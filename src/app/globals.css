@@ -11,6 +11,9 @@
   --color-mid: #8aa9de; /* fixed blocks, now line */
   --color-accent: #4a6fae; /* links, labels, badges */
   --color-peak: #a3bde8; /* energy peak */
+  --color-ok: #2e7a55; /* a day that fits */
+  --color-alert: #fbedea; /* connection lost card */
+  --color-alert-ink: #a3341f; /* connection lost heading */
 
   --font-sans: var(--font-roboto), system-ui, sans-serif;
 

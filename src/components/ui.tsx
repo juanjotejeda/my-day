@@ -66,3 +66,177 @@ export function Screen({ children, className = "" }: { children: ReactNode; clas
     </main>
   );
 }
+
+/** Small label over a big light headline, the top of every screen but Today. */
+export function ScreenHeader({
+  label,
+  title,
+  sub,
+  size = 36,
+}: {
+  label?: string;
+  title: string;
+  sub?: string;
+  size?: 32 | 36 | 40 | 44;
+}) {
+  return (
+    <div className="flex flex-col gap-2 p-1">
+      {label ? <div className="text-[15px] text-muted">{label}</div> : null}
+      <h1
+        className="leading-tight font-light tracking-[-0.02em]"
+        style={{ fontSize: `${size}px` }}
+      >
+        {title}
+      </h1>
+      {sub ? <p className="text-base leading-relaxed text-muted">{sub}</p> : null}
+    </div>
+  );
+}
+
+export type ChipVariant = "sky" | "divider" | "dashed";
+
+export function Chip({ children, variant = "sky" }: { children: ReactNode; variant?: ChipVariant }) {
+  const styles: Record<ChipVariant, string> = {
+    sky: "bg-sky text-navy",
+    divider: "bg-divider text-navy",
+    dashed: "border border-dashed border-mid text-accent",
+  };
+  return (
+    <span className={`inline-flex min-h-[26px] items-center rounded-full px-2.5 text-xs ${styles[variant]}`}>
+      {children}
+    </span>
+  );
+}
+
+/** White card holding rows that separate themselves with a top line. */
+export function ListCard({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`rounded-card border border-line bg-white px-4 pt-1 pb-2 ${className}`}>{children}</div>;
+}
+
+export function PanelCard({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">{children}</div>;
+}
+
+/** Label on the left, value on the right: the settings and detail row. */
+export function DetailRow({ label, sub, value }: { label: ReactNode; sub?: ReactNode; value?: ReactNode }) {
+  return (
+    <div className="flex min-h-[52px] items-center justify-between gap-3 border-t border-divider py-1.5">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-base">{label}</span>
+        {sub ? <span className="text-[13px] leading-snug text-muted">{sub}</span> : null}
+      </div>
+      {value ? <span className="text-right text-[15px] text-muted">{value}</span> : null}
+    </div>
+  );
+}
+
+/** One plan item in a list: energy bar, title, time chip, meta. */
+export function ItemRow({
+  title,
+  time,
+  meta,
+  fill,
+  variant = "divider",
+  href,
+}: {
+  title: string;
+  time: string;
+  meta: string;
+  fill: string;
+  variant?: ChipVariant;
+  href?: string;
+}) {
+  const inner = (
+    <>
+      <span className="w-1 flex-none self-stretch rounded-sm" style={{ background: fill }} />
+      <span className="flex flex-1 flex-col gap-1">
+        <span className="text-base">{title}</span>
+        <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+          <Chip variant={variant}>{time}</Chip>
+          <span>{meta}</span>
+        </span>
+      </span>
+    </>
+  );
+
+  const className = "flex min-h-[60px] gap-3 border-t border-divider py-2.5 text-left";
+  return href ? (
+    <Link href={href} className={className}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={className}>{inner}</div>
+  );
+}
+
+/** Quiet explainer block: small accent label over a sentence. */
+export function NoteCard({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-[18px] bg-surface px-4 py-3.5">
+      <div className="text-xs tracking-[0.08em] text-accent">{label}</div>
+      <div className="text-sm leading-relaxed">{children}</div>
+    </div>
+  );
+}
+
+export function Quote({ children }: { children: ReactNode }) {
+  return (
+    <blockquote className="m-0 rounded-xl bg-surface px-3 py-2.5 text-sm leading-relaxed">{children}</blockquote>
+  );
+}
+
+export function PrimaryLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-[54px] items-center justify-center rounded-full bg-navy text-base text-white"
+    >
+      {children}
+    </Link>
+  );
+}
+
+export function SecondaryLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-[52px] items-center justify-center rounded-full border border-sky bg-white text-[15px] text-navy"
+    >
+      {children}
+    </Link>
+  );
+}
+
+/** Round back button with the screen it returns to. */
+export function BackHeader({ href, label }: { href: string; label: string }) {
+  return (
+    <div className="flex min-h-12 items-center gap-2">
+      <Link
+        href={href}
+        aria-label="Back"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-surface"
+      >
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path
+            d="M11 3.5L5.5 9l5.5 5.5"
+            fill="none"
+            stroke="#243A63"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+      <span className="flex-1 text-[15px] text-muted">{label}</span>
+    </div>
+  );
+}
+
+export function StatTile({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col gap-1 rounded-[18px] bg-surface p-3.5">
+      <span className="text-[30px] font-light">{value}</span>
+      <span className="text-[13px] text-muted">{label}</span>
+    </div>
+  );
+}
