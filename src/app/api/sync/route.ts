@@ -43,6 +43,11 @@ export async function GET(request: Request) {
     itemsToday: today,
     itemsTotal: total,
     calendarIds: source?.calendarIds ?? [],
+    // Which Google scopes the stored consent actually carries, and what the
+    // calendar list discovery found. No tokens, no event content.
+    scopes: source?.scopes ?? [],
+    calendars: source?.calendars ?? [],
+    tokenStored: Boolean(source?.encryptedRefreshToken),
     lastSyncAt: source?.lastSyncAt ?? null,
     lastError: source?.lastError ?? null,
     disconnected: Boolean(source?.disconnectedAt),
