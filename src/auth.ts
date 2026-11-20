@@ -18,6 +18,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: { signIn: "/signin" },
   providers: [
     Google({
+      // Auth.js would look for AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET; the spec names
+      // these variables GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, so pass them in.
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           scope: SCOPES.join(" "),
