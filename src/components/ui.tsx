@@ -77,7 +77,7 @@ export function ScreenHeader({
   label?: string;
   title: string;
   sub?: string;
-  size?: 32 | 36 | 40 | 44;
+  size?: 32 | 36 | 40 | 44 | 64;
 }) {
   return (
     <div className="flex flex-col gap-2 p-1">
@@ -237,6 +237,64 @@ export function StatTile({ value, label }: { value: string; label: string }) {
     <div className="flex flex-col gap-1 rounded-[18px] bg-surface p-3.5">
       <span className="text-[30px] font-light">{value}</span>
       <span className="text-[13px] text-muted">{label}</span>
+    </div>
+  );
+}
+
+/** Back arrow with "Step n of 5" and the progress bars under it. */
+export function StepHeader({ back, step, steps = 5 }: { back: string; step: number; steps?: number }) {
+  return (
+    <>
+      <BackHeader href={back} label={`Step ${step} of ${steps}`} />
+      <div role="img" aria-label={`Step ${step} of ${steps}`} className="flex gap-1.5 px-1 pt-1">
+        {Array.from({ length: steps }, (_, index) => (
+          <span
+            key={index}
+            className={`h-1 flex-1 rounded-sm ${index < step ? "bg-navy" : "bg-sky"}`}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** A row that leads somewhere, with a chevron. */
+export function LinkRow({ href, label, sub, value }: { href: string; label: string; sub?: string; value?: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-14 items-center justify-between gap-3 border-t border-divider py-1.5 text-navy"
+    >
+      <span className="flex flex-col gap-0.5">
+        <span className="text-base">{label}</span>
+        {sub ? <span className="text-[13px] leading-snug text-muted">{sub}</span> : null}
+      </span>
+      <span className="flex items-center gap-2 text-sm text-muted">
+        {value}
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="#56647D" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      </span>
+    </Link>
+  );
+}
+
+/** Section title over a list card. */
+export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <SectionTitle>{title}</SectionTitle>
+      <ListCard>{children}</ListCard>
+    </section>
+  );
+}
+
+/** A labelled block of choice pills inside a card. */
+export function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2 py-2">
+      <div className="text-[13px] text-muted">{label}</div>
+      {children}
     </div>
   );
 }
