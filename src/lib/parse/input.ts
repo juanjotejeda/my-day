@@ -1,3 +1,5 @@
+import { readWhen } from "./when.ts";
+
 /**
  * Reads a typed or spoken line into a draft. Deterministic and instant, so the
  * add bar never waits for a model; the Mistral parse in lib/ai/parse.ts takes
@@ -9,7 +11,10 @@ export type ParsedEffort = "deep" | "light" | "meeting" | "errand";
 export type ParsedInput = {
   type: ParsedType;
   title: string;
+  /** Kept for the composer's Today and Tomorrow pills. */
   day: "today" | "tomorrow";
+  /** The day as an ISO date: a weekday or a date lands here too. */
+  date?: string;
   /** "HH:MM", or empty when no time was said. */
   time: string;
   dur: number;
@@ -28,6 +33,7 @@ const DURATION_PATTERNS: [RegExp, (match: RegExpMatchArray) => number][] = [
 ];
 
 const TIME_PATTERN = /\bat\s+(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?\b/i;
+const ON_WORD = /\s*\bon\s*$/i;
 
 const MEETING_WORDS =
   /\b(meeting|call|standup|stand-up|interview|1:1|one on one|sync|catch up|coffee with|lunch with|dinner with|drinks with)\b/i;
@@ -37,8 +43,13 @@ const DEEP_WORDS = /\b(write|draft|design|proposal|deck|plan|strategy|architectu
 const ERRAND_WORDS = /\b(pick up|collect|buy|post|drop off|shop|groceries|bank|pharmacy)\b/i;
 const LIGHT_WORDS = /\b(reply|answer|email|invoice|admin|expenses|book|confirm|send|check|call back|quick)\b/i;
 
-function cleanTitle(text: string): string {
+function cleanTitle(text: string, when?: string): string {
   let title = text.trim();
+  if (when) {
+    title = title.replace(when, " ");
+    // "Write the proposal on Monday" should not leave a dangling "on".
+    title = title.replace(ON_WORD, "");
+  }
   title = title.replace(FILLER, "");
   title = title.replace(TIME_PATTERN, " ");
   for (const [pattern] of DURATION_PATTERNS) title = title.replace(pattern, " ");
@@ -94,15 +105,20 @@ function readEffort(text: string, type: ParsedType): ParsedEffort {
   return type === "appt" || type === "gcal" ? "meeting" : "light";
 }
 
-export function parseInput(said: string): ParsedInput {
+export function parseInput(said: string, today?: string): ParsedInput {
   const text = (said ?? "").trim();
   const time = readTime(text);
   const type = readType(text, Boolean(time));
+  const reference = today ?? new Date().toISOString().slice(0, 10);
+  const when = readWhen(text, reference);
+
+  const tomorrow = new Date(Date.parse(`${reference}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
 
   return {
     type,
-    title: cleanTitle(text),
-    day: /\b(tomorrow|tmr|tmrw)\b/i.test(text) ? "tomorrow" : "today",
+    title: cleanTitle(text, when?.matched),
+    day: when?.date === tomorrow ? "tomorrow" : "today",
+    date: when?.date ?? reference,
     time,
     dur: readDuration(text) ?? 30,
     effort: readEffort(text, type),

@@ -122,12 +122,19 @@ export async function runPlan(userId: string, day: Date, now = new Date()): Prom
   }));
 
   const isToday = key === dayKey(now);
+  // Deep work already behind us today still counts against the day's budget.
+  const focusSpentMin = plannable
+    .filter((item) => item.effort === "deep" && item.start && item.end)
+    .filter((item) => item.status === "done" || (item.end as Date) <= now)
+    .reduce((total, item) => total + ((item.end as Date).getTime() - (item.start as Date).getTime()) / 60_000, 0);
+
   const result = plan({
     day: key,
     items: plannable.map(toSchedulerItem),
     settings,
     rules,
     earliest: isToday ? minutesOfDay(now) : undefined,
+    focusSpentMin: isToday ? Math.round(focusSpentMin) : 0,
   });
 
   // A split task keeps one row: the first block's start, the last block's end.

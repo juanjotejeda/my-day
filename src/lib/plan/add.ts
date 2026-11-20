@@ -17,6 +17,25 @@ function dayFor(which: "today" | "tomorrow", now = new Date()): Date {
   return dayDate(dayKey(when));
 }
 
+/** The day a draft is for: its ISO date when it has one, else the pill. */
+function draftDay(draft: ParsedInput, now = new Date()): Date {
+  if (draft.date && /^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return dayDate(draft.date);
+  return dayFor(draft.day, now);
+}
+
+/** today, tomorrow, or the weekday and date, for a toast. */
+function dayWord(day: Date, now = new Date()): string {
+  const key = dayKey(day, "UTC");
+  if (key === dayKey(now)) return "today";
+  if (key === dayKey(new Date(now.getTime() + 86_400_000))) return "tomorrow";
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(day);
+}
+
 /** A wall-clock time on a day, as an instant. */
 function at(day: Date, time: string): Date {
   const [hours, minutes] = time.split(":").map(Number);
@@ -45,7 +64,7 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
   const title = draft.title.trim();
   if (!title) return { ok: false, message: "Type or say what to add first." };
 
-  const day = dayFor(draft.day);
+  const day = draftDay(draft);
   const timed = draft.type !== "task";
   if (timed && !draft.time) {
     return { ok: false, message: `Add a time for this ${draft.type === "reminder" ? "reminder" : "appointment"}.` };
@@ -93,18 +112,20 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
 
   const run = await runPlan(userId, day);
 
+  const whenWord = dayWord(day);
   if (timed) {
     return {
       ok: true,
-      message: `${draft.type === "reminder" ? "Reminder" : draft.type === "gcal" ? "Event" : "Appointment"} added for ${
-        draft.day === "tomorrow" ? "tomorrow" : "today"
-      } at ${draft.time}.${calendarNote}`,
+      message: `${
+        draft.type === "reminder" ? "Reminder" : draft.type === "gcal" ? "Event" : "Appointment"
+      } added for ${whenWord} at ${draft.time}.${calendarNote}`,
     };
   }
 
   const placed = run.reasonFor(item.id);
   if (placed?.start) {
-    return { ok: true, message: `Task added at ${hhmm(placed.start)}. ${placed.reason}` };
+    const where = whenWord === "today" ? "" : ` ${whenWord}`;
+    return { ok: true, message: `Task added${where} at ${hhmm(placed.start)}. ${placed.reason}` };
   }
   return { ok: true, message: `Task added to Later. ${placed?.reason ?? "No free slot today."}` };
 }

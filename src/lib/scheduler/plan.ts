@@ -202,6 +202,7 @@ export function plan({
   settings,
   rules = [],
   earliest,
+  focusSpentMin = 0,
 }: {
   day: string;
   items: SchedulerItem[];
@@ -209,6 +210,8 @@ export function plan({
   rules?: Rule[];
   /** Nothing is placed before this minute, so a re-plan never moves work into the past. */
   earliest?: number;
+  /** Deep minutes already spent today, so the focus budget holds across re-plans. */
+  focusSpentMin?: number;
 }): PlanResult {
   const { rhythm, work, focus } = settings;
   const wake = toMinutes(rhythm.wake);
@@ -264,7 +267,7 @@ export function plan({
   );
 
   const later: Postponed[] = [];
-  let focusPlaced = 0;
+  let focusPlaced = focusSpentMin;
 
   for (const item of flexible) {
     if (item.category === "work" && !isWorkday && settings.protectedTime.noWorkWeekends) {

@@ -198,6 +198,19 @@ test("rules add minutes and can move a category", () => {
   assert.equal(placed.category, "personal");
 });
 
+test("the focus budget counts deep work already spent today", () => {
+  const items = [task("more", 120, { effort: "deep", rank: "must" })];
+  const fresh = plan({ day: MONDAY, items, settings: SETTINGS });
+  assert.ok(fresh.placements.some((p) => p.id === "more"), "with the budget free it fits");
+
+  const spent = plan({ day: MONDAY, items, settings: SETTINGS, focusSpentMin: 4 * 60 });
+  assert.ok(
+    spent.later.some((entry) => entry.id === "more"),
+    "with four hours of deep work behind us, another block waits",
+  );
+  assert.match(spent.later[0].reason, /focus time left/i);
+});
+
 test("every placement explains itself in one line", () => {
   const result = plan({
     day: MONDAY,

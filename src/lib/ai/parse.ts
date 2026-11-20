@@ -102,8 +102,11 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
 
     return {
       type,
+      // When comes from the deterministic parser: weekdays and dates are its job,
+      // and a model-invented day is as costly as a model-invented time.
+      date: fallback.date,
       title: parsed.data.title.trim().slice(0, 60),
-      day: parsed.data.day,
+      day: fallback.day,
       time,
       dur: parsed.data.duration_min,
       effort: parsed.data.effort,
