@@ -50,6 +50,12 @@ export async function GET(request: Request) {
     }),
   ]);
 
+  const candidateStates = await prisma.candidate.groupBy({
+    by: ["state"],
+    where: { userId: user.id },
+    _count: { _all: true },
+  });
+
   return Response.json({
     commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 8) ?? "local",
     timezone: process.env.TZ ?? null,
@@ -76,6 +82,9 @@ export async function GET(request: Request) {
     },
     settings,
     openCandidates,
+    candidatesByState: Object.fromEntries(
+      candidateStates.map((row) => [row.state, row._count._all]),
+    ),
     extractErrors: extractErrors.map((row) => ({
       at: row.createdAt,
       error: (row.payload as { error?: string } | null)?.error ?? "unknown",
