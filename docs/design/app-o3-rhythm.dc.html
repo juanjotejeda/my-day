@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Day: Your rhythm</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#4A6FAE}a:hover{color:#243A63}
+button{font-family:inherit;font-weight:400}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1460px; position: relative; background: #FFFFFF; font-family: Roboto, system-ui, sans-serif; font-weight: 400; color: #243A63; display: flex; flex-direction: column">
+<div style="flex: 1; box-sizing: border-box; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 8px; min-height: 48px"><a href="app-o2-connect.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #F4F7FC; text-decoration: none"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11 3.5L5.5 9l5.5 5.5" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></a><span style="flex: 1; font-size: 15px; color: #56647D">Step 2 of 5</span></div><div aria-label="Step 2 of 5" role="img" style="display: flex; gap: 6px; padding: 4px 4px 0"><span style="flex: 1; height: 4px; border-radius: 2px; background: #243A63"></span><span style="flex: 1; height: 4px; border-radius: 2px; background: #243A63"></span><span style="flex: 1; height: 4px; border-radius: 2px; background: #D5E1F5"></span><span style="flex: 1; height: 4px; border-radius: 2px; background: #D5E1F5"></span><span style="flex: 1; height: 4px; border-radius: 2px; background: #D5E1F5"></span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 4px"><h1 style="margin: 0; font-size: 36px; font-weight: 300; line-height: 1.1; letter-spacing: -0.02em; color: #243A63">Your rhythm</h1><div style="font-size: 16px; line-height: 1.5; color: #56647D">When your day starts, when work happens and when it stops.</div></div><section style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px"><h2 style="margin: 0; font-size: 22px; font-weight: 300; color: #243A63">Day</h2></div><div style="background: #FFFFFF; border: 1px solid #E3EBF8; border-radius: 22px; padding: 4px 16px 8px"><label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-top: 1px solid #EAF0FA; font-size: 16px; color: #243A63">Wake up<input type="time" value="{{tm_wake.v}}" onChange="{{tm_wake.set}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63"></label><label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-top: 1px solid #EAF0FA; font-size: 16px; color: #243A63">Bedtime<input type="time" value="{{tm_bed.v}}" onChange="{{tm_bed.set}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63"></label></div></section><section style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px"><h2 style="margin: 0; font-size: 22px; font-weight: 300; color: #243A63">Work</h2></div><div style="background: #FFFFFF; border: 1px solid #E3EBF8; border-radius: 22px; padding: 4px 16px 8px"><div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 0"><div style="font-size: 13px; color: #56647D">Working days</div><div role="group" aria-label="Working days" style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{g_days}}" as="c" hint-placeholder-count="7"><button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button></sc-for></div></div><label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-top: 1px solid #EAF0FA; font-size: 16px; color: #243A63">Work starts<input type="time" value="{{tm_start.v}}" onChange="{{tm_start.set}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63"></label><label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-top: 1px solid #EAF0FA; font-size: 16px; color: #243A63">Work ends<input type="time" value="{{tm_end.v}}" onChange="{{tm_end.set}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63"></label><label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-top: 1px solid #EAF0FA; font-size: 16px; color: #243A63">Lunch<input type="time" value="{{tm_lunch.v}}" onChange="{{tm_lunch.set}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63"></label></div></section><div style="background: #F4F7FC; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px"><div style="font-size: 12px; letter-spacing: 0.08em; color: #4A6FAE">WHAT THIS CHANGES</div><div style="font-size: 14px; line-height: 1.55; color: #243A63">Nothing is placed before you wake up or in the last hour before bed. Work tasks stay inside working days and hours. Lunch is kept free.</div></div><a href="app-o4-energy.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 54px; border-radius: 999px; background: #243A63; color: #FFFFFF; font-size: 16px; text-decoration: none">Continue</a>
+<div style="flex: 1"></div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1460}}'>
+var CFG = {"toggles": {}, "groups": {"days": {"multi": true, "opts": [{"v": "mo", "t": "Mon"}, {"v": "tu", "t": "Tue"}, {"v": "we", "t": "Wed"}, {"v": "th", "t": "Thu"}, {"v": "fr", "t": "Fri"}, {"v": "sa", "t": "Sat"}, {"v": "su", "t": "Sun"}], "val": ["mo", "tu", "we", "th", "fr"], "sets": {}}}, "ranges": {}, "times": {"wake": "06:45", "bed": "23:00", "start": "08:30", "end": "18:00", "lunch": "12:00"}, "curve": false};
+function hm(v){ var h = Math.floor(v), m = Math.round((v - h) * 60); return (h<10?'0':'')+h+':'+(m<10?'0':'')+m; }
+function g(m, mu, sd){ var z = (m - mu) / sd; return Math.exp(-z*z/2); }
+class Component extends DCLogic {
+  renderVals(){
+    var self = this, s = this.state || {}, out = {};
+    var ON = 'background:#D5E1F5;border-color:#8AA9DE;', OFF = 'background:#FFFFFF;';
+    Object.keys(CFG.toggles).forEach(function(k){
+      var key = 't_'+k, on = (key in s) ? s[key] : CFG.toggles[k];
+      out[key] = {on: on, off: !on, aria: on ? 'true' : 'false', track: on ? 'background:#243A63;' : 'background:#D5E1F5;', knob: on ? 'transform:translateX(20px);' : '',
+        flip: function(){ var p = {}; p[key] = !on; self.setState(p); }};
+    });
+    Object.keys(CFG.groups).forEach(function(k){
+      var G = CFG.groups[k], key = 'g_'+k, val = (key in s) ? s[key] : G.val;
+      out[key] = G.opts.map(function(o){
+        var sel = val.indexOf(o.v) >= 0;
+        return {t: o.t, pressed: sel, st: sel ? ON : OFF, pick: function(){
+          var nv = G.multi ? (sel ? val.filter(function(x){ return x !== o.v; }) : val.concat([o.v])) : [o.v];
+          var p = {}; p[key] = nv; var extra = G.sets[o.v] || {};
+          Object.keys(extra).forEach(function(r){ p['r_'+r] = extra[r]; });
+          self.setState(p);
+        }};
+      });
+      out[key+'_val'] = val;
+    });
+    Object.keys(CFG.ranges).forEach(function(k){
+      var R = CFG.ranges[k], key = 'r_'+k, v = (key in s) ? s[key] : R.v;
+      var label = R.fmt === 'h' ? hm(v) : (R.fmt === 'win' ? hm(v)+' to '+hm(v + 3) : (R.fmt === 'min' ? v+' min' : String(v)));
+      out[key] = {v: v, label: label, set: function(e){ var p = {}; p[key] = Number(e.target.value); self.setState(p); }};
+    });
+    Object.keys(CFG.times).forEach(function(k){
+      var key = 'tm_'+k, v = (key in s) ? s[key] : CFG.times[k];
+      out[key] = {v: v, set: function(e){ var p = {}; p[key] = e.target.value; self.setState(p); }};
+    });
+    if (CFG.curve) {
+      var peak = out.r_peak ? out.r_peak.v : 9;
+      var dip = out.t_dip ? out.t_dip.on : true, second = out.t_second ? out.t_second.on : true;
+      var c = (peak + 1.5) * 60, pts = [];
+      var E = function(m){ var e = 0.15 + 0.75*g(m, c, 95) + (second ? 0.32*g(m, c + 400, 70) : 0) - (dip ? 0.14*g(m, c + 250, 45) : 0) - 0.1*g(m, 22.5*60, 60); return Math.max(0.05, Math.min(1, e)); };
+      for (var m = 360; m <= 1380; m += 10) pts.push(((m - 360) / 1020 * 326).toFixed(1)+' '+(104 - E(m) * 94).toFixed(1));
+      var line = 'M' + pts.join(' L');
+      out.cv = {line: line, area: line + ' L326 110 L0 110 Z', px: ((peak*60 - 360) / 1020 * 326).toFixed(1), pw: (180 / 1020 * 326).toFixed(1),
+        summary: 'Deep work '+hm(peak)+' to '+hm(peak + 3)+(dip ? ' · dip after lunch' : '')+(second ? ' · second wind' : '')};
+    }
+    return out;
+  }
+}
+</script>
+</body>
+</html>
