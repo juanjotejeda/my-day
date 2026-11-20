@@ -10,20 +10,23 @@
     "build": "next build",
     "start": "prisma migrate deploy && next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/**/*.test.ts",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
     "icons": "node scripts/make-icons.mjs",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "worker": "node worker/index.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "googleapis": "^190.0.0",
     "next": "16.4.6",
     "next-auth": "5.0.0-beta.32",
+    "node-cron": "^4.6.0",
     "prisma": "7.10.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"

@@ -30,6 +30,14 @@ pnpm test           # node --test over src/**/*.test.ts
 pnpm db:migrate     # prisma migrate dev
 pnpm db:studio
 pnpm icons          # regenerate the PNG icons from public/icon.svg
+pnpm worker         # the sync worker loop (needs APP_URL and WORKER_SECRET)
+```
+
+Trigger a sync by hand while the dev server runs:
+
+```bash
+curl -X POST -H "x-worker-secret: $(grep '^WORKER_SECRET=' .env.local | cut -d'\"' -f2)" \
+  http://localhost:3000/api/sync
 ```
 
 Host port 5432 is taken by another project, so local Postgres listens on **5433**.
@@ -56,6 +64,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 - Keep the AI provider behind `src/lib/ai` so models can change without touching features.
 - Scheduling stays plain TypeScript, a pure function `plan(day, items, settings, rules)`.
 - Build and lint after each step; fix errors before reporting done.
+- A module that a `node --test` file imports uses relative imports with the `.ts`
+  extension (`../day.ts`); Node cannot resolve the `@/` alias. App-only modules use `@/`.
+- Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
+  calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
 
 ## Design rules
 
@@ -70,9 +82,11 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 ## Layout
 
 ```
-src/app/            layout, globals.css, manifest.ts, page.tsx (Today), signin/, api/auth/
+src/app/            layout, globals.css, manifest.ts, page.tsx (Today), signin/, api/
 src/components/     shared UI
-src/lib/            prisma.ts, crypto.ts (AES-256-GCM for the refresh token)
+src/lib/            prisma.ts, crypto.ts, day.ts, today.ts
+src/lib/google/     client.ts, calendar-sync.ts, map-event.ts (+ tests)
+worker/             index.mjs, the worker service: node-cron calling /api/sync
 src/generated/      Prisma client, generated, not committed
 prisma/             schema.prisma and migrations
 docs/SPEC.md        the build spec, the source of truth
@@ -83,6 +97,9 @@ docs/SPEC.md        the build spec, the source of truth
 1. **Skeleton** — done: Next.js, Tailwind tokens, Roboto, manifest and service worker, Prisma
    with the full data model, Auth.js Google sign-in limited to one email, empty Today screen,
    Railway config.
-2. Calendar sync with a worker service. 3. Manual input and scheduler. 4. Settings and
+2. **Calendar** — done: encrypted-token Google client, calendar sync with sync tokens and a
+   dated window fallback, `/api/sync`, the worker service, Today strip and lists from real
+   events, Connection lost banner.
+3. Manual input and scheduler. 4. Settings and
    onboarding. 5. Gmail and Review with Mistral. 6. Rules. 7. Notifications and the day loop.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

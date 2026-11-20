@@ -1,53 +1,66 @@
 import { redirect } from "next/navigation";
 
 import { auth, signOut } from "@/auth";
+import { DayStrip } from "@/components/day-strip";
+import { DAY_END_HOUR, DAY_START_HOUR, TIMEZONE, hhmm } from "@/lib/day";
+import { syncCalendars } from "@/lib/google/calendar-sync";
+import { prisma } from "@/lib/prisma";
+import { loadToday, progressThrough } from "@/lib/today";
 
-// Until milestone 4 brings the settings screens, work hours come from the spec defaults.
-const DAY_START_HOUR = 7;
-const DAY_END_HOUR = 22;
+// Work hours still come from the spec defaults; the settings screens arrive with milestone 4.
 const WORK_END = "18:00";
-const TIMEZONE = process.env.TZ || "Europe/Berlin";
 
-function parts(now: Date) {
-  const weekday = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIMEZONE,
-    weekday: "long",
-  }).format(now);
-  const date = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIMEZONE,
-    day: "2-digit",
-    month: "2-digit",
-  })
+function header(now: Date) {
+  const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, weekday: "long" }).format(now);
+  const date = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, day: "2-digit", month: "2-digit" })
     .format(now)
     .replace("/", ".");
-  const time = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIMEZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(now);
-  return { weekday, date, time };
+  return { weekday, date };
+}
+
+function timeRange(start: Date | null, end: Date | null): string {
+  if (!start) return "all day";
+  return end ? `${hhmm(start)} to ${hhmm(end)}` : hhmm(start);
 }
 
 export default async function Today() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
 
-  const { weekday, date, time } = parts(new Date());
-  const hours = `${String(DAY_START_HOUR).padStart(2, "0")} to ${DAY_END_HOUR}`;
+  const email = session.user.email?.toLowerCase();
+  const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+  if (!user) redirect("/signin");
+
+  const now = new Date();
+  const { weekday, date } = header(now);
+  const [plan, source] = await Promise.all([
+    loadToday(user.id, now),
+    prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
+  ]);
+  const { banners, blocks, current, next, rest } = plan;
+  const disconnected = Boolean(source?.disconnectedAt);
+
+  async function syncNow() {
+    "use server";
+    const signedIn = await auth();
+    const signedInEmail = signedIn?.user?.email?.toLowerCase();
+    if (!signedInEmail || signedInEmail !== process.env.ALLOWED_EMAIL?.toLowerCase()) return;
+    const me = await prisma.user.findUnique({ where: { email: signedInEmail } });
+    if (me) await syncCalendars(me.id).catch(() => undefined);
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/");
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
       <header className="flex items-end justify-between px-1 pt-3 pb-2">
         <div className="flex flex-col gap-0.5">
           <span className="text-[17px] font-light text-muted">{weekday}</span>
-          <span className="text-[86px] font-light leading-[0.92] tracking-[-0.04em]">
-            {date}
-          </span>
+          <span className="text-[86px] font-light leading-[0.92] tracking-[-0.04em]">{date}</span>
         </div>
         <div className="flex flex-col gap-3.5 pb-1.5 text-right">
           <div>
-            <div className="text-2xl font-light tabular-nums">{time}</div>
+            <div className="text-2xl font-light tabular-nums">{hhmm(now)}</div>
             <div className="text-[13px] text-muted">now</div>
           </div>
           <div>
@@ -56,6 +69,15 @@ export default async function Today() {
           </div>
         </div>
       </header>
+
+      {disconnected ? (
+        <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
+          <p className="text-[15px]">Google is no longer connected, so today may be out of date.</p>
+          <a href="/signin" className="text-sm text-accent underline-offset-4 hover:underline">
+            Reconnect Google
+          </a>
+        </div>
+      ) : null}
 
       {/* Add bar: the form behind it arrives with milestone 3. */}
       <div className="sticky top-0 z-10 -mt-1.5 bg-white pt-1.5 pb-2">
@@ -74,16 +96,7 @@ export default async function Today() {
             className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-navy"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-              <rect
-                x="9"
-                y="3"
-                width="6"
-                height="11"
-                rx="3"
-                fill="none"
-                stroke="#FFFFFF"
-                strokeWidth="1.6"
-              />
+              <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="#FFFFFF" strokeWidth="1.6" />
               <path
                 d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"
                 fill="none"
@@ -96,43 +109,109 @@ export default async function Today() {
         </div>
       </div>
 
-      <section className="flex flex-col gap-2.5 rounded-card border border-line p-4">
-        <div
-          role="img"
-          aria-label={`Whole day from ${DAY_START_HOUR}:00 to ${DAY_END_HOUR}:00, nothing planned`}
-          className="h-3.5 rounded-full border border-dashed border-sky"
-        />
-        <div className="flex justify-between text-[11px] text-muted tabular-nums">
-          <span>07</span>
-          <span>12</span>
-          <span>17</span>
-          <span>22</span>
+      {banners.length ? (
+        <div className="flex flex-col gap-1.5">
+          {banners.map((item) => (
+            <div key={item.id} className="rounded-card bg-surface px-4 py-3 text-[15px]">
+              {item.title}
+              <span className="pl-2 text-xs text-muted">all day</span>
+            </div>
+          ))}
         </div>
-        <p className="text-xs leading-relaxed text-muted">{hours} · nothing planned</p>
-      </section>
+      ) : null}
 
-      <div className="flex flex-col gap-2 px-1 pt-7">
-        <h1 className="text-[34px] font-light leading-tight tracking-[-0.02em]">
-          Nothing planned
-        </h1>
-        <p className="text-base leading-relaxed text-muted">
-          No appointments, no tasks. Your calendar joins in with the next milestone.
-        </p>
-      </div>
+      <DayStrip blocks={blocks} now={now} />
+
+      {current ? (
+        <section className="flex flex-col gap-2.5 rounded-card bg-surface p-4">
+          <span className="text-xs tracking-[0.1em] text-accent">NOW</span>
+          <h1 className="text-[32px] font-light leading-tight tracking-[-0.01em]">{current.title}</h1>
+          <p className="text-[15px]">{timeRange(current.start, current.end)}</p>
+          <div className="h-1.5 overflow-hidden rounded-full bg-divider">
+            <div className="h-1.5 bg-mid" style={{ width: `${progressThrough(current, now) * 100}%` }} />
+          </div>
+          <p className="text-[13px] leading-relaxed text-muted">
+            From your calendar, so it stays fixed.
+          </p>
+        </section>
+      ) : next.length ? (
+        <section className="flex flex-col gap-2.5 rounded-card bg-surface p-4">
+          <span className="text-xs tracking-[0.1em] text-accent">NEXT</span>
+          <h1 className="text-[32px] font-light leading-tight tracking-[-0.01em]">{next[0].title}</h1>
+          <p className="text-[15px]">{timeRange(next[0].start, next[0].end)}</p>
+          <p className="text-[13px] leading-relaxed text-muted">
+            Nothing on right now. The day is yours until then.
+          </p>
+        </section>
+      ) : (
+        <div className="flex flex-col gap-2 px-1 pt-7">
+          <h1 className="text-[34px] font-light leading-tight tracking-[-0.02em]">
+            {plan.total ? "Nothing left today" : "Nothing planned"}
+          </h1>
+          <p className="text-base leading-relaxed text-muted">
+            {plan.total
+              ? "Everything in your calendar today has passed."
+              : `${String(DAY_START_HOUR).padStart(2, "0")} to ${DAY_END_HOUR} with nothing in your calendar.`}
+          </p>
+        </div>
+      )}
+
+      {next.length > 1 ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="mx-1 text-[22px] font-light">Next</h2>
+          <ul className="overflow-hidden rounded-card border border-line">
+            {next.slice(current ? 0 : 1).map((item) => (
+              <li key={item.id} className="flex items-center gap-3 border-b border-divider px-3.5 py-2.5 last:border-b-0">
+                <span className="w-1 self-stretch rounded-sm bg-mid" />
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="text-[15px]">{item.title}</span>
+                  <span className="text-xs text-muted tabular-nums">{timeRange(item.start, item.end)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {rest.length ? (
+        <details className="rounded-card border border-line px-3.5 py-1">
+          <summary className="flex min-h-[50px] cursor-pointer items-center justify-between text-[15px]">
+            Rest of today ({rest.length})
+            <span className="text-[13px] text-muted">tap to open</span>
+          </summary>
+          <ul className="pb-2">
+            {rest.map((item) => (
+              <li key={item.id} className="flex items-center justify-between gap-3 border-t border-divider py-2.5">
+                <span className="text-[15px]">{item.title}</span>
+                <span className="text-xs text-muted tabular-nums">{timeRange(item.start, item.end)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
 
       <div className="flex-1" />
 
-      <form
-        action={async () => {
-          "use server";
-          await signOut({ redirectTo: "/signin" });
-        }}
-        className="px-1"
-      >
-        <button type="submit" className="min-h-11 text-sm text-muted underline-offset-4 hover:underline">
-          Sign out
-        </button>
-      </form>
+      <div className="flex items-center justify-between gap-4 px-1">
+        <form action={syncNow}>
+          <button type="submit" className="min-h-11 text-sm text-accent underline-offset-4 hover:underline">
+            Sync now
+          </button>
+        </form>
+        <span className="text-xs text-muted">
+          {source?.lastSyncAt ? `synced ${hhmm(source.lastSyncAt)}` : "not synced yet"}
+        </span>
+        <form
+          action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/signin" });
+          }}
+        >
+          <button type="submit" className="min-h-11 text-sm text-muted underline-offset-4 hover:underline">
+            Sign out
+          </button>
+        </form>
+      </div>
 
       <nav
         aria-label="Main"

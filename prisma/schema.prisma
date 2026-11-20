@@ -137,7 +137,8 @@ model Source {
   encryptedRefreshToken String?
   scopes                String[]       @default([])
   calendarIds           String[]       @default([])
-  calendarSyncToken     String?
+  /// One nextSyncToken per calendar id: {"<calendarId>": "<token>"}
+  calendarSyncToken     Json           @default("{}")
   gmailHistoryId        String?
   lastSyncAt            DateTime?
   lastError             String?

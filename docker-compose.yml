@@ -1,3 +1,6 @@
+# Pinned so the volume name does not depend on the folder name.
+name: myday
+
 # Local Postgres for development. Production uses Railway Postgres.
 services:
   db:
