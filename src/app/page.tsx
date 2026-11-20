@@ -5,7 +5,8 @@ import { DayStrip } from "@/components/day-strip";
 import { DAY_END_HOUR, DAY_START_HOUR, TIMEZONE, hhmm } from "@/lib/day";
 import { syncCalendars } from "@/lib/google/calendar-sync";
 import { prisma } from "@/lib/prisma";
-import { loadToday, progressThrough } from "@/lib/today";
+import { progressThrough } from "@/lib/day-plan";
+import { loadToday } from "@/lib/today";
 
 // Work hours still come from the spec defaults; the settings screens arrive with milestone 4.
 const WORK_END = "18:00";
@@ -37,7 +38,9 @@ export default async function Today() {
     loadToday(user.id, now),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
   ]);
-  const { banners, blocks, current, next, rest } = plan;
+  const { banners, blocks, current, next, later, earlier, total } = plan;
+  const cardItem = current ?? next[0] ?? null;
+  const nextList = current ? next : next.slice(1);
   const disconnected = Boolean(source?.disconnectedAt);
 
   async function syncNow() {
@@ -122,46 +125,44 @@ export default async function Today() {
 
       <DayStrip blocks={blocks} now={now} />
 
-      {current ? (
+      {cardItem ? (
         <section className="flex flex-col gap-2.5 rounded-card bg-surface p-4">
-          <span className="text-xs tracking-[0.1em] text-accent">NOW</span>
-          <h1 className="text-[32px] font-light leading-tight tracking-[-0.01em]">{current.title}</h1>
-          <p className="text-[15px]">{timeRange(current.start, current.end)}</p>
-          <div className="h-1.5 overflow-hidden rounded-full bg-divider">
-            <div className="h-1.5 bg-mid" style={{ width: `${progressThrough(current, now) * 100}%` }} />
-          </div>
+          <span className="text-xs tracking-[0.1em] text-accent">{current ? "NOW" : "NEXT"}</span>
+          <h1 className="text-[32px] font-light leading-tight tracking-[-0.01em]">{cardItem.title}</h1>
+          <p className="text-[15px]">{timeRange(cardItem.start, cardItem.end)}</p>
+          {current ? (
+            <div className="h-1.5 overflow-hidden rounded-full bg-divider">
+              <div className="h-1.5 bg-mid" style={{ width: `${progressThrough(current, now) * 100}%` }} />
+            </div>
+          ) : null}
           <p className="text-[13px] leading-relaxed text-muted">
-            From your calendar, so it stays fixed.
-          </p>
-        </section>
-      ) : next.length ? (
-        <section className="flex flex-col gap-2.5 rounded-card bg-surface p-4">
-          <span className="text-xs tracking-[0.1em] text-accent">NEXT</span>
-          <h1 className="text-[32px] font-light leading-tight tracking-[-0.01em]">{next[0].title}</h1>
-          <p className="text-[15px]">{timeRange(next[0].start, next[0].end)}</p>
-          <p className="text-[13px] leading-relaxed text-muted">
-            Nothing on right now. The day is yours until then.
+            {current
+              ? "From your calendar, so it stays fixed."
+              : "Nothing on right now. The day is yours until then."}
           </p>
         </section>
       ) : (
         <div className="flex flex-col gap-2 px-1 pt-7">
           <h1 className="text-[34px] font-light leading-tight tracking-[-0.02em]">
-            {plan.total ? "Nothing left today" : "Nothing planned"}
+            {total ? "Nothing left today" : "Nothing planned"}
           </h1>
           <p className="text-base leading-relaxed text-muted">
-            {plan.total
-              ? "Everything in your calendar today has passed."
+            {total
+              ? "Everything in your calendar today has already happened."
               : `${String(DAY_START_HOUR).padStart(2, "0")} to ${DAY_END_HOUR} with nothing in your calendar.`}
           </p>
         </div>
       )}
 
-      {next.length > 1 ? (
+      {nextList.length ? (
         <section className="flex flex-col gap-2">
           <h2 className="mx-1 text-[22px] font-light">Next</h2>
           <ul className="overflow-hidden rounded-card border border-line">
-            {next.slice(current ? 0 : 1).map((item) => (
-              <li key={item.id} className="flex items-center gap-3 border-b border-divider px-3.5 py-2.5 last:border-b-0">
+            {nextList.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 border-b border-divider px-3.5 py-2.5 last:border-b-0"
+              >
                 <span className="w-1 self-stretch rounded-sm bg-mid" />
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="text-[15px]">{item.title}</span>
@@ -173,17 +174,36 @@ export default async function Today() {
         </section>
       ) : null}
 
-      {rest.length ? (
+      {later.length ? (
         <details className="rounded-card border border-line px-3.5 py-1">
           <summary className="flex min-h-[50px] cursor-pointer items-center justify-between text-[15px]">
-            Rest of today ({rest.length})
-            <span className="text-[13px] text-muted">tap to open</span>
+            Rest of today ({later.length})
           </summary>
           <ul className="pb-2">
-            {rest.map((item) => (
+            {later.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-3 border-t border-divider py-2.5">
                 <span className="text-[15px]">{item.title}</span>
                 <span className="text-xs text-muted tabular-nums">{timeRange(item.start, item.end)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+
+      {/* Open when nothing is on now and nothing is coming: the day still had events. */}
+      {earlier.length ? (
+        <details open={!cardItem} className="rounded-card border border-line px-3.5 py-1">
+          <summary className="flex min-h-[50px] cursor-pointer items-center justify-between text-[15px]">
+            Earlier today ({earlier.length})
+          </summary>
+          <ul className="pb-2">
+            {earlier.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-3 border-t border-divider py-2.5 text-muted"
+              >
+                <span className="text-[15px]">{item.title}</span>
+                <span className="text-xs tabular-nums">{timeRange(item.start, item.end)}</span>
               </li>
             ))}
           </ul>

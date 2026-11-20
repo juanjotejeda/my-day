@@ -1,7 +1,9 @@
 import { auth } from "@/auth";
 import { GoogleDisconnected } from "@/lib/google/client";
 import { syncCalendars } from "@/lib/google/calendar-sync";
+import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
+import { loadToday } from "@/lib/today";
 
 /** The worker with the shared secret, or Juan's own session. */
 async function authorize(request: Request): Promise<boolean> {
@@ -10,8 +12,6 @@ async function authorize(request: Request): Promise<boolean> {
   const session = await auth();
   return session?.user?.email?.toLowerCase() === process.env.ALLOWED_EMAIL?.toLowerCase();
 }
-
-import { dayDate, dayKey } from "@/lib/day";
 
 /**
  * What the server itself sees: when it last synced and how many items it holds.
@@ -32,6 +32,9 @@ export async function GET(request: Request) {
     prisma.item.count({ where: { userId: user.id } }),
   ]);
 
+  // The same loader the Today screen uses, so its own view of the day is visible here.
+  const plan = await loadToday(user.id);
+
   return Response.json({
     commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 8) ?? "local",
     timezone: process.env.TZ ?? null,
@@ -42,6 +45,15 @@ export async function GET(request: Request) {
     lastSyncAt: source?.lastSyncAt ?? null,
     lastError: source?.lastError ?? null,
     disconnected: Boolean(source?.disconnectedAt),
+    today: {
+      banners: plan.banners.length,
+      blocks: plan.blocks.length,
+      hasCurrent: Boolean(plan.current),
+      next: plan.next.length,
+      later: plan.later.length,
+      earlier: plan.earlier.length,
+      headline: plan.current ? "NOW card" : plan.next.length ? "NEXT card" : plan.total ? "Nothing left today" : "Nothing planned",
+    },
   });
 }
 
