@@ -4,6 +4,7 @@ import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
 import { createCalendarEvent, deleteCalendarEvent, isMyDayEvent } from "@/lib/google/calendar-write";
 import type { ParsedInput } from "@/lib/parse/input";
 import { CALENDAR_REFUSAL, deleteDecision } from "@/lib/plan/deletable";
+import { refreshSuggestions } from "@/lib/rules/store";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
 
@@ -21,6 +22,14 @@ function dayFor(which: "today" | "tomorrow", now = new Date()): Date {
 function draftDay(draft: ParsedInput, now = new Date()): Date {
   if (draft.date && /^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return dayDate(draft.date);
   return dayFor(draft.day, now);
+}
+
+/** The person an item came from, where that is known from its source line. */
+function senderOf(sourceUrl: string | null, reason: string | null): string | null {
+  const fromEmail = reason?.match(/from ([^<>\s]+@[^<>\s]+)/i)?.[1];
+  if (fromEmail) return fromEmail.replace(/[.,]$/, "");
+  const named = reason?.match(/from (?:an email from )?([A-Z][\w'-]+(?: [A-Z][\w'-]+)?)/)?.[1];
+  return named ?? null;
 }
 
 /** today, tomorrow, or the weekday and date, for a toast. */
@@ -143,6 +152,13 @@ export async function applyCorrection(userId: string, itemId: string, kind: Corr
     flexibleDuration: item.flexibleDuration,
     category: item.category,
     status: item.status,
+    // What the suggestion engine groups by.
+    context: {
+      effort: item.effort,
+      sourceKind: item.sourceKind,
+      category: item.category,
+      sender: senderOf(item.sourceUrl, item.reason),
+    },
   };
   const data: Record<string, unknown> = {};
   let message = "";
@@ -201,6 +217,8 @@ export async function applyCorrection(userId: string, itemId: string, kind: Corr
       },
     },
   });
+
+  await refreshSuggestions(userId);
 
   // Re-plan the day it left and the day it landed on.
   const days = new Set([item.day?.toISOString(), updated.day?.toISOString()].filter(Boolean) as string[]);

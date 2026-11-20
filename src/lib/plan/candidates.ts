@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { gmailLink } from "@/lib/google/gmail-sync";
 import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
+import { refreshSuggestions, vipFromRules } from "@/lib/rules/store";
 import { runPlan } from "@/lib/plan/run";
 import { loadSettings } from "@/lib/settings";
 
@@ -151,17 +152,27 @@ export async function dismissCandidate(userId: string, candidateId: string): Pro
         from: candidate.from,
         subject: candidate.subject,
         title: (candidate.extracted as Extracted)?.title ?? null,
+        context: {
+          sourceKind: "gmail",
+          sender: candidate.from.match(/<([^>]+)>/)?.[1] ?? candidate.from,
+        },
       } as Prisma.InputJsonValue,
     },
   });
 
-  return { ok: true, message: "Noted. I will not suggest this again." };
+  const suggested = await refreshSuggestions(userId);
+  return {
+    ok: true,
+    message: suggested
+      ? "Noted. That is the third time, so there is a rule to look at in Learned rules."
+      : "Noted. I will not suggest this again.",
+  };
 }
 
 /** Candidates from priority people, sure enough to skip Review. */
 export async function autoAddReady(userId: string): Promise<number> {
-  const settings = await loadSettings(userId);
-  const vip = settings.priorities.vipPeople.map((person) => person.toLowerCase());
+  const [settings, ruleVips] = await Promise.all([loadSettings(userId), vipFromRules(userId)]);
+  const vip = [...settings.priorities.vipPeople, ...ruleVips].map((person) => person.toLowerCase());
   if (!vip.length) return 0;
 
   const open = await prisma.candidate.findMany({

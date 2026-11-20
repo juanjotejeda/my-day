@@ -4,6 +4,7 @@ import { TIMEZONE, dayDate, dayKey, minutesOfDay } from "@/lib/day";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { prisma } from "@/lib/prisma";
 import { plan, type Rule, type SchedulerItem, type SchedulerSettings } from "@/lib/scheduler/plan";
+import { vipFromRules } from "@/lib/rules/store";
 import { loadSettings } from "@/lib/settings";
 
 const DEFAULT_TASK_MIN = 30;
@@ -32,7 +33,7 @@ function toSchedulerItem(item: Item): SchedulerItem {
 }
 
 export async function schedulerSettingsFor(userId: string): Promise<SchedulerSettings> {
-  const settings = await loadSettings(userId);
+  const [settings, ruleVips] = await Promise.all([loadSettings(userId), vipFromRules(userId)]);
   return {
     rhythm: {
       ...DEFAULT_RHYTHM,
@@ -59,7 +60,7 @@ export async function schedulerSettingsFor(userId: string): Promise<SchedulerSet
     },
     priorities: {
       clashOrder: settings.priorities.clashOrder,
-      vipPeople: settings.priorities.vipPeople,
+      vipPeople: [...new Set([...settings.priorities.vipPeople, ...ruleVips])],
     },
     protectedTime: settings.protectedTime,
   };

@@ -87,7 +87,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   timed type without a time becomes a task.
 - A quote shown to Juan is always a line the email really contains: `bestQuote` keeps an exact
   copy, recovers the closest real line from a paraphrase, and otherwise shows none.
-- Pre-filters run before every AI call, so a newsletter never reaches the model.
+- Pre-filters run before every AI call, so a newsletter never reaches the model, and an
+  `ignore_sender` rule joins them.
+- A rule is proposed, never imposed: a suggestion is stored inactive and changes nothing until
+  Juan accepts it in Learned rules.
 - Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
   calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
 
@@ -165,5 +168,8 @@ docs/SPEC.md        the build spec, the source of truth
    back to a dated search, `lib/parse/email.ts` strips quoted replies and signatures and filters
    newsletters, promotions and ignored topics before any AI call, `lib/ai/extract.ts` asks
    Mistral for the fixed JSON shape and validates it with Zod, and `lib/plan/candidates.ts`
-   turns candidates into items. Review and item detail read real data. 6. Rules. 7. Notifications and the day loop.
+   turns candidates into items. Review and item detail read real data. 6. **Rules** — done: `lib/rules/suggest.ts` turns three of the same correction on similar items
+   into a proposal, `lib/rules/store.ts` writes and reads them, the Learned rules screen accepts,
+   declines, toggles and resets, and accepting one re-plans at once. Rules apply in the scheduler
+   (extra minutes, category, rank) and in Review (ignored senders, priority people). 7. Notifications and the day loop.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

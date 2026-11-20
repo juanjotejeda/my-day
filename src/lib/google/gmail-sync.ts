@@ -5,6 +5,7 @@ import { extractFromEmail, type ExtractedItem } from "@/lib/ai/extract";
 import { TIMEZONE, dayKey } from "@/lib/day";
 import { MAX_MODEL_CHARS, headerMap, plainText, shouldSkip, trimForModel } from "@/lib/parse/email";
 import { prisma } from "@/lib/prisma";
+import { ignoredSenders } from "@/lib/rules/store";
 import { loadSettings } from "@/lib/settings";
 
 import { GoogleDisconnected, googleAuth, isInvalidGrant, markDisconnected, statusOf } from "./client";
@@ -35,7 +36,7 @@ export async function syncGmail(userId: string): Promise<GmailSyncResult> {
   if (!source.scopes.some((scope) => scope.includes("gmail.readonly"))) return { ...empty };
 
   const gmail = google.gmail({ version: "v1", auth });
-  const settings = await loadSettings(userId);
+  const [settings, ignoreSenders] = await Promise.all([loadSettings(userId), ignoredSenders(userId)]);
   const result: GmailSyncResult = { ...empty };
 
   try {
@@ -47,7 +48,7 @@ export async function syncGmail(userId: string): Promise<GmailSyncResult> {
     result.looked = fresh.length;
 
     for (const messageId of fresh.slice(0, MAX_PER_RUN)) {
-      const handled = await handleMessage(gmail, userId, messageId, settings);
+      const handled = await handleMessage(gmail, userId, messageId, settings, ignoreSenders);
       result.skipped += handled.skipped ? 1 : 0;
       result.extracted += handled.extracted;
       result.candidates += handled.candidates;
@@ -156,6 +157,7 @@ async function handleMessage(
   userId: string,
   messageId: string,
   settings: Awaited<ReturnType<typeof loadSettings>>,
+  ignoreSenders: string[],
 ): Promise<Handled> {
   const out: Handled = { skipped: false, extracted: 0, candidates: 0, autoAdded: 0, error: false };
 
@@ -169,7 +171,7 @@ async function handleMessage(
 
   const decision = shouldSkip(
     { headers, labelIds: data.labelIds ?? [], from, subject, text: body.slice(0, 500) },
-    { ignoreTopics: settings.priorities.ignoreTopics },
+    { ignoreTopics: settings.priorities.ignoreTopics, ignoreSenders },
   );
 
   const markSeen = (why: string, skipped: boolean) =>
