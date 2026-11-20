@@ -19,21 +19,32 @@ export async function POST(request: Request) {
     }
   }
 
-  const body = (await request.json().catch(() => null)) as { id?: string; title?: string } | null;
+  const body = (await request.json().catch(() => null)) as
+    | { id?: string; title?: string; contains?: string; dryRun?: boolean }
+    | null;
   const email = process.env.ALLOWED_EMAIL?.toLowerCase();
   const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
   if (!user) return Response.json({ error: "no user" }, { status: 409 });
 
   let itemId = body?.id;
-  if (!itemId && body?.title) {
-    const found = await prisma.item.findFirst({
-      where: { userId: user.id, title: body.title },
+  let matched: { id: string; title: string }[] = [];
+
+  if (!itemId && (body?.title || body?.contains)) {
+    matched = await prisma.item.findMany({
+      where: body.title
+        ? { userId: user.id, title: body.title }
+        : { userId: user.id, title: { contains: body.contains as string, mode: "insensitive" } },
       orderBy: { createdAt: "desc" },
+      select: { id: true, title: true },
     });
-    itemId = found?.id;
+    itemId = matched[0]?.id;
   }
-  if (!itemId) return Response.json({ error: "send { id } or { title }" }, { status: 400 });
+
+  if (body?.dryRun) return Response.json({ ok: true, matched });
+  if (!itemId) {
+    return Response.json({ error: "nothing matched", matched }, { status: 404 });
+  }
 
   const result = await deleteItem(user.id, itemId);
-  return Response.json(result, { status: result.ok ? 200 : 422 });
+  return Response.json({ ...result, matched }, { status: result.ok ? 200 : 422 });
 }
