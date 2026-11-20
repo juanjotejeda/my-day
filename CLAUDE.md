@@ -15,7 +15,7 @@ pages "R2 minimal calm" (Today) and "App screens" (everything else).
 | Home-screen app | `src/app/manifest.ts`, `public/sw.js`, display standalone, icons from `public/icon.svg` |
 | Auth | Auth.js (next-auth v5) Google provider, one allowed email, JWT sessions, no DB adapter |
 | Database | Postgres, Prisma 7 with the `@prisma/adapter-pg` driver adapter |
-| Hosting | Railway: web service + Postgres (worker service from milestone 2) |
+| Hosting | Railway: web service, worker service and Postgres, declared in `.railway/railway.ts` |
 | AI | Mistral behind `src/lib/ai` (milestone 5), never called directly from features |
 | Tests | `node --test` now; Vitest for the scheduler and parsers from milestone 3, Playwright later |
 
@@ -64,6 +64,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 - Keep the AI provider behind `src/lib/ai` so models can change without touching features.
 - Scheduling stays plain TypeScript, a pure function `plan(day, items, settings, rules)`.
 - Build and lint after each step; fix errors before reporting done.
+- Railway configuration lives in `.railway/railway.ts` (Infrastructure as Code; `railway.json`
+  is gone and stops being read on 2026-12-01). Change a service there, then
+  `railway config plan` and `railway config apply`. Variables stay unmanaged: they live in
+  Railway, never in the repo.
 - Settings save through `saveSection` in `src/lib/settings.ts`: Zod-validated, merged into the
   JSON column, with a `settings_history` row per change. Never write those columns directly.
 - `GET /api/sync` with the worker secret reports the commit, the day as the screens see it and
