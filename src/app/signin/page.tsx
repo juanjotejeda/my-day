@@ -42,7 +42,10 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
 
       <p className="text-xs leading-relaxed text-muted">
         My Day reads your calendar and mail to build the plan, and adds only the events you
-        create here. It never sends mail and never changes events you already have.
+        create here. It never sends mail and never changes events you already have.{" "}
+        <a href="/privacy" className="text-accent underline-offset-4 hover:underline">
+          Privacy
+        </a>
       </p>
     </main>
   );
