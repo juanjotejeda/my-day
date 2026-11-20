@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import type { ParsedInput } from "@/lib/parse/input";
 import {
   addDraft as addDraftFor,
+  deleteItem as deleteItemFor,
   addFromText as addFromTextFor,
   applyCorrection as applyCorrectionFor,
   replanToday as replanTodayFor,
@@ -44,6 +45,14 @@ export async function applyCorrection(itemId: string, kind: CorrectionKind): Pro
   const user = await me();
   if (!user) return { ok: false, message: "Not signed in." };
   const result = await applyCorrectionFor(user.id, itemId, kind);
+  revalidatePath("/");
+  return result;
+}
+
+export async function deleteItem(itemId: string): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await deleteItemFor(user.id, itemId);
   revalidatePath("/");
   return result;
 }

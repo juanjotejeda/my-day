@@ -1,7 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { parseWithMistral } from "@/lib/ai/parse";
 import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
-import { createCalendarEvent } from "@/lib/google/calendar-write";
+import { createCalendarEvent, deleteCalendarEvent, isMyDayEvent } from "@/lib/google/calendar-write";
 import type { ParsedInput } from "@/lib/parse/input";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
@@ -83,6 +83,7 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
       effort: draft.effort,
       day,
       sourceKind: draft.type === "gcal" ? "calendar" : "manual",
+      createdHere: true,
       sourceRef,
       sourceUrl,
       reason: timed ? "You added this at a fixed time." : "Task you added.",
@@ -194,5 +195,71 @@ export async function replanToday(userId: string): Promise<AddResult> {
     message: run.later
       ? `Plan updated. ${run.placed} placed, ${run.later} moved to Later.`
       : `Plan updated. ${run.placed} placed.`,
+  };
+}
+
+export type DeleteResult = AddResult & { deletable?: boolean };
+
+/**
+ * Deletes an item My Day created: a task, a reminder, or an event it inserted
+ * into Google Calendar, which is removed there too. Anything that came from
+ * somewhere else stays put, and says where to delete it.
+ */
+export async function deleteItem(userId: string, itemId: string): Promise<DeleteResult> {
+  const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
+  if (!item) return { ok: false, message: "That item is gone already." };
+
+  const fromCalendar = item.sourceKind === "calendar";
+  let ownsEvent = item.createdHere && fromCalendar;
+
+  // An event created before this column existed still carries My Day's marker.
+  if (fromCalendar && !ownsEvent && item.sourceRef) {
+    ownsEvent = await isMyDayEvent(userId, item.sourceRef);
+  }
+
+  if (fromCalendar && !ownsEvent) {
+    return {
+      ok: false,
+      deletable: false,
+      message: "This event came from your calendar. Delete this in Google Calendar.",
+    };
+  }
+
+  if (!item.createdHere && !ownsEvent) {
+    return {
+      ok: false,
+      deletable: false,
+      message: "This item came from your email. Dismiss it in Review instead.",
+    };
+  }
+
+  if (ownsEvent && item.sourceRef) {
+    const removed = await deleteCalendarEvent(userId, item.sourceRef);
+    if (!removed.ok) {
+      return { ok: false, deletable: true, message: `Google would not delete it: ${removed.error}` };
+    }
+  }
+
+  await prisma.correction.create({
+    data: {
+      userId,
+      kind: "dismissed",
+      before: {
+        title: item.title,
+        day: item.day,
+        start: item.start,
+        sourceKind: item.sourceKind,
+        deletedFromGoogle: ownsEvent,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.item.delete({ where: { id: item.id } });
+  if (item.day) await runPlan(userId, item.day);
+
+  return {
+    ok: true,
+    deletable: true,
+    message: ownsEvent ? "Deleted here and in Google Calendar." : "Deleted.",
   };
 }

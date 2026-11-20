@@ -177,6 +177,9 @@ model Item {
   sourceRef         String?
   sourceUrl         String?
   sourceQuote       String?
+  /// True when My Day created this: a typed or spoken item, or an event it
+  /// inserted into Google Calendar. Only these may be deleted from the app.
+  createdHere       Boolean     @default(false)
   reason            String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt

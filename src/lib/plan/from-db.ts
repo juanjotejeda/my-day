@@ -24,6 +24,7 @@ export function toPlanItem(item: Item): PlanItem {
     effort: item.effort ? item.effort.charAt(0).toUpperCase() + item.effort.slice(1) : "Meeting",
     important: item.important,
     done: item.status === "done",
+    createdHere: item.createdHere,
   };
 }
 

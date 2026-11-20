@@ -19,6 +19,8 @@ export type PlanItem = {
   /** Pushed to tomorrow: also shown under Later. */
   moved?: boolean;
   done?: boolean;
+  /** My Day created this, so it can be deleted from the app. */
+  createdHere?: boolean;
 };
 
 export type AddType = "gcal" | "appt" | "reminder" | "task";

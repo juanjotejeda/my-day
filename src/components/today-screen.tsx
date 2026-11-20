@@ -12,7 +12,7 @@ import { Card, EnergyDot, PillLink, SectionTitle, TimeChip } from "@/components/
 import { fmt } from "@/lib/plan/format";
 import type { Draft, PlanItem } from "@/lib/plan/types";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
-import { addDraft, applyCorrection } from "@/app/actions";
+import { addDraft, applyCorrection, deleteItem } from "@/app/actions";
 import type { Rhythm } from "@/lib/plan/curve";
 
 type View = "now" | "priority";
@@ -60,6 +60,16 @@ export function TodayScreen({
     say("Saving");
     start(async () => {
       const result = await applyCorrection(selectedItem.id, kind);
+      say(result.message);
+      router.refresh();
+    });
+  }
+
+  function remove(id: string) {
+    setSelected(null);
+    say("Deleting");
+    start(async () => {
+      const result = await deleteItem(id);
       say(result.message);
       router.refresh();
     });
@@ -375,7 +385,12 @@ export function TodayScreen({
       ) : null}
 
       {selectedItem ? (
-        <AdjustSheet item={selectedItem} onAct={act} onClose={() => setSelected(null)} />
+        <AdjustSheet
+          item={selectedItem}
+          onAct={act}
+          onDelete={remove}
+          onClose={() => setSelected(null)}
+        />
       ) : null}
     </main>
   );
