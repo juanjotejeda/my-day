@@ -137,6 +137,11 @@ model Source {
   encryptedRefreshToken String?
   scopes                String[]       @default([])
   calendarIds           String[]       @default([])
+  /// Everything known about each calendar: [{ id, name, enabled }]
+  calendars             Json           @default("[]")
+  gmailScope            String         @default("inbox")
+  gmailLookbackDays     Int            @default(14)
+  gmailIncludeSent      Boolean        @default(true)
   /// One nextSyncToken per calendar id: {"<calendarId>": "<token>"}
   calendarSyncToken     Json           @default("{}")
   gmailHistoryId        String?

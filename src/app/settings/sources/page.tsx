@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { SourcesScreen } from "@/components/sources-screen";
-import { auth } from "@/auth";
+import { SourcesScreen, type CalendarChoice } from "@/components/sources-screen";
+import { SCOPES, auth } from "@/auth";
 import { hhmm } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 
-// Calendar names need the calendar.readonly scope, so the ids stand in for now.
+const CALENDAR_LIST_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+
 export default async function Sources() {
   const session = await auth();
   if (!session?.user?.email) redirect("/signin");
@@ -16,11 +17,26 @@ export default async function Sources() {
     where: { userId_kind: { userId: user.id, kind: "google" } },
   });
 
+  const stored = (source?.calendars as unknown as CalendarChoice[] | null) ?? [];
+  const calendars: CalendarChoice[] = stored.length
+    ? stored
+    : (source?.calendarIds.length ? source.calendarIds : ["primary"]).map((id) => ({
+        id,
+        name: id === "primary" ? "Primary calendar" : id,
+        enabled: true,
+      }));
+
   return (
     <SourcesScreen
       connected={Boolean(source?.encryptedRefreshToken) && !source?.disconnectedAt}
       syncedLabel={source?.lastSyncAt ? `Synced ${hhmm(source.lastSyncAt)}` : "Not synced yet"}
-      calendars={source?.calendarIds.length ? source.calendarIds : ["primary"]}
+      calendars={calendars}
+      gmail={{
+        scope: (source?.gmailScope as "inbox" | "all") ?? "inbox",
+        lookbackDays: source?.gmailLookbackDays ?? 14,
+        includeSent: source?.gmailIncludeSent ?? true,
+      }}
+      needsConsent={!(source?.scopes ?? []).includes(CALENDAR_LIST_SCOPE) && SCOPES.includes(CALENDAR_LIST_SCOPE)}
     />
   );
 }

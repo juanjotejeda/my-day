@@ -24,6 +24,13 @@ export type Field =
       step?: number;
       format: "count" | "window";
     }
+  | {
+      kind: "order";
+      section: SectionName;
+      key: string;
+      label: string;
+      items: Choice[];
+    }
   | { kind: "row"; label: string; sub?: string; value?: string }
   | { kind: "link"; href: string; label: string; sub?: string; value?: string }
   | { kind: "text"; text: string };
@@ -224,11 +231,19 @@ export const PRIORITIES_SCREEN: ScreenSpec = {
     {
       title: "When things clash",
       fields: [
-        { kind: "row", label: "1  Family", value: "First" },
-        { kind: "row", label: "2  Clients" },
-        { kind: "row", label: "3  Team" },
-        { kind: "row", label: "4  Admin", value: "Last" },
-        { kind: "text", text: "Reordering arrives with the scheduler work." },
+        {
+          kind: "order",
+          section: "priorities",
+          key: "clashOrder",
+          label: "When things clash",
+          items: [
+            { value: "family", label: "Family" },
+            { value: "clients", label: "Clients" },
+            { value: "team", label: "Team" },
+            { value: "admin", label: "Admin" },
+          ],
+        },
+        { kind: "text", text: "Use the arrows to move a group up or down." },
       ],
     },
     {

@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState, useTransition } from "react";
 
-import { ChoiceGroup, Switch } from "@/components/controls";
+import { ChoiceGroup, OrderList, Switch } from "@/components/controls";
 import { EnergyCurve } from "@/components/energy-curve";
 import {
   BackHeader,
@@ -62,6 +62,19 @@ export function SettingsScreen({
         <p key={index} className="py-2 text-[13px] leading-relaxed text-muted">
           {item.text}
         </p>
+      );
+    }
+    if (item.kind === "order") {
+      const raw = state[item.section]?.[item.key];
+      const current = Array.isArray(raw) ? raw.map(String) : [];
+      return (
+        <OrderList
+          key={index}
+          label={item.label}
+          items={item.items}
+          value={current}
+          onChange={(order) => save(item.section, item.key, order)}
+        />
       );
     }
     if (item.kind === "switch") {

@@ -29,9 +29,10 @@ export async function syncCalendars(userId: string): Promise<SyncResult> {
   const result: SyncResult = { calendars: 0, upserted: 0, deleted: 0, fullSyncs: 0 };
 
   try {
-    const calendarIds = source.calendarIds.length
+    const known = (source.calendars as unknown as { id: string }[] | null) ?? [];
+    const calendarIds = source.calendarIds.length && known.length
       ? source.calendarIds
-      : await defaultCalendars(userId);
+      : await discoverCalendars(calendar, userId);
 
     const tokens = { ...((source.calendarSyncToken as SyncTokens | null) ?? {}) };
 
@@ -120,17 +121,39 @@ export async function syncCalendars(userId: string): Promise<SyncResult> {
 }
 
 /**
- * Which calendars to sync. The calendar.events scope does not allow listing the
- * calendar list (that needs calendar.readonly), so the default is the primary
- * calendar; Sources settings can store more ids in milestone 4.
+ * Reads the calendar list and keeps names and choices in the source row. Needs
+ * calendar.readonly; without it the primary calendar stands in, so a stale
+ * consent still syncs.
  */
-async function defaultCalendars(userId: string): Promise<string[]> {
-  const calendarIds = ["primary"];
+async function discoverCalendars(calendar: calendar_v3.Calendar, userId: string): Promise<string[]> {
+  let found: { id: string; name: string; enabled: boolean }[] = [];
+
+  try {
+    const { data } = await calendar.calendarList.list({ minAccessRole: "reader" });
+    found = (data.items ?? [])
+      .filter((entry) => entry.id)
+      .map((entry) => ({
+        id: entry.id as string,
+        name: entry.summary ?? (entry.id as string),
+        // Calendars hidden or unticked in Google start off here too.
+        enabled: entry.selected !== false && !entry.hidden,
+      }));
+  } catch (error) {
+    if (statusOf(error) !== 403) throw error;
+  }
+
+  if (!found.length) found = [{ id: "primary", name: "Primary calendar", enabled: true }];
+
+  const calendarIds = found.filter((entry) => entry.enabled).map((entry) => entry.id);
   await prisma.source.update({
     where: { userId_kind: { userId, kind: "google" } },
-    data: { calendarIds },
+    data: {
+      calendars: found as unknown as Prisma.InputJsonValue,
+      calendarIds: calendarIds.length ? calendarIds : ["primary"],
+    },
   });
-  return calendarIds;
+
+  return calendarIds.length ? calendarIds : ["primary"];
 }
 
 async function listIncremental(calendar: calendar_v3.Calendar, calendarId: string, syncToken: string) {

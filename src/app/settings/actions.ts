@@ -1,8 +1,11 @@
 "use server";
 
 import { auth } from "@/auth";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SECTIONS, type SectionName, saveSection } from "@/lib/settings";
+
+type Calendar = { id: string; name: string; enabled: boolean };
 
 async function me() {
   const session = await auth();
@@ -63,6 +66,55 @@ export async function deleteMyData() {
       data: { calendarSyncToken: {}, lastSyncAt: null },
     }),
   ]);
+
+  return { ok: true as const };
+}
+
+/** S5: tick or untick one calendar. Only ticked calendars are synced. */
+export async function setCalendarEnabled(calendarId: string, enabled: boolean) {
+  const user = await me();
+  if (!user) return { ok: false as const, error: "unauthorized" };
+
+  const source = await prisma.source.findUnique({
+    where: { userId_kind: { userId: user.id, kind: "google" } },
+  });
+  if (!source) return { ok: false as const, error: "no source" };
+
+  const calendars = ((source.calendars as unknown as Calendar[] | null) ?? []).map((calendar) =>
+    calendar.id === calendarId ? { ...calendar, enabled } : calendar,
+  );
+  const calendarIds = calendars.filter((calendar) => calendar.enabled).map((calendar) => calendar.id);
+
+  await prisma.source.update({
+    where: { userId_kind: { userId: user.id, kind: "google" } },
+    data: {
+      calendars: calendars as unknown as Prisma.InputJsonValue,
+      calendarIds: calendarIds.length ? calendarIds : [],
+      // A calendar that joins later needs a full window, not an old sync token.
+      calendarSyncToken: enabled ? {} : (source.calendarSyncToken as Prisma.InputJsonValue),
+    },
+  });
+
+  return { ok: true as const, synced: calendarIds };
+}
+
+/** S5: how far into Gmail My Day looks. */
+export async function setGmailReach(values: {
+  scope?: "inbox" | "all";
+  lookbackDays?: 7 | 14 | 30;
+  includeSent?: boolean;
+}) {
+  const user = await me();
+  if (!user) return { ok: false as const, error: "unauthorized" };
+
+  await prisma.source.updateMany({
+    where: { userId: user.id, kind: "google" },
+    data: {
+      ...(values.scope ? { gmailScope: values.scope } : {}),
+      ...(values.lookbackDays ? { gmailLookbackDays: values.lookbackDays } : {}),
+      ...(values.includeSent === undefined ? {} : { gmailIncludeSent: values.includeSent }),
+    },
+  });
 
   return { ok: true as const };
 }

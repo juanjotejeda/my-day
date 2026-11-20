@@ -9,6 +9,8 @@ export const SCOPES = [
   "email",
   "profile",
   "https://www.googleapis.com/auth/calendar.events",
+  // Read-only access to the calendar list, so Sources can show real calendar names.
+  "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/gmail.readonly",
 ];
 

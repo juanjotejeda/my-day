@@ -176,3 +176,74 @@ export function TimeRow({
     </label>
   );
 }
+
+export type OrderItem = { value: string; label: string };
+
+/**
+ * A list you reorder with up and down buttons. Drag is a poor fit on a phone
+ * and needs no second hand this way.
+ */
+export function OrderList({
+  label,
+  items,
+  value,
+  onChange,
+}: {
+  label: string;
+  items: OrderItem[];
+  value: string[];
+  onChange?: (order: string[]) => void;
+}) {
+  const [order, setOrder] = useState(() => {
+    const known = value.filter((key) => items.some((item) => item.value === key));
+    const rest = items.map((item) => item.value).filter((key) => !known.includes(key));
+    return [...known, ...rest];
+  });
+
+  function move(index: number, by: -1 | 1) {
+    const next = [...order];
+    const target = index + by;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setOrder(next);
+    onChange?.(next);
+  }
+
+  const labelOf = (key: string) => items.find((item) => item.value === key)?.label ?? key;
+
+  return (
+    <ul aria-label={label} className="flex flex-col">
+      {order.map((key, index) => (
+        <li key={key} className="flex min-h-[52px] items-center gap-2 border-t border-divider py-1.5">
+          <span className="w-5 text-[15px] text-muted tabular-nums">{index + 1}</span>
+          <span className="flex-1 text-base">{labelOf(key)}</span>
+          <span className="text-[13px] text-muted">
+            {index === 0 ? "First" : index === order.length - 1 ? "Last" : ""}
+          </span>
+          <button
+            type="button"
+            aria-label={`Move ${labelOf(key)} up`}
+            disabled={index === 0}
+            onClick={() => move(index, -1)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface disabled:opacity-35"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 10L8 5.5 12.5 10" fill="none" stroke="#243A63" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label={`Move ${labelOf(key)} down`}
+            disabled={index === order.length - 1}
+            onClick={() => move(index, 1)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface disabled:opacity-35"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 6L8 10.5 12.5 6" fill="none" stroke="#243A63" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}

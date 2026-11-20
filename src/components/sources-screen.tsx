@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { ChoiceGroup, SwitchRow } from "@/components/controls";
+import { ChoiceGroup, Switch } from "@/components/controls";
 import {
   BackHeader,
   DetailRow,
@@ -12,40 +12,82 @@ import {
   ScreenHeader,
   SettingsSection,
 } from "@/components/ui";
-import { disconnectGoogle, syncNow } from "@/app/settings/actions";
+import {
+  disconnectGoogle,
+  setCalendarEnabled,
+  setGmailReach,
+  syncNow,
+} from "@/app/settings/actions";
 
-/** S5 Sources: the real Google connection, plus the calendars and reach settings. */
+export type CalendarChoice = { id: string; name: string; enabled: boolean };
+
+export type GmailReach = {
+  scope: "inbox" | "all";
+  lookbackDays: number;
+  includeSent: boolean;
+};
+
+/** S5 Sources: the real Google connection, its calendars and how far Gmail is read. */
 export function SourcesScreen({
   connected,
   syncedLabel,
   calendars,
+  gmail,
+  needsConsent,
 }: {
   connected: boolean;
   syncedLabel: string;
-  calendars: string[];
+  calendars: CalendarChoice[];
+  gmail: GmailReach;
+  needsConsent: boolean;
 }) {
   const [status, setStatus] = useState("");
   const [armed, setArmed] = useState(false);
   const [, start] = useTransition();
 
+  function say(message: string) {
+    setStatus(message);
+  }
+
   function runSync() {
-    setStatus("Syncing");
+    say("Syncing");
     start(async () => {
       const result = await syncNow();
-      setStatus(result.ok ? `Synced, ${result.upserted ?? 0} events` : `Sync failed: ${result.error}`);
+      say(result.ok ? `Synced, ${result.upserted ?? 0} events` : `Sync failed: ${result.error}`);
+    });
+  }
+
+  function toggleCalendar(id: string, on: boolean) {
+    say(on ? "Adding that calendar" : "Removing that calendar");
+    start(async () => {
+      const result = await setCalendarEnabled(id, on);
+      if (!result.ok) {
+        say(`Not saved: ${result.error}`);
+        return;
+      }
+      const sync = await syncNow();
+      say(sync.ok ? `Saved. ${sync.upserted ?? 0} events synced.` : "Saved. Next sync picks it up.");
+    });
+  }
+
+  function saveGmail(patch: Parameters<typeof setGmailReach>[0]) {
+    say("Saving");
+    start(async () => {
+      const result = await setGmailReach(patch);
+      say(result.ok ? "Saved" : `Not saved: ${result.error}`);
     });
   }
 
   function disconnect() {
     if (!armed) {
       setArmed(true);
-      setStatus("Tap again to disconnect");
+      say("Tap again to disconnect");
       return;
     }
     start(async () => {
       const result = await disconnectGoogle();
       setArmed(false);
-      setStatus(result.ok ? "Disconnected. Sign in again to reconnect." : "Could not disconnect");
+      say(result.ok ? "Disconnected. Sign in again to reconnect." : "Could not disconnect");
     });
   }
 
@@ -54,13 +96,32 @@ export function SourcesScreen({
       <BackHeader href="/settings" label="Settings" />
       <ScreenHeader title="Sources" sub="Where My Day gets your day from." />
 
+      {needsConsent ? (
+        <div className="flex flex-col gap-2 rounded-[18px] bg-alert px-4 py-3.5">
+          <div className="text-base text-alert-ink">Sign in again for calendar names</div>
+          <p className="text-sm leading-relaxed">
+            My Day now asks Google for the names of your calendars. Your current consent does not
+            include that, so this list shows ids until you sign in again.
+          </p>
+        </div>
+      ) : null}
+
       <SettingsSection title="Google Calendar">
-        <DetailRow
-          label={connected ? "Connected, calendar events" : "Not connected"}
-          value={syncedLabel}
-        />
+        <DetailRow label={connected ? "Connected, calendar events" : "Not connected"} value={syncedLabel} />
         {calendars.map((calendar) => (
-          <SwitchRow key={calendar} label={calendar} defaultOn />
+          <div key={calendar.id} className="flex min-h-14 items-center gap-3 border-t border-divider py-2">
+            <div className="flex flex-1 flex-col gap-0.5">
+              <span className="text-base">{calendar.name}</span>
+              <span className="text-[13px] leading-snug text-muted">
+                {calendar.enabled ? "Synced into your day" : "Not synced"}
+              </span>
+            </div>
+            <Switch
+              label={calendar.name}
+              defaultOn={calendar.enabled}
+              onChange={(on) => toggleCalendar(calendar.id, on)}
+            />
+          </div>
         ))}
       </SettingsSection>
 
@@ -73,10 +134,21 @@ export function SourcesScreen({
               { value: "inbox", label: "Inbox only" },
               { value: "all", label: "All mail" },
             ]}
-            defaultValue={["inbox"]}
+            defaultValue={[gmail.scope]}
+            onChange={(picked) => saveGmail({ scope: picked[0] as "inbox" | "all" })}
           />
         </FieldBlock>
-        <SwitchRow label="Include my sent mail" sub="Finds promises you made" defaultOn />
+        <div className="flex min-h-14 items-center gap-3 border-t border-divider py-2">
+          <div className="flex flex-1 flex-col gap-0.5">
+            <span className="text-base">Include my sent mail</span>
+            <span className="text-[13px] leading-snug text-muted">Finds promises you made</span>
+          </div>
+          <Switch
+            label="Include my sent mail"
+            defaultOn={gmail.includeSent}
+            onChange={(on) => saveGmail({ includeSent: on })}
+          />
+        </div>
         <FieldBlock label="Look back">
           <ChoiceGroup
             label="Look back"
@@ -85,7 +157,8 @@ export function SourcesScreen({
               { value: "14", label: "14 days" },
               { value: "30", label: "30 days" },
             ]}
-            defaultValue={["14"]}
+            defaultValue={[String(gmail.lookbackDays)]}
+            onChange={(picked) => saveGmail({ lookbackDays: Number(picked[0]) as 7 | 14 | 30 })}
           />
         </FieldBlock>
       </SettingsSection>
