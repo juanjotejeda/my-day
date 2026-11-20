@@ -13,8 +13,16 @@ export default defineRailway(() => {
     replicas: { "iad": 1 },
   });
 
+  // Syncs Google every 5 minutes. No HTTP, so no domain and no healthcheck.
+  const worker = service("worker", {
+    source: github("juanjotejeda/my-day", { branch: "main", checkSuites: false, upstreamUrl: "https://github.com/juanjotejeda/my-day" }),
+    build: { buildCommand: "pnpm install --frozen-lockfile", buildEnvironment: "V3", builder: "NIXPACKS" },
+    start: "pnpm worker",
+    replicas: { "iad": 1 },
+  });
+
   return project("incredible-exploration", {
     variables: { managed: false },
-    resources: [myDay],
+    resources: [myDay, worker],
   });
 });
