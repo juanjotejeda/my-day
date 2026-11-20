@@ -116,6 +116,12 @@ export async function POST(request: Request) {
       .filter((row) => ids.has((row.payload as { id?: string } | null)?.id ?? ""))
       .map((row) => row.id);
     if (remove.length) await prisma.eventLog.deleteMany({ where: { id: { in: remove } } });
+
+    // The history token only lists new mail, so the window is read again.
+    await prisma.source.updateMany({
+      where: { userId: user.id, kind: "google" },
+      data: { gmailHistoryId: null },
+    });
   }
 
   try {
