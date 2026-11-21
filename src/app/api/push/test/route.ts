@@ -1,8 +1,12 @@
 import { auth } from "@/auth";
+import { previewNotifications } from "@/lib/push/run";
 import { pushReady, sendToDevices } from "@/lib/push/send";
 import { prisma } from "@/lib/prisma";
 
-/** Sends one notification now, so a new device can be checked. */
+/**
+ * Sends one notification now, or with { all: true } the four daily ones with
+ * their real content, so a new device can be checked in a minute.
+ */
 export async function POST(request: Request) {
   const secret = request.headers.get("x-worker-secret");
   const fromWorker = Boolean(
@@ -22,6 +26,20 @@ export async function POST(request: Request) {
 
   const devices = await prisma.pushSubscription.count({ where: { userId: user.id } });
   if (!devices) return Response.json({ error: "no device has allowed notifications yet" }, { status: 409 });
+
+  const body = (await request.json().catch(() => null)) as { all?: boolean } | null;
+
+  if (body?.all) {
+    const previews = await previewNotifications(user.id);
+    let sent = 0;
+    for (const preview of previews) {
+      const result = await sendToDevices(user.id, preview);
+      sent += result.sent;
+      // Spaced out, so four notifications do not collapse into one banner.
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    }
+    return Response.json({ ok: sent > 0, devices, sent, kinds: previews.map((push) => push.key) });
+  }
 
   const result = await sendToDevices(user.id, {
     key: `test:${Date.now()}`,

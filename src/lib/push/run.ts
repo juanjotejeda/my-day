@@ -102,6 +102,53 @@ export async function runNotifications(userId: string, now = new Date()): Promis
   return { ran: true, due: due.map((notification) => notification.key), sent, skipped: "" };
 }
 
+/**
+ * The four daily notifications with their real content, whatever the time is.
+ * This is how they are checked on a new device without waiting for 07:30.
+ */
+export async function previewNotifications(userId: string, now = new Date()): Promise<DuePush[]> {
+  const settings = await loadSettings(userId);
+  const push: PushSettings = { ...settings.notifications, workEnd: settings.work.end };
+  const day = await readDay(userId, now);
+
+  const kinds: { key: string; at: number }[] = [
+    { key: "morning", at: toMinutes(push.morningAt) },
+    { key: "close", at: toMinutes(push.workEnd) + 30 },
+    { key: "evening", at: toMinutes(push.eveningAt) },
+  ];
+
+  const previews: DuePush[] = [];
+  for (const kind of kinds) {
+    const [built] = dueNotifications({
+      now: kind.at,
+      // Switched on for the preview, and quiet hours ignored: this is a check.
+      settings: { ...push, morning: true, evening: true, close: true, quietStart: "00:00", quietEnd: "00:00" },
+      day: { ...day, inFocusBlock: false },
+      alreadySent: [],
+    });
+    if (built) previews.push({ ...built, key: `preview:${built.key}` });
+  }
+
+  // The fixed-event nudge, with tomorrow's first event when today holds none.
+  const nextFixed = day.nextFixed ?? day.firstFixedTomorrow ?? { title: "A fixed event", minute: 11 * 60 };
+  previews.push({
+    key: "preview:before",
+    title: nextFixed.title,
+    body: `At ${String(Math.floor(nextFixed.minute / 60)).padStart(2, "0")}:${String(
+      nextFixed.minute % 60,
+    ).padStart(2, "0")} · this is the reminder before a fixed event`,
+    url: "/",
+    urgent: true,
+  });
+
+  return previews;
+}
+
+function toMinutes(time: string): number {
+  const [hours, minutes] = (time ?? "").split(":").map(Number);
+  return (hours || 0) * 60 + (minutes || 0);
+}
+
 /** Used by the test endpoint and the worker log. */
 export type { DuePush };
 export const PUSH_TIMEZONE = TIMEZONE;

@@ -78,11 +78,21 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
     }
   }
 
-  async function test() {
-    setStatus("Sending");
-    const response = await fetch("/api/push/test", { method: "POST" });
+  async function test(all: boolean) {
+    setStatus(all ? "Sending all four" : "Sending");
+    const response = await fetch("/api/push/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ all }),
+    });
     const body = (await response.json()) as { ok?: boolean; error?: string; sent?: number };
-    setStatus(body.ok ? "Sent. It should appear in a moment." : (body.error ?? "That did not work."));
+    setStatus(
+      body.ok
+        ? all
+          ? "All four sent. They arrive a second apart."
+          : "Sent. It should appear in a moment."
+        : (body.error ?? "That did not work."),
+    );
   }
 
   return (
@@ -101,7 +111,7 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
       ) : (
         <button
           type="button"
-          onClick={state === "subscribed" ? test : allow}
+          onClick={state === "subscribed" ? () => test(false) : allow}
           className="flex min-h-14 w-full items-center justify-between text-[15px] text-navy"
         >
           <span>{state === "subscribed" ? "Send a test notification" : "Allow notifications"}</span>
@@ -114,6 +124,17 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
           </span>
         </button>
       )}
+
+      {state === "subscribed" ? (
+        <button
+          type="button"
+          onClick={() => test(true)}
+          className="flex min-h-14 w-full items-center justify-between border-t border-divider text-[15px] text-navy"
+        >
+          <span>Send all four daily notifications</span>
+          <span className="text-[13px] text-muted">to check them</span>
+        </button>
+      ) : null}
 
       {status ? <p className="pb-3 text-[13px] leading-relaxed text-muted">{status}</p> : null}
     </ListCard>
