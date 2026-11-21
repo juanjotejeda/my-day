@@ -34,11 +34,15 @@ export function AdjustSheet({
   const [date, setDate] = useState(today);
   const [time, setTime] = useState(item.start ? fmt(item.start) : "09:00");
   const fromCalendar = item.source === "Calendar";
-  // Anything can leave the plan; an event My Day did not create goes in Google.
-  const canDelete = Boolean(item.createdHere) || !fromCalendar;
   const scheduled = !item.later && !item.moved;
   // An event from the calendar is moved in Google, not here.
   const fromCalendarOnly = item.source === "Calendar" && !item.createdHere;
+  // An event My Day did not create stays in Google; everything else really goes.
+  const deleteWords = fromCalendarOnly
+    ? { label: "Remove from my day", armed: "Tap again to remove. It stays in Google Calendar" }
+    : fromCalendar
+      ? { label: "Delete", armed: "Tap again to delete, here and in Google Calendar" }
+      : { label: "Delete", armed: "Tap again to delete" };
   const lines = {
     kind: item.fixed ? "Fixed event" : "Flexible",
     time: scheduled ? `${fmt(item.start)}-${fmt(item.end)}` : "Not scheduled",
@@ -173,7 +177,7 @@ export function AdjustSheet({
           {lines.category}
         </button>
 
-        {canDelete && onDelete ? (
+        {onDelete ? (
           <button
             type="button"
             onClick={() => {
@@ -185,14 +189,8 @@ export function AdjustSheet({
             }}
             className="min-h-[46px] rounded-full bg-surface px-3.5 text-left text-[15px] text-alert-ink"
           >
-            {armed
-              ? fromCalendar
-                ? "Tap again to delete, here and in Google Calendar"
-                : "Tap again to delete"
-              : "Delete"}
+            {armed ? deleteWords.armed : deleteWords.label}
           </button>
-        ) : fromCalendar ? (
-          <p className="px-3.5 py-2 text-[13px] leading-snug text-muted">Delete this in Google Calendar.</p>
         ) : null}
 
         <Link

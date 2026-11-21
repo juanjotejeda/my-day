@@ -9,7 +9,7 @@ import {
   draftProblem,
   type ComposerDraft,
 } from "@/lib/plan/draft";
-import { CALENDAR_REFUSAL, deleteDecision } from "@/lib/plan/deletable";
+import { deleteDecision } from "@/lib/plan/deletable";
 import { refreshSuggestions } from "@/lib/rules/store";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
@@ -262,9 +262,9 @@ export async function replanToday(userId: string): Promise<AddResult> {
 export type DeleteResult = AddResult & { deletable?: boolean };
 
 /**
- * Deletes an item My Day created: a task, a reminder, or an event it inserted
- * into Google Calendar, which is removed there too. Anything that came from
- * somewhere else stays put, and says where to delete it.
+ * Takes an item out of the day. An event My Day put in Google Calendar is
+ * removed there too; an event from your own calendar stays in Google and only
+ * leaves My Day, which the next sync respects because the row stays archived.
  */
 export async function deleteItem(userId: string, itemId: string): Promise<DeleteResult> {
   const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
@@ -277,10 +277,6 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
     decision.kind === "delete"
       ? decision.inGoogle
       : Boolean(item.sourceRef) && (await isMyDayEvent(userId, item.sourceRef as string));
-
-  if (decision.kind === "ask-google" && !ownsEvent) {
-    return { ok: false, deletable: false, message: CALENDAR_REFUSAL };
-  }
 
   if (ownsEvent && item.sourceRef) {
     const removed = await deleteCalendarEvent(userId, item.sourceRef);
@@ -316,7 +312,9 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
     deletable: true,
     message: ownsEvent
       ? "Deleted here and in Google Calendar. It is in the Archive for 30 days."
-      : "Deleted. It is in the Archive for 30 days.",
+      : item.sourceKind === "calendar"
+        ? "Removed from your day. The event stays in Google Calendar, and it is in the Archive for 30 days."
+        : "Deleted. It is in the Archive for 30 days.",
   };
 }
 

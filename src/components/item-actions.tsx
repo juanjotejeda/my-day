@@ -9,14 +9,15 @@ import { applyCorrection, deleteItem } from "@/app/actions";
 export function ItemActions({
   id,
   done,
-  canDelete,
   fromCalendar,
+  calendarOnly,
   flexible,
 }: {
   id: string;
   done: boolean;
-  canDelete: boolean;
   fromCalendar: boolean;
+  /** An event from your own calendar: it leaves My Day and stays in Google. */
+  calendarOnly: boolean;
   flexible: boolean;
 }) {
   const router = useRouter();
@@ -33,10 +34,16 @@ export function ItemActions({
     });
   }
 
+  const deleteWords = calendarOnly
+    ? { label: "Remove from my day", armed: "Tap again to remove. It stays in Google Calendar" }
+    : fromCalendar
+      ? { label: "Delete", armed: "Tap again to delete, here and in Google Calendar" }
+      : { label: "Delete", armed: "Tap again to delete" };
+
   function remove() {
     if (!armed) {
       setArmed(true);
-      setStatus(fromCalendar ? "Tap again to delete, here and in Google Calendar" : "Tap again to delete");
+      setStatus(deleteWords.armed);
       return;
     }
     start(async () => {
@@ -69,17 +76,13 @@ export function ItemActions({
         Change work or personal
       </button>
 
-      {canDelete ? (
-        <button
-          type="button"
-          onClick={remove}
-          className="flex min-h-12 items-center justify-center rounded-full border border-sky text-[15px] text-alert-ink"
-        >
-          {armed ? "Tap again to delete" : "Delete"}
-        </button>
-      ) : fromCalendar ? (
-        <p className="px-2 py-1 text-[13px] leading-snug text-muted">Delete this in Google Calendar.</p>
-      ) : null}
+      <button
+        type="button"
+        onClick={remove}
+        className="flex min-h-12 items-center justify-center rounded-full border border-sky text-[15px] text-alert-ink"
+      >
+        {armed ? deleteWords.armed : deleteWords.label}
+      </button>
 
       {status ? <p className="px-2 text-[13px] leading-snug text-muted">{status}</p> : null}
     </div>

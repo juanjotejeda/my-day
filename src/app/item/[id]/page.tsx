@@ -173,8 +173,8 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
       <ItemActions
         id={item.id}
         done={item.status === "done"}
-        canDelete={item.createdHere || item.sourceKind !== "calendar"}
         fromCalendar={item.sourceKind === "calendar"}
+        calendarOnly={item.sourceKind === "calendar" && !item.createdHere}
         flexible={!item.fixed}
       />
     </Screen>

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CALENDAR_REFUSAL, deleteDecision } from "./deletable.ts";
+import { deleteDecision } from "./deletable.ts";
 
 test("a typed, spoken or emailed item is deleted in My Day only", () => {
   for (const sourceKind of ["manual", "voice", "gmail"] as const) {
@@ -19,10 +19,6 @@ test("an event My Day created goes from Google too", () => {
 test("an event from anywhere else is asked about, never assumed", () => {
   const decision = deleteDecision({ sourceKind: "calendar", createdHere: false });
   assert.equal(decision.kind, "ask-google", "Google decides, by its own marker");
-});
-
-test("the refusal names where to delete it", () => {
-  assert.match(CALENDAR_REFUSAL, /Delete this in Google Calendar/);
 });
 
 test("an item found in an email never touches the email", () => {

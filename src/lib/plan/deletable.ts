@@ -1,8 +1,8 @@
 /**
- * Who may delete what. Pure, so the rule is testable without touching a real
- * calendar: anything can leave My Day, but an event My Day did not create is
- * deleted where it was made. Email is read-only, so an item found in an email
- * leaves the plan and the message itself is never touched.
+ * What a delete touches. Pure, so the rule is testable without a real calendar:
+ * everything can leave My Day, and only an event My Day created in Google is
+ * deleted there too. An event from your own calendar stays in Google, and an
+ * item found in an email never touches the message.
  */
 export type DeleteDecision = { kind: "delete"; inGoogle: boolean } | { kind: "ask-google" };
 
@@ -20,4 +20,3 @@ export function deleteDecision(item: {
   return { kind: "delete", inGoogle: false };
 }
 
-export const CALENDAR_REFUSAL = "This event came from your calendar. Delete this in Google Calendar.";
