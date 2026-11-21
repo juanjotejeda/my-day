@@ -3,10 +3,11 @@
  * scheduler all read it, built from the rhythm settings (docs/SPEC.md,
  * "Energy curve"). The shape is the one drawn in the onboarding design.
  */
+/** The fills name theme tokens, so a level looks right in day and in night. */
 export const LEVELS = [
-  { name: "Low energy", fill: "#EAF0FA", fit: "Light tasks fit" },
-  { name: "Steady energy", fill: "#D5E1F5", fit: "Meetings fit" },
-  { name: "Peak energy", fill: "#A3BDE8", fit: "Deep work fits" },
+  { name: "Low energy", fill: "var(--energy-low)", fit: "Light tasks fit" },
+  { name: "Steady energy", fill: "var(--energy-steady)", fit: "Meetings fit" },
+  { name: "Peak energy", fill: "var(--energy-peak)", fit: "Deep work fits" },
 ] as const;
 
 export type EnergyLevel = 0 | 1 | 2;

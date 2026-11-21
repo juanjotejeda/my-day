@@ -56,11 +56,10 @@ export function BottomNav({ active, reviewCount = 0 }: { active: Tab; reviewCoun
   return (
     <nav
       aria-label="Main"
-      className="sticky bottom-0 z-10 -mx-4 -mb-12 flex border-t border-line bg-white/95 px-3 pt-1.5 pb-3.5"
+      className="sticky bottom-0 z-10 -mx-4 -mb-12 flex border-t border-line bg-card/95 px-3 pt-1.5 pb-3.5"
     >
       {TABS.map((tab) => {
         const on = tab.key === active;
-        const color = on ? "#243A63" : "#56647D";
         return (
           <Link
             key={tab.key}
@@ -71,11 +70,11 @@ export function BottomNav({ active, reviewCount = 0 }: { active: Tab; reviewCoun
             }`}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-              {tab.icon(color)}
+              {tab.icon("currentColor")}
             </svg>
             {tab.label}
             {tab.key === "review" && reviewCount > 0 ? (
-              <span className="absolute top-0.5 left-[52%] flex h-4 min-w-4 items-center justify-center rounded-lg bg-accent px-1 text-[10px] text-white">
+              <span className="absolute top-0.5 left-[52%] flex h-4 min-w-4 items-center justify-center rounded-lg bg-accent px-1 text-[10px] text-on-primary">
                 {reviewCount}
               </span>
             ) : null}

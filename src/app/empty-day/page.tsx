@@ -29,7 +29,7 @@ export default async function EmptyDay() {
         <span className="flex min-h-[52px] flex-1 items-center rounded-full border border-sky bg-surface px-[18px] text-[15px] text-muted">
           Add appointment, reminder or task
         </span>
-        <span className="h-[52px] w-[52px] rounded-full bg-navy" />
+        <span className="h-[52px] w-[52px] rounded-full bg-primary" />
       </div>
 
       <div className="flex flex-col gap-2.5 rounded-card border border-line p-4">
@@ -42,13 +42,13 @@ export default async function EmptyDay() {
       <section className="flex flex-col gap-1.5">
         <SectionTitle>If you want something</SectionTitle>
         <ListCard>
-          <ItemRow href="/" title="Later" time="2 items" meta="No date yet" fill="#EAF0FA" variant="divider" />
+          <ItemRow href="/" title="Later" time="2 items" meta="No date yet" fill="var(--energy-low)" variant="divider" />
           <ItemRow
             href="/tomorrow"
             title="Monday preview"
             time="3 items"
             meta="From your calendar"
-            fill="#D5E1F5"
+            fill="var(--sky)"
             variant="divider"
           />
         </ListCard>

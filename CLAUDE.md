@@ -132,9 +132,15 @@ and `SettingsScreen` renders and saves it.
 ## Design rules
 
 - Roboto 300 for headlines and numbers, Roboto 400 for body. No other font, no other weights.
-- Tokens only, from `globals.css`: `navy #243A63` text, `muted #56647D`, `sky #D5E1F5`,
-  `surface #F4F7FC`, `line #E3EBF8`, `divider #EAF0FA`, `mid #8AA9DE`, `accent #4A6FAE`,
-  `peak #A3BDE8`. Cards: white, 1px `line` border, radius 22px. Pills: fully rounded.
+- **Never write a colour in a component.** Every colour is a token in `src/app/globals.css`,
+  defined twice: `:root` for day and `:root[data-theme="night"]` for night. Use the Tailwind
+  utilities (`bg-card`, `text-navy`, `border-sky`, `bg-primary`, `text-on-primary`, `bg-raised`,
+  `text-ok`, `bg-alert`) or `var(--energy-peak)` in an inline style. An SVG stroke uses
+  `currentColor`. A hex in a component is a bug: it cannot follow the theme.
+- Night mode is a stored setting (`appearance.theme`), switched by the moon button on Today's
+  date line and the switch under Settings > Appearance. Both call `setTheme`. It never switches
+  by itself, and `<html data-theme>` comes from the server so the first paint is already right.
+- Cards: `bg-card`, 1px `line` border, radius 22px. Pills: fully rounded.
 - Calm by design: few elements, generous spacing, no badges or streaks that pull you back in,
   nothing that grabs attention. Touch targets at least 44px.
 - Reuse existing components and tokens before adding new ones.

@@ -1,19 +1,87 @@
 @import "tailwindcss";
 
-/* Palette and type from docs/SPEC.md and the canvas page "R2 minimal calm". */
-@theme {
-  --color-navy: #243a63; /* text, primary */
-  --color-muted: #56647d; /* secondary text */
-  --color-sky: #d5e1f5; /* base, borders, pressed */
-  --color-surface: #f4f7fc; /* cards, input fill */
-  --color-line: #e3ebf8; /* card borders */
-  --color-divider: #eaf0fa; /* rows inside cards */
-  --color-mid: #8aa9de; /* fixed blocks, now line */
-  --color-accent: #4a6fae; /* links, labels, badges */
-  --color-peak: #a3bde8; /* energy peak */
-  --color-ok: #2e7a55; /* a day that fits */
-  --color-alert: #fbedea; /* connection lost card */
-  --color-alert-ink: #a3341f; /* connection lost heading */
+/**
+ * Every colour lives here, twice: once for day and once for night. Components
+ * name tokens, never hex, so the theme is one attribute on <html>.
+ * Day palette from docs/design, night palette from its README.
+ */
+:root {
+  --bg: #ffffff;
+  --card: #ffffff;
+  --raised: #eaf0fa;
+  --surface: #f4f7fc;
+  --line: #e3ebf8;
+  --divider: #eaf0fa;
+  --sky: #d5e1f5;
+  --ink: #243a63;
+  --muted: #56647d;
+  --mid: #8aa9de;
+  --accent: #4a6fae;
+  --peak: #a3bde8;
+  --primary: #243a63;
+  --on-primary: #ffffff;
+  --energy-low: #eaf0fa;
+  --energy-steady: #d5e1f5;
+  --energy-peak: #a3bde8;
+  --idle: #b3c8ec;
+  --ok: #2e7a55;
+  --alert: #fbedea;
+  --alert-ink: #a3341f;
+  --shadow-card: 0 8px 24px rgba(36, 58, 99, 0.08);
+  --shadow-knob: 0 1px 2px rgba(36, 58, 99, 0.2);
+  color-scheme: light;
+}
+
+:root[data-theme="night"] {
+  --bg: #0f1a2e;
+  --card: #16233b;
+  --raised: #1c2b47;
+  --surface: #16233b;
+  --line: #22324f;
+  --divider: #22324f;
+  --sky: #2a3d60;
+  --ink: #e3ebf8;
+  --muted: #9aa8c2;
+  --mid: #8aa9de;
+  --accent: #a3bde8;
+  --peak: #7f9fd8;
+  /* A primary button flips to a light fill with dark text. */
+  --primary: #d5e1f5;
+  --on-primary: #0f1a2e;
+  --energy-low: #22324f;
+  --energy-steady: #3a5583;
+  --energy-peak: #7f9fd8;
+  --idle: #3a5583;
+  --ok: #6fbf95;
+  --alert: #3a1f1a;
+  --alert-ink: #f0a89a;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-raised: var(--raised);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-divider: var(--divider);
+  --color-sky: var(--sky);
+  --color-navy: var(--ink);
+  --color-muted: var(--muted);
+  --color-mid: var(--mid);
+  --color-accent: var(--accent);
+  --color-peak: var(--peak);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-energy-low: var(--energy-low);
+  --color-energy-steady: var(--energy-steady);
+  --color-energy-peak: var(--energy-peak);
+  --color-idle: var(--idle);
+  --color-ok: var(--ok);
+  --color-alert: var(--alert);
+  --color-alert-ink: var(--alert-ink);
 
   --font-sans: var(--font-roboto), system-ui, sans-serif;
 
@@ -22,13 +90,22 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  background: var(--bg);
 }
 
 body {
-  background: #ffffff;
-  color: var(--color-navy);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-sans);
   font-weight: 400;
   /* The home-screen app runs full screen; keep content clear of the home bar. */
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* The form controls follow the theme, so a time field is not a white box at night. */
+input,
+textarea,
+select,
+button {
+  color-scheme: inherit;
 }

@@ -24,9 +24,9 @@ export function Switch({
       }}
       className="flex h-11 w-14 flex-none items-center justify-center"
     >
-      <span className={`relative block h-[26px] w-[46px] rounded-full ${on ? "bg-navy" : "bg-sky"}`}>
+      <span className={`relative block h-[26px] w-[46px] rounded-full ${on ? "bg-primary" : "bg-sky"}`}>
         <span
-          className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-white shadow-[0_1px_2px_rgba(36,58,99,0.2)] transition-transform"
+          className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-card shadow-[var(--shadow-knob)] transition-transform"
           style={{ transform: on ? "translateX(20px)" : undefined }}
         />
       </span>
@@ -96,7 +96,7 @@ export function ChoiceGroup({
             aria-pressed={on}
             onClick={() => choose(choice.value)}
             className={`min-h-10 rounded-full border px-3.5 text-sm text-navy ${
-              on ? "border-mid bg-sky" : "border-sky bg-white"
+              on ? "border-mid bg-sky" : "border-sky bg-card"
             }`}
           >
             {choice.label}
@@ -144,7 +144,7 @@ export function RangeRow({
           setValue(next);
           onChange?.(next);
         }}
-        className="h-11 w-full accent-[#243A63]"
+        className="h-11 w-full accent-[color:var(--primary)]"
       />
     </div>
   );
@@ -228,7 +228,7 @@ export function OrderList({
             className="flex h-11 w-11 items-center justify-center rounded-full bg-surface disabled:opacity-35"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M3.5 10L8 5.5 12.5 10" fill="none" stroke="#243A63" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M3.5 10L8 5.5 12.5 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
           <button
@@ -239,7 +239,7 @@ export function OrderList({
             className="flex h-11 w-11 items-center justify-center rounded-full bg-surface disabled:opacity-35"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M3.5 6L8 10.5 12.5 6" fill="none" stroke="#243A63" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M3.5 6L8 10.5 12.5 6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
         </li>

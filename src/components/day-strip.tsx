@@ -17,7 +17,7 @@ export function DayStrip({
   const track = energyTrack(rhythm);
 
   return (
-    <div className="flex flex-col gap-2 rounded-card border border-line bg-white p-[14px] pb-3">
+    <div className="flex flex-col gap-2 rounded-card border border-line bg-card p-[14px] pb-3">
       <div
         role="img"
         aria-label={`Whole day from 07:00 to 22:00 with your energy level underneath, ${blocks.length} blocks planned`}

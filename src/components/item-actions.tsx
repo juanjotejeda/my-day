@@ -53,7 +53,7 @@ export function ItemActions({
       <button
         type="button"
         onClick={() => act("done")}
-        className="flex min-h-[54px] items-center justify-center rounded-full bg-navy text-base text-white"
+        className="flex min-h-[54px] items-center justify-center rounded-full bg-primary text-base text-on-primary"
       >
         {done ? "Back on my list" : "Mark as done"}
       </button>

@@ -67,7 +67,7 @@ export default async function Tomorrow() {
     <Screen>
       <DayHeaderLine date={`Tomorrow · ${label}`} workEnd={isWorkday ? settings.work.end : undefined} right={isWorkday ? undefined : "no work tomorrow"} />
 
-      <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">
+      <div className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
         <div role="img" aria-label="Tomorrow from 07:00 to 22:00" className="relative h-[26px]">
           {blocks.map((item) => {
             const left = pct(minutesOfDay(item.start as Date));
@@ -141,7 +141,7 @@ export default async function Tomorrow() {
                 title={item.title}
                 time={item.start ? `Mon ${hhmm(item.start)}` : "Mon"}
                 meta={`${item.fixed ? "Fixed" : "Flexible"} · ${item.sourceKind === "gmail" ? "Gmail" : "Calendar"}`}
-                fill={item.start ? levelOf(minutesOfDay(item.start)).fill : "#D5E1F5"}
+                fill={item.start ? levelOf(minutesOfDay(item.start)).fill : "var(--energy-steady)"}
                 variant={item.fixed ? "divider" : "sky"}
               />
             ))}

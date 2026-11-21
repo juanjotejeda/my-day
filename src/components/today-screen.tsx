@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { AddBar } from "@/components/add-bar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
@@ -23,6 +24,7 @@ import type { Draft, PlanItem } from "@/lib/plan/types";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
 import { addDraft, applyCorrection, deleteItem } from "@/app/actions";
 import type { Rhythm } from "@/lib/plan/curve";
+import type { Theme } from "@/lib/theme";
 
 type View = "now" | "priority";
 
@@ -37,6 +39,7 @@ export function TodayScreen({
   rhythm,
   waitingForMonday,
   headerRight,
+  theme,
 }: {
   weekday: string;
   date: string;
@@ -49,6 +52,7 @@ export function TodayScreen({
   waitingForMonday: number;
   /** Said instead of the times when today is not a working day. */
   headerRight?: string;
+  theme: Theme;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -127,7 +131,13 @@ export function TodayScreen({
 
   return (
     <main className="relative mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
-      <DayHeaderLine date={`${weekday} ${date}`} now={fmt(now)} workEnd={workEnd} right={headerRight} />
+      <DayHeaderLine
+        date={`${weekday} ${date}`}
+        now={fmt(now)}
+        workEnd={workEnd}
+        right={headerRight}
+        action={<ThemeToggle theme={theme} />}
+      />
 
       <AddBar onAdd={add} />
 
@@ -159,7 +169,7 @@ export function TodayScreen({
             aria-pressed={view === key}
             onClick={() => setView(key)}
             className={`min-h-10 rounded-full text-sm ${
-              view === key ? "bg-white text-navy shadow-[0_1px_3px_rgba(36,58,99,0.08)]" : "text-muted"
+              view === key ? "bg-card text-navy shadow-[0_1px_3px_rgba(36,58,99,0.08)]" : "text-muted"
             }`}
           >
             {key === "now" ? "Now" : "Priority"}
@@ -308,10 +318,10 @@ export function TodayScreen({
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2 rounded-card border border-line bg-white p-[14px]">
+          <div className="flex flex-col gap-2 rounded-card border border-line bg-card p-[14px]">
             <div className="flex items-baseline justify-between text-[13px]">
               <span>Does today fit?</span>
-              <span className={bar.over ? "text-mid" : "text-[#2E7A55]"}>{bar.verdict}</span>
+              <span className={bar.over ? "text-mid" : "text-ok"}>{bar.verdict}</span>
             </div>
             <div className="flex h-2 overflow-hidden rounded-full bg-divider">
               <div className="h-2 bg-mid" style={{ width: `${bar.fixedPct}%` }} />
@@ -341,8 +351,8 @@ export function TodayScreen({
                       <span
                         className="flex h-5 w-5 items-center justify-center rounded-full border-2"
                         style={{
-                          background: row.done ? "#8AA9DE" : "transparent",
-                          borderColor: row.done ? "#8AA9DE" : row.important ? "#8AA9DE" : "#B3C8EC",
+                          background: row.done ? "var(--mid)" : "transparent",
+                          borderColor: row.done || row.important ? "var(--mid)" : "var(--idle)",
                         }}
                       >
                         {row.done ? (
@@ -350,7 +360,7 @@ export function TodayScreen({
                             <path
                               d="M2.5 6.2l2.3 2.3 4.7-5"
                               fill="none"
-                              stroke="#FFFFFF"
+                              stroke="currentColor"
                               strokeWidth="1.8"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -413,7 +423,7 @@ export function TodayScreen({
       {toast ? (
         <div
           role="status"
-          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-navy px-3.5 py-3 text-[13px] leading-snug text-white"
+          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-primary px-3.5 py-3 text-[13px] leading-snug text-on-primary"
         >
           {toast}
         </div>

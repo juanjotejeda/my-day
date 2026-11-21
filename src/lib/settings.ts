@@ -20,9 +20,14 @@ const COLUMN: Record<SectionName, "rhythm" | "work" | "focus" | "priorities" | "
   notifications: "notifications",
   privacy: "priorities",
   profile: "rhythm",
+  appearance: "rhythm",
 };
 
-const NESTED: Partial<Record<SectionName, string>> = { privacy: "privacy", profile: "profile" };
+const NESTED: Partial<Record<SectionName, string>> = {
+  privacy: "privacy",
+  profile: "profile",
+  appearance: "appearance",
+};
 
 function parse<K extends SectionName>(section: K, value: unknown): Settings[K] {
   const result = SECTIONS[section].safeParse(value ?? {});

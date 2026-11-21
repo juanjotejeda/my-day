@@ -65,6 +65,11 @@ export const privacySchema = z.object({
   processSentMail: z.boolean().default(true),
 });
 
+/** Night mode is a choice, remembered per user, never automatic. */
+export const appearanceSchema = z.object({
+  theme: z.enum(["day", "night"]).default("day"),
+});
+
 export const profileSchema = z.object({
   language: z.enum(["en", "de"]).default("en"),
   clock24: z.boolean().default(true),
@@ -80,5 +85,6 @@ export const SECTIONS = {
   notifications: notificationsSchema,
   privacy: privacySchema,
   profile: profileSchema,
+  appearance: appearanceSchema,
 } as const;
 

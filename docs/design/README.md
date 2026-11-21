@@ -15,12 +15,6 @@ Each `*.dc.html` file is one phone screen (390 px wide) from a design canvas. Th
 
 Do not ship these files or their runtime. Re-implement each screen as React components in the app, sharing components (cards, rows, pills, bottom nav, sheets) across screens.
 
-## Changes since the first version
-
-- 21 Nov 2026: the big date header is gone. Today, the empty day and Tomorrow open with one
-  small line instead: the date on the left, the time and the end of work on the right, 15 px,
-  regular weight, with the add bar directly underneath. The files below are updated.
-
 ## Design rules (apply everywhere)
 
 - One font: Roboto, weights 300 and 400 only. Hierarchy by size, never bold.
@@ -66,3 +60,11 @@ Settings and profile
 - `app-s6-rules.dc.html`: S6 Learned rules
 - `app-s7-privacy.dc.html`: S7 Privacy and data
 - `app-s8-profile.dc.html`: S8 Profile
+
+## Night mode
+
+Every screen has a night version: the same file name with `-night` added (Today's is `m2-minimal-calm-night.dc.html`). Night is a second colour theme, not a separate layout: build it with the same components and a second set of colour tokens.
+
+- Night palette: background #0F1A2E, surfaces #16233B and #1C2B47, lines #22324F and #2A3D60, text #E3EBF8, secondary #9AA8C2, accents #8AA9DE, #A3BDE8 and #7F9FD8. Energy levels: low #22324F, steady #3A5583, peak #7F9FD8.
+- Primary buttons flip to a light fill (#D5E1F5) with dark text (#0F1A2E).
+- The user chooses. Two places switch it: the moon/sun button at the end of the date line on Today, and the Night mode switch under Settings > Appearance. Both change the same setting, which is remembered per user (store it in settings, not only in the browser). No automatic switching.

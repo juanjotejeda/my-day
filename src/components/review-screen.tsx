@@ -37,7 +37,7 @@ export function ReviewScreen({
 
   function card(candidate: ReviewCandidate) {
     return (
-      <div key={candidate.id} className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">
+      <div key={candidate.id} className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
         <div className="flex items-center justify-between">
           <Chip>{candidate.kind}</Chip>
           <span className="text-xs text-muted">{candidate.received}</span>
@@ -52,14 +52,14 @@ export function ReviewScreen({
           <button
             type="button"
             onClick={() => decide(candidate.id, true)}
-            className="min-h-11 flex-1 rounded-full bg-navy text-sm text-white"
+            className="min-h-11 flex-1 rounded-full bg-primary text-sm text-on-primary"
           >
             Add to plan
           </button>
           <button
             type="button"
             onClick={() => decide(candidate.id, false)}
-            className="min-h-11 flex-1 rounded-full border border-sky bg-white text-sm text-navy"
+            className="min-h-11 flex-1 rounded-full border border-sky bg-card text-sm text-navy"
           >
             Not a task
           </button>
@@ -131,7 +131,7 @@ export function ReviewScreen({
       {toast ? (
         <div
           role="status"
-          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-navy px-3.5 py-3 text-[13px] leading-snug text-white"
+          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-primary px-3.5 py-3 text-[13px] leading-snug text-on-primary"
         >
           {toast}
         </div>

@@ -34,7 +34,7 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
       >
         <button
           type="submit"
-          className="min-h-[52px] w-full rounded-full bg-navy px-6 text-[15px] text-white"
+          className="min-h-[52px] w-full rounded-full bg-primary px-6 text-[15px] text-on-primary"
         >
           Continue with Google
         </button>

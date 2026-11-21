@@ -137,7 +137,7 @@ export function SettingsFields({
               defaultValue={value}
               aria-label={item.label}
               onChange={(event) => save(item.section, item.key, Number(event.target.value))}
-              className="h-11 w-full accent-[#243A63]"
+              className="h-11 w-full accent-[color:var(--primary)]"
             />
           </div>
         );

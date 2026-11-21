@@ -116,7 +116,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
   };
 
   const pillStyle = (on: boolean) =>
-    on ? "border-mid bg-sky" : "border-sky bg-white";
+    on ? "border-mid bg-sky" : "border-sky bg-card";
 
   const hint =
     draft.type === "task"
@@ -128,7 +128,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
         : "Fixed in your day at this time.";
 
   return (
-    <div className="sticky top-0 z-10 -mt-1.5 bg-white pt-1.5 pb-2">
+    <div className="sticky top-0 z-10 -mt-1.5 bg-card pt-1.5 pb-2">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -141,14 +141,14 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
           type="button"
           onClick={openVoice}
           aria-label="Add by voice"
-          className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-navy"
+          className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-primary"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="#FFFFFF" strokeWidth="1.6" />
+            <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
             <path
               d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"
               fill="none"
-              stroke="#FFFFFF"
+              stroke="currentColor"
               strokeWidth="1.6"
               strokeLinecap="round"
             />
@@ -157,7 +157,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
       </div>
 
       {mode === "type" ? (
-        <div className="mt-2.5 flex flex-col gap-3.5 rounded-card border border-sky bg-white p-4 shadow-[0_8px_24px_rgba(36,58,99,0.08)]">
+        <div className="mt-2.5 flex flex-col gap-3.5 rounded-card border border-sky bg-card p-4 shadow-[var(--shadow-card)]">
           <div role="group" aria-label="What kind" className="grid grid-cols-2 gap-2">
             {TYPES.map((type) => (
               <button
@@ -240,7 +240,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
                 onAdd(draft);
                 close();
               }}
-              className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white"
+              className="min-h-12 flex-1 rounded-full bg-primary text-[15px] text-on-primary"
             >
               Add to my day
             </button>
@@ -256,7 +256,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
       ) : null}
 
       {mode === "voice" ? (
-        <div className="mt-2.5 flex flex-col gap-3 rounded-card border border-sky bg-white p-4 shadow-[0_8px_24px_rgba(36,58,99,0.08)]">
+        <div className="mt-2.5 flex flex-col gap-3 rounded-card border border-sky bg-card p-4 shadow-[var(--shadow-card)]">
           <div className="flex items-center gap-2.5">
             <div aria-hidden="true" className="flex h-6 items-center gap-[3px]">
               {[10, 18, 24, 14, 8].map((height, index) => (
@@ -284,7 +284,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
               <button
                 type="button"
                 onClick={stopRecording}
-                className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white"
+                className="min-h-12 flex-1 rounded-full bg-primary text-[15px] text-on-primary"
               >
                 Stop
               </button>
@@ -305,7 +305,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
                   setParsed(null);
                   setMode("type");
                 }}
-                className="min-h-12 flex-1 rounded-full bg-navy text-[15px] text-white disabled:opacity-40"
+                className="min-h-12 flex-1 rounded-full bg-primary text-[15px] text-on-primary disabled:opacity-40"
               >
                 Review and add
               </button>

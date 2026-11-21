@@ -67,14 +67,14 @@ export function RulesScreen({
             <button
               type="button"
               onClick={() => decide(suggestion.id, true)}
-              className="min-h-11 flex-1 rounded-full bg-navy text-sm text-white"
+              className="min-h-11 flex-1 rounded-full bg-primary text-sm text-on-primary"
             >
               Make it a rule
             </button>
             <button
               type="button"
               onClick={() => decide(suggestion.id, false)}
-              className="min-h-11 flex-1 rounded-full border border-sky bg-white text-sm text-navy"
+              className="min-h-11 flex-1 rounded-full border border-sky bg-card text-sm text-navy"
             >
               Not now
             </button>

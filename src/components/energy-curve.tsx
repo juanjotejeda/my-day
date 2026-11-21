@@ -53,7 +53,7 @@ export function EnergyCurve({
   const line = `M${points.join(" L")}`;
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">
+    <div className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
       <div className="flex flex-col gap-1.5 py-2">
         <svg
           width="100%"
@@ -62,14 +62,14 @@ export function EnergyCurve({
           role="img"
           aria-label="Your energy curve from wake up to bedtime"
         >
-          <path d={`${line} L326 110 L0 110 Z`} fill="#EAF0FA" />
-          <path d={line} fill="none" stroke="#4A6FAE" strokeWidth="2" strokeLinecap="round" />
+          <path d={`${line} L326 110 L0 110 Z`} fill="var(--energy-low)" />
+          <path d={line} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
           <rect
             x={(((peak * 60 - 360) / 1020) * 326).toFixed(1)}
             y="0"
             width={((180 / 1020) * 326).toFixed(1)}
             height="110"
-            fill="#D5E1F5"
+            fill="var(--sky)"
             opacity="0.45"
           />
         </svg>
@@ -112,7 +112,7 @@ export function EnergyCurve({
             setPeak(next);
             onChange?.({ key: "peakStart", value: next });
           }}
-          className="h-11 w-full accent-[#4A6FAE]"
+          className="h-11 w-full accent-[color:var(--accent)]"
         />
       </label>
 

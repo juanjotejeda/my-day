@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { currentTheme } from "@/lib/theme";
 
 import "./globals.css";
 
@@ -20,14 +21,17 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#FFFFFF",
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  // The status bar matches the theme, so night mode is not framed in white.
+  const theme = await currentTheme();
+  return { themeColor: theme === "night" ? "#0F1A2E" : "#FFFFFF", viewportFit: "cover" };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const theme = await currentTheme();
+
   return (
-    <html lang="en" className={`${roboto.variable} h-full antialiased`}>
+    <html lang="en" data-theme={theme} className={`${roboto.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
         <RegisterServiceWorker />

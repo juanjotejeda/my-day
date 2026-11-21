@@ -142,3 +142,12 @@ export async function signOutEverywhere() {
   const { signOut } = await import("@/auth");
   await signOut({ redirectTo: "/signin" });
 }
+
+/** Day or night. The same setting the moon button and the Settings switch use. */
+export async function setTheme(theme: "day" | "night") {
+  const user = await me();
+  if (!user) return { ok: false as const, error: "unauthorized" };
+  await saveSection(user.id, "appearance", { theme });
+  revalidatePath("/", "layout");
+  return { ok: true as const };
+}

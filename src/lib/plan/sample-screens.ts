@@ -89,14 +89,14 @@ export const SAMPLE_TOMORROW = {
   ],
   weekendNote: "Weekends are protected, so work items wait until Monday.",
   planned: [
-    { id: "t1", title: "Morning run", time: "09:00", meta: "Flexible · Reminder", fill: "#D5E1F5", dashed: true },
-    { id: "t2", title: "Thiago's football match", time: "11:00", meta: "Fixed · Calendar", fill: "#A3BDE8", dashed: false },
-    { id: "t3", title: "Pick up birthday gift", time: "15:00", meta: "Flexible · moved from today", fill: "#EAF0FA", dashed: true },
-    { id: "t4", title: "Dinner with friends", time: "17:00", meta: "Fixed · Calendar", fill: "#D5E1F5", dashed: false },
+    { id: "t1", title: "Morning run", time: "09:00", meta: "Flexible · Reminder", fill: "var(--energy-steady)", dashed: true },
+    { id: "t2", title: "Thiago's football match", time: "11:00", meta: "Fixed · Calendar", fill: "var(--energy-peak)", dashed: false },
+    { id: "t3", title: "Pick up birthday gift", time: "15:00", meta: "Flexible · moved from today", fill: "var(--energy-low)", dashed: true },
+    { id: "t4", title: "Dinner with friends", time: "17:00", meta: "Fixed · Calendar", fill: "var(--energy-steady)", dashed: false },
   ],
   monday: [
-    { id: "m1", title: "Send Northwind proposal", time: "Mon", meta: "Deadline · Gmail", fill: "#A3BDE8", chip: "sky" as const },
-    { id: "m2", title: "Weekly planning", time: "Mon 10:00", meta: "Fixed · Calendar", fill: "#D5E1F5", chip: "divider" as const },
+    { id: "m1", title: "Send Northwind proposal", time: "Mon", meta: "Deadline · Gmail", fill: "var(--energy-peak)", chip: "sky" as const },
+    { id: "m2", title: "Weekly planning", time: "Mon 10:00", meta: "Fixed · Calendar", fill: "var(--energy-steady)", chip: "divider" as const },
   ],
 };
 
@@ -159,8 +159,8 @@ export const SAMPLE_INSIGHTS = {
 };
 
 export const SAMPLE_LAST_KNOWN = [
-  { id: "l1", title: "Co-founder sync", time: "08:30", meta: "Fixed · Calendar", fill: "#D5E1F5", chip: "divider" as const },
-  { id: "l2", title: "Write Northwind proposal", time: "09:15", meta: "Flexible · Gmail", fill: "#A3BDE8", chip: "dashed" as const },
-  { id: "l3", title: "Northwind client call", time: "11:30", meta: "Fixed · Calendar", fill: "#A3BDE8", chip: "divider" as const },
-  { id: "l4", title: "Intro call, Fieldstone Capital", time: "14:00", meta: "Fixed · Calendar", fill: "#D5E1F5", chip: "divider" as const },
+  { id: "l1", title: "Co-founder sync", time: "08:30", meta: "Fixed · Calendar", fill: "var(--energy-steady)", chip: "divider" as const },
+  { id: "l2", title: "Write Northwind proposal", time: "09:15", meta: "Flexible · Gmail", fill: "var(--energy-peak)", chip: "dashed" as const },
+  { id: "l3", title: "Northwind client call", time: "11:30", meta: "Fixed · Calendar", fill: "var(--energy-peak)", chip: "divider" as const },
+  { id: "l4", title: "Intro call, Fieldstone Capital", time: "14:00", meta: "Fixed · Calendar", fill: "var(--energy-steady)", chip: "divider" as const },
 ];

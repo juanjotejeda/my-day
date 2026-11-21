@@ -164,7 +164,7 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
                 title={other.title}
                 time={other.start ? hhmm(other.start) : "later"}
                 meta={`${other.fixed ? "Fixed" : "Flexible"} · ${other.sourceKind === "calendar" ? "Calendar" : other.sourceKind === "gmail" ? "Gmail" : "Added by you"}`}
-                fill={other.start ? levelOf(minutesOfDay(other.start)).fill : "#EAF0FA"}
+                fill={other.start ? levelOf(minutesOfDay(other.start)).fill : "var(--energy-low)"}
                 variant={other.fixed ? "divider" : "dashed"}
               />
             ))}

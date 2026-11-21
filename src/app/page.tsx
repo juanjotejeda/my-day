@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 
 import { TodayScreen } from "@/components/today-screen";
 import { auth } from "@/auth";
-import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
+import { TIMEZONE, dayDate, dayKey } from "@/lib/day";
 import { weekendWaiting } from "@/lib/plan/carry";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
 import { loadSettings } from "@/lib/settings";
 import { carryForwardToToday } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
+import { currentTheme } from "@/lib/theme";
 
 
 export default async function Today() {
@@ -67,7 +68,8 @@ export default async function Today() {
       banners={banners}
       reviewCount={openCandidates}
       waitingForMonday={waitingForMonday}
-      headerRight={isWorkday ? undefined : `${hhmm(now)} now · no work today`}
+      headerRight={isWorkday ? undefined : "no work today"}
+      theme={await currentTheme()}
       rhythm={{
         ...DEFAULT_RHYTHM,
         peakStart: settings.rhythm.peakStart,

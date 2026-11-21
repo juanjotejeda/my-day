@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /** White card, 1px line, 22px radius: the surface every list sits on. */
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-card border border-line bg-white ${className}`}>{children}</div>;
+  return <div className={`rounded-card border border-line bg-card ${className}`}>{children}</div>;
 }
 
 export function SectionTitle({ children, count, hint }: { children: ReactNode; count?: number; hint?: string }) {
@@ -23,7 +23,7 @@ export function TimeChip({ time, fixed }: { time: string; fixed: boolean }) {
   return (
     <span
       className={`rounded-full px-[7px] py-0.5 tabular-nums ${
-        fixed ? "bg-divider text-navy" : "border border-dashed border-mid text-accent"
+        fixed ? "bg-raised text-navy" : "border border-dashed border-mid text-accent"
       }`}
     >
       {time}
@@ -51,7 +51,7 @@ export function BackLink({ href, children }: { href: string; children: ReactNode
   return (
     <Link href={href} className="flex min-h-11 items-center gap-2 text-[15px] text-muted">
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-        <path d="M9 2.5L4.5 7 9 11.5" fill="none" stroke="#56647D" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M9 2.5L4.5 7 9 11.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
       </svg>
       {children}
     </Link>
@@ -98,7 +98,7 @@ export type ChipVariant = "sky" | "divider" | "dashed";
 export function Chip({ children, variant = "sky" }: { children: ReactNode; variant?: ChipVariant }) {
   const styles: Record<ChipVariant, string> = {
     sky: "bg-sky text-navy",
-    divider: "bg-divider text-navy",
+    divider: "bg-raised text-navy",
     dashed: "border border-dashed border-mid text-accent",
   };
   return (
@@ -110,11 +110,11 @@ export function Chip({ children, variant = "sky" }: { children: ReactNode; varia
 
 /** White card holding rows that separate themselves with a top line. */
 export function ListCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-card border border-line bg-white px-4 pt-1 pb-2 ${className}`}>{children}</div>;
+  return <div className={`rounded-card border border-line bg-card px-4 pt-1 pb-2 ${className}`}>{children}</div>;
 }
 
 export function PanelCard({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">{children}</div>;
+  return <div className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">{children}</div>;
 }
 
 /** Label on the left, value on the right: the settings and detail row. */
@@ -189,7 +189,7 @@ export function PrimaryLink({ href, children }: { href: string; children: ReactN
   return (
     <Link
       href={href}
-      className="flex min-h-[54px] items-center justify-center rounded-full bg-navy text-base text-white"
+      className="flex min-h-[54px] items-center justify-center rounded-full bg-primary text-base text-on-primary"
     >
       {children}
     </Link>
@@ -200,7 +200,7 @@ export function SecondaryLink({ href, children }: { href: string; children: Reac
   return (
     <Link
       href={href}
-      className="flex min-h-[52px] items-center justify-center rounded-full border border-sky bg-white text-[15px] text-navy"
+      className="flex min-h-[52px] items-center justify-center rounded-full border border-sky bg-card text-[15px] text-navy"
     >
       {children}
     </Link>
@@ -220,7 +220,7 @@ export function BackHeader({ href, label }: { href: string; label: string }) {
           <path
             d="M11 3.5L5.5 9l5.5 5.5"
             fill="none"
-            stroke="#243A63"
+            stroke="currentColor"
             strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -250,7 +250,7 @@ export function StepHeader({ back, step, steps = 5 }: { back: string; step: numb
         {Array.from({ length: steps }, (_, index) => (
           <span
             key={index}
-            className={`h-1 flex-1 rounded-sm ${index < step ? "bg-navy" : "bg-sky"}`}
+            className={`h-1 flex-1 rounded-sm ${index < step ? "bg-primary" : "bg-sky"}`}
           />
         ))}
       </div>
@@ -272,7 +272,7 @@ export function LinkRow({ href, label, sub, value }: { href: string; label: stri
       <span className="flex items-center gap-2 text-sm text-muted">
         {value}
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="#56647D" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       </span>
     </Link>
@@ -310,7 +310,7 @@ export function PillRow({ href, label, value }: { href: string; label: string; v
       <span className="flex items-center gap-2 text-sm text-muted">
         {value}
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="#56647D" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       </span>
     </Link>
@@ -326,19 +326,26 @@ export function DayHeaderLine({
   now,
   workEnd,
   right,
+  action,
 }: {
   date: string;
   now?: string;
   workEnd?: string;
   /** Said instead of the times, when a day has no working hours. */
   right?: string;
+  /** The moon and sun button sits at the end of the line. */
+  action?: ReactNode;
 }) {
   const parts = [now ? `${now} now` : null, workEnd ? `${workEnd} work ends` : null].filter(Boolean);
+  const tail = right ?? parts.join(" · ");
 
   return (
-    <div className="flex items-baseline justify-between gap-3 px-1 pt-2 pb-0.5 text-[15px]">
-      <h1 className="text-[15px] font-normal">{date}</h1>
-      <span className="text-muted tabular-nums">{right ?? parts.join(" · ")}</span>
+    <div className="-mb-2.5 flex items-center justify-between gap-2 pl-1 text-[15px] text-muted tabular-nums">
+      <span>
+        <h1 className="inline text-[15px] font-normal text-navy">{date}</h1>
+        {tail ? ` · ${tail}` : null}
+      </span>
+      {action}
     </div>
   );
 }

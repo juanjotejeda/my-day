@@ -37,7 +37,7 @@ export default async function ConnectionLost() {
         </p>
         <Link
           href="/signin"
-          className="flex min-h-11 items-center self-start rounded-full bg-navy px-[18px] text-[15px] text-white"
+          className="flex min-h-11 items-center self-start rounded-full bg-primary px-[18px] text-[15px] text-on-primary"
         >
           Reconnect Google
         </Link>

@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
+import { NightModeRow } from "@/components/night-mode-row";
 import { reviewCount } from "@/lib/plan/review-count";
+import { currentTheme } from "@/lib/theme";
 import { DetailRow, LinkRow, ListCard, Screen, ScreenHeader, SettingsSection } from "@/components/ui";
 
 // S0 Settings hub.
@@ -10,6 +12,7 @@ export default async function Settings() {
   const session = await auth();
   if (!session?.user) redirect("/signin");
   const waiting = await reviewCount();
+  const theme = await currentTheme();
 
   return (
     <Screen>
@@ -32,6 +35,10 @@ export default async function Settings() {
       <SettingsSection title="Connections and alerts">
         <LinkRow href="/settings/sources" label="Sources" sub="Calendar, Gmail, reminders" />
         <LinkRow href="/settings/notifications" label="Notifications" />
+      </SettingsSection>
+
+      <SettingsSection title="Appearance">
+        <NightModeRow night={theme === "night"} />
       </SettingsSection>
 
       <SettingsSection title="Data">

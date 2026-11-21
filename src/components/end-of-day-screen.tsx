@@ -146,7 +146,7 @@ export function EndOfDayScreen({
             }
           })
         }
-        className="flex min-h-[54px] items-center justify-center rounded-full bg-navy text-base text-white"
+        className="flex min-h-[54px] items-center justify-center rounded-full bg-primary text-base text-on-primary"
       >
         Close the day
       </button>

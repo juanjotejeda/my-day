@@ -37,12 +37,12 @@ export function AdjustSheet({
   };
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col justify-end bg-[rgba(36,58,99,0.25)]">
+    <div className="fixed inset-0 z-20 flex flex-col justify-end bg-[rgba(0,0,0,0.45)]">
       <button type="button" aria-label="Close" onClick={onClose} className="flex-1" />
       <div
         role="dialog"
         aria-label="Adjust item"
-        className="mx-auto flex w-full max-w-[430px] flex-col gap-2 rounded-t-card bg-white px-4 pt-5 pb-6"
+        className="mx-auto flex w-full max-w-[430px] flex-col gap-2 rounded-t-card bg-card px-4 pt-5 pb-6"
       >
         <p className="text-xs text-muted">
           {lines.kind} · {lines.time} · {lines.energy}
