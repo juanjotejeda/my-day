@@ -112,6 +112,11 @@ body {
      scrolled and the bottom bar came with it. The bar owns the home-bar inset. */
 }
 
+/* Dividers go between rows, so the first row in a card has no line above it. */
+.rounded-card > :first-child {
+  border-top-width: 0;
+}
+
 /* The form controls follow the theme, so a time field is not a white box at night. */
 input,
 textarea,
