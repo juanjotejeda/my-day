@@ -1,78 +1,66 @@
 import { redirect } from "next/navigation";
 
-import { BottomNav } from "@/components/bottom-nav";
-import { ChoiceGroup } from "@/components/controls";
+import { EndOfDayScreen } from "@/components/end-of-day-screen";
 import { auth } from "@/auth";
+import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
+import { dur } from "@/lib/plan/format";
 import { reviewCount } from "@/lib/plan/review-count";
-import {
-  DetailRow,
-  ListCard,
-  NoteCard,
-  PanelCard,
-  PrimaryLink,
-  Screen,
-  ScreenHeader,
-  SectionTitle,
-} from "@/components/ui";
-import { SAMPLE_END_OF_DAY } from "@/lib/plan/sample-screens";
+import { prisma } from "@/lib/prisma";
 
-// Answers save to day_reviews once milestone 7 wires up the day loop.
+/** D4 on real data: what today holds, what is still open, what you answered. */
 export default async function EndOfDay() {
   const session = await auth();
-  if (!session?.user) redirect("/signin");
+  if (!session?.user?.email) redirect("/signin");
   const waiting = await reviewCount();
+  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  if (!user) redirect("/signin");
 
-  const day = SAMPLE_END_OF_DAY;
+  const now = new Date();
+  const today = dayDate(dayKey(now));
+
+  const [items, corrections, review] = await Promise.all([
+    prisma.item.findMany({
+      where: { userId: user.id, day: today, archivedAt: null, status: { not: "dropped" } },
+      orderBy: { start: "asc" },
+    }),
+    prisma.correction.count({ where: { userId: user.id, createdAt: { gte: today } } }),
+    prisma.dayReview.findUnique({ where: { userId_date: { userId: user.id, date: today } } }),
+  ]);
+
+  const done = items.filter((item) => item.status === "done");
+  const moved = items.filter((item) => item.status === "moved").length;
+  const focusMin = items
+    .filter((item) => item.effort === "deep" && item.start && item.end)
+    .reduce((total, item) => total + ((item.end as Date).getTime() - (item.start as Date).getTime()) / 60_000, 0);
+  const focusDone = items
+    .filter((item) => item.effort === "deep" && item.status === "done" && item.start && item.end)
+    .reduce((total, item) => total + ((item.end as Date).getTime() - (item.start as Date).getTime()) / 60_000, 0);
+
+  const when = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIMEZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(now);
 
   return (
-    <Screen>
-      <ScreenHeader label={day.when} title={day.headline} size={44} />
-
-      <PanelCard>
-        {day.stats.map((stat) => (
-          <DetailRow key={stat.label} label={stat.label} sub={stat.sub} value={stat.value} />
-        ))}
-      </PanelCard>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Still open</SectionTitle>
-        <ListCard>
-          {day.open.map((item) => (
-            <div key={item.id} className="flex flex-col gap-2 py-2">
-              <p className="text-base leading-relaxed">{item.title}</p>
-              <ChoiceGroup label={item.title} choices={day.carryChoices} defaultValue={["mon"]} />
-            </div>
-          ))}
-        </ListCard>
-      </section>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>How did today feel?</SectionTitle>
-        <ListCard>
-          <div className="py-2">
-            <ChoiceGroup label="How did today feel?" choices={day.feelChoices} defaultValue={["fine"]} />
-          </div>
-        </ListCard>
-      </section>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Was the plan right?</SectionTitle>
-        <ListCard>
-          <div className="py-2">
-            <ChoiceGroup label="Was the plan right?" choices={day.planChoices} defaultValue={["part"]} />
-          </div>
-        </ListCard>
-      </section>
-
-      <NoteCard label="WHY WE ASK">
-        Your answers feed Insights and help My Day set better durations and placements. Nothing here
-        changes your calendar.
-      </NoteCard>
-
-      <PrimaryLink href="/">Close the day</PrimaryLink>
-
-      <div className="flex-1" />
-      <BottomNav active="today" reviewCount={waiting} />
-    </Screen>
+    <EndOfDayScreen
+      when={`${when} · ${hhmm(now)}`}
+      headline={items.length ? `${done.length} of ${items.length} done` : "Nothing was planned"}
+      stats={[
+        { label: "Focus time", value: focusMin ? `${dur(Math.round(focusDone))} of ${dur(Math.round(focusMin))}` : "none planned" },
+        { label: "Moved", value: `${moved} ${moved === 1 ? "item" : "items"}` },
+        { label: "Corrections", sub: "Saved as feedback", value: String(corrections) },
+      ]}
+      open={items
+        .filter((item) => item.status !== "done")
+        .map((item) => ({ id: item.id, title: item.title }))}
+      reviewCount={waiting}
+      saved={{
+        feeling: review?.feeling ?? undefined,
+        planRight: review?.planRight ?? undefined,
+        note: review?.note ?? undefined,
+      }}
+    />
   );
 }

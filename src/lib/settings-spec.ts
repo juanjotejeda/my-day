@@ -438,11 +438,12 @@ export const PRIVACY_SCREEN: ScreenSpec = {
           label: "Keep short source quotes",
           sub: "The line an item came from",
         },
+        { kind: "row", label: "End-of-day rating and note", value: "12 months" },
         {
           kind: "pills",
           section: "privacy",
           key: "retentionDays",
-          label: "Keep quotes and history for",
+          label: "Keep quotes, history and logs for",
           numeric: true,
           choices: [
             { value: "7", label: "7 days" },

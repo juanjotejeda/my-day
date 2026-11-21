@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
-import { reviewCount } from "@/lib/plan/review-count";
 import {
   ItemRow,
   ListCard,
@@ -13,29 +12,77 @@ import {
   SecondaryLink,
   SectionTitle,
 } from "@/components/ui";
-import { SAMPLE_TOMORROW } from "@/lib/plan/sample-screens";
+import { TIMEZONE, dayDate, dayKey, hhmm, minutesOfDay } from "@/lib/day";
+import { levelOf } from "@/lib/plan/curve";
+import { pct } from "@/lib/plan/format";
+import { reviewCount } from "@/lib/plan/review-count";
+import { runPlan } from "@/lib/plan/run";
+import { prisma } from "@/lib/prisma";
+import { loadSettings } from "@/lib/settings";
 
-// Tomorrow runs through the same scheduler once milestone 3 lands.
+const WEEKDAY_KEYS = ["su", "mo", "tu", "we", "th", "fr", "sa"];
+
+/** D3 Tomorrow: the next day through the same scheduler, with a Monday preview. */
 export default async function Tomorrow() {
   const session = await auth();
-  if (!session?.user) redirect("/signin");
+  if (!session?.user?.email) redirect("/signin");
   const waiting = await reviewCount();
+  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  if (!user) redirect("/signin");
+
+  const now = new Date();
+  const tomorrowDate = new Date(now.getTime() + 86_400_000);
+  const tomorrow = dayDate(dayKey(tomorrowDate));
+
+  // The same scheduler, run for tomorrow, so the screen shows a real plan.
+  await runPlan(user.id, tomorrow, now);
+
+  const settings = await loadSettings(user.id);
+  const weekday = WEEKDAY_KEYS[new Date(`${dayKey(tomorrowDate)}T12:00:00Z`).getUTCDay()];
+  const isWorkday = settings.work.days.includes(weekday);
+
+  const monday = nextMonday(tomorrowDate);
+  const [items, mondayItems] = await Promise.all([
+    prisma.item.findMany({
+      where: { userId: user.id, day: tomorrow, archivedAt: null, status: { not: "dropped" } },
+      orderBy: [{ start: "asc" }, { title: "asc" }],
+    }),
+    isWorkday
+      ? Promise.resolve([])
+      : prisma.item.findMany({
+          where: { userId: user.id, day: dayDate(dayKey(monday)), archivedAt: null },
+          orderBy: [{ start: "asc" }],
+          take: 3,
+        }),
+  ]);
+
+  const blocks = items.filter((item) => item.start && !item.allDay);
+  const label = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIMEZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(tomorrowDate);
 
   return (
     <Screen>
-      <ScreenHeader label={SAMPLE_TOMORROW.weekday} title="Tomorrow" size={40} />
+      <ScreenHeader label={label} title="Tomorrow" size={40} />
 
       <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">
         <div role="img" aria-label="Tomorrow from 07:00 to 22:00" className="relative h-[26px]">
-          {SAMPLE_TOMORROW.blocks.map((block) => (
-            <span
-              key={`${block.left}-${block.width}`}
-              className={`absolute top-1.5 h-3.5 rounded-full ${
-                block.fixed ? "bg-mid" : "border-[1.5px] border-dashed border-mid"
-              }`}
-              style={{ left: `${block.left}%`, width: `${block.width}%` }}
-            />
-          ))}
+          {blocks.map((item) => {
+            const left = pct(minutesOfDay(item.start as Date));
+            const right = pct(minutesOfDay(item.end ?? (item.start as Date)));
+            return (
+              <span
+                key={item.id}
+                className={`absolute top-1.5 h-3.5 rounded-full ${
+                  item.fixed ? "bg-mid" : "border-[1.5px] border-dashed border-mid"
+                }`}
+                style={{ left: `${left}%`, width: `${Math.max(right - left, 1)}%` }}
+              />
+            );
+          })}
         </div>
         <div className="flex justify-between text-[11px] text-muted">
           <span>07</span>
@@ -45,40 +92,63 @@ export default async function Tomorrow() {
         </div>
       </div>
 
-      <NoteCard label="WEEKEND">{SAMPLE_TOMORROW.weekendNote}</NoteCard>
+      {!isWorkday ? (
+        <NoteCard label="WEEKEND">
+          {settings.protectedTime.noWorkWeekends
+            ? "Weekends are protected, so work items wait until Monday."
+            : "Not a working day, so only what you chose is planned."}
+        </NoteCard>
+      ) : null}
 
       <section className="flex flex-col gap-1.5">
         <SectionTitle>Planned</SectionTitle>
         <ListCard>
-          {SAMPLE_TOMORROW.planned.map((item) => (
-            <ItemRow
-              key={item.id}
-              title={item.title}
-              time={item.time}
-              meta={item.meta}
-              fill={item.fill}
-              variant={item.dashed ? "dashed" : "divider"}
-            />
-          ))}
+          {blocks.length ? (
+            blocks.map((item) => (
+              <ItemRow
+                key={item.id}
+                href={`/item/${item.id}`}
+                title={item.title}
+                time={hhmm(item.start as Date)}
+                meta={`${item.fixed ? "Fixed" : "Flexible"} · ${
+                  item.sourceKind === "calendar"
+                    ? "Calendar"
+                    : item.sourceKind === "gmail"
+                      ? "Gmail"
+                      : item.status === "moved"
+                        ? "moved from today"
+                        : "Added by you"
+                }`}
+                fill={levelOf(minutesOfDay(item.start as Date)).fill}
+                variant={item.fixed ? "divider" : "dashed"}
+              />
+            ))
+          ) : (
+            <p className="py-3 text-[15px] leading-relaxed text-muted">
+              Nothing planned yet. What you add today for tomorrow appears here.
+            </p>
+          )}
         </ListCard>
       </section>
 
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Monday preview</SectionTitle>
-        <ListCard>
-          {SAMPLE_TOMORROW.monday.map((item) => (
-            <ItemRow
-              key={item.id}
-              href={item.id === "m1" ? "/item/prop" : undefined}
-              title={item.title}
-              time={item.time}
-              meta={item.meta}
-              fill={item.fill}
-              variant={item.chip}
-            />
-          ))}
-        </ListCard>
-      </section>
+      {mondayItems.length ? (
+        <section className="flex flex-col gap-1.5">
+          <SectionTitle>Monday preview</SectionTitle>
+          <ListCard>
+            {mondayItems.map((item) => (
+              <ItemRow
+                key={item.id}
+                href={`/item/${item.id}`}
+                title={item.title}
+                time={item.start ? `Mon ${hhmm(item.start)}` : "Mon"}
+                meta={`${item.fixed ? "Fixed" : "Flexible"} · ${item.sourceKind === "gmail" ? "Gmail" : "Calendar"}`}
+                fill={item.start ? levelOf(minutesOfDay(item.start)).fill : "#D5E1F5"}
+                variant={item.fixed ? "divider" : "sky"}
+              />
+            ))}
+          </ListCard>
+        </section>
+      ) : null}
 
       <PrimaryLink href="/">Looks right</PrimaryLink>
       <SecondaryLink href="/">Adjust tomorrow</SecondaryLink>
@@ -87,4 +157,9 @@ export default async function Tomorrow() {
       <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
+}
+
+function nextMonday(from: Date): Date {
+  const ahead = (8 - new Date(`${dayKey(from)}T12:00:00Z`).getUTCDay()) % 7 || 7;
+  return new Date(from.getTime() + ahead * 86_400_000);
 }

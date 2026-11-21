@@ -370,11 +370,29 @@ export async function restoreItem(userId: string, itemId: string): Promise<AddRe
   return { ok: true, message: `Restored.${note}` };
 }
 
-/** Removes what has outstayed the retention window, as the privacy page promises. */
+/** The end-of-day rating and its note are the experiment's record. */
+export const REVIEW_RETENTION_DAYS = 365;
+
+/**
+ * Removes what has outstayed its window, as the privacy page promises: the
+ * archive, quotes and correction history after the retention setting, the
+ * end-of-day ratings and notes after a year.
+ */
 export async function purgeArchive(userId: string, retentionDays: number, now = new Date()) {
   const cutoff = new Date(now.getTime() - retentionDays * 86_400_000);
-  const { count } = await prisma.item.deleteMany({
-    where: { userId, archivedAt: { lt: cutoff } },
-  });
-  return count;
+  const yearAgo = new Date(now.getTime() - REVIEW_RETENTION_DAYS * 86_400_000);
+
+  const [archived, quotes, corrections, logs, reviews] = await prisma.$transaction([
+    prisma.item.deleteMany({ where: { userId, archivedAt: { lt: cutoff } } }),
+    // The link back to Gmail stays; only the quoted line goes.
+    prisma.item.updateMany({
+      where: { userId, sourceQuote: { not: null }, createdAt: { lt: cutoff } },
+      data: { sourceQuote: null },
+    }),
+    prisma.correction.deleteMany({ where: { userId, createdAt: { lt: cutoff } } }),
+    prisma.eventLog.deleteMany({ where: { userId, createdAt: { lt: cutoff } } }),
+    prisma.dayReview.deleteMany({ where: { userId, date: { lt: yearAgo } } }),
+  ]);
+
+  return archived.count + quotes.count + corrections.count + logs.count + reviews.count;
 }

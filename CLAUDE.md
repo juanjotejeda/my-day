@@ -171,5 +171,9 @@ docs/SPEC.md        the build spec, the source of truth
    turns candidates into items. Review and item detail read real data. 6. **Rules** — done: `lib/rules/suggest.ts` turns three of the same correction on similar items
    into a proposal, `lib/rules/store.ts` writes and reads them, the Learned rules screen accepts,
    declines, toggles and resets, and accepting one re-plans at once. Rules apply in the scheduler
-   (extra minutes, category, rank) and in Review (ignored senders, priority people). 7. Notifications and the day loop.
+   (extra minutes, category, rank) and in Review (ignored senders, priority people). 7. **Notifications and the day loop** — done: `lib/push/due.ts` decides what is due,
+   `lib/push/send.ts` sends it with VAPID, the service worker shows it and opens the right
+   screen, the permission button sits in Notifications settings, and the worker runs it after
+   every sync. End of day saves to `day_reviews` and carries items over; Tomorrow runs the
+   scheduler for the next day.
 8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".

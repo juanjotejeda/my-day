@@ -64,9 +64,11 @@ export default function Privacy() {
       <section className="flex flex-col gap-3">
         <h2 className="text-[22px] font-light">How long it is kept</h2>
         <p className="text-base leading-relaxed text-muted">
-          Quotes and item history are kept for 30 days and then deleted. A deleted item moves to
-          an archive for those 30 days, so it can be put back, and is then removed for good. The
-          owner can export or delete all of the data at any time.
+          Quotes, item history and the app&rsquo;s own logs are kept for 30 days and then deleted. A
+          deleted item moves to an archive for those 30 days, so it can be put back, and is then
+          removed for good. The one exception is the end-of-day rating and its note: those are the
+          record of the experiment, so they are kept for 12 months. The owner can export or delete
+          all of the data at any time.
         </p>
       </section>
 

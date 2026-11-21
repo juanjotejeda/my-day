@@ -254,6 +254,8 @@ model Rule {
   @@map("rules")
 }
 
+/// The rating and its note are the experiment's record, so they are kept for
+/// 12 months while everything else goes after the retention window.
 model DayReview {
   id           String   @id @default(cuid())
   userId       String
@@ -262,8 +264,10 @@ model DayReview {
   plannedCount Int      @default(0)
   feeling      String?
   planRight    String?
+  note         String?
   carryOver    Json     @default("[]")
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
