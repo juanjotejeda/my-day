@@ -61,7 +61,7 @@ export function BackLink({ href, children }: { href: string; children: ReactNode
 /** The screen shell: 390px design width, centred, with room for the bottom nav. */
 export function Screen({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <main className={`mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12 ${className}`}>
+    <main className={`mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-12 ${className}`}>
       {children}
     </main>
   );

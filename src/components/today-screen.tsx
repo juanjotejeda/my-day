@@ -148,7 +148,7 @@ export function TodayScreen({
   const bar = load(items);
 
   return (
-    <main className="relative mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
+    <main className="relative mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
       <DayHeaderLine
         date={`${weekday} ${date}`}
         now={fmt(now)}

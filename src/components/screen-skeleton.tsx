@@ -1,7 +1,7 @@
 /** What a screen looks like while its data arrives: the shape, without the content. */
 export function ScreenSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <main className="mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
+    <main className="mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
       <div className="flex items-center justify-between gap-2 pl-1">
         <span className="h-4 w-44 rounded-full bg-divider" />
         <span className="h-11 w-11 rounded-full border border-sky" />
