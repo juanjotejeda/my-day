@@ -30,8 +30,14 @@ const TABS: { key: Tab; href: string; label: string; match: (path: string) => bo
     match: (path) => path.startsWith("/review"),
     icon: (
       <>
-        <rect x="3.5" y="5" width="15" height="12" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M4 6l7 5.5L18 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <rect x="3.5" y="4.5" width="15" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <path
+          d="M3.5 9h15M7.5 2.5v3.5M14.5 2.5v3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </>
     ),
   },
@@ -87,13 +93,13 @@ export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCou
       className="sticky bottom-0 z-10 -mx-4 -mb-12 border-t border-line bg-card/95 px-3 pt-1.5 pb-3.5 backdrop-blur"
     >
       <div className="relative flex">
-        {/* The pill sits behind the active icon and slides to the new tab. */}
+        {/* The indicator wraps the icon and its label, and slides to the new tab. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-[5px] left-0 flex h-[30px] w-1/4 justify-center transition-transform duration-[250ms] ease-out motion-reduce:transition-none"
+          className="pointer-events-none absolute inset-y-1 left-0 flex w-1/4 justify-center transition-transform duration-[250ms] ease-out motion-reduce:transition-none"
           style={{ transform: `translateX(${current * 100}%)` }}
         >
-          <span className="h-[30px] w-14 rounded-full bg-sky" />
+          <span className="h-full min-w-[68px] rounded-2xl bg-sky" />
         </span>
 
         {TABS.map((tab, position) => {
