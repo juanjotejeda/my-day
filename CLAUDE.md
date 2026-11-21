@@ -51,6 +51,10 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 
 ## Working rules
 
+- **Do what was asked, and ask before anything else.** No unrequested fixes, cleanups,
+  refactors or layout changes, even when they look obviously right: ask first, even if it is
+  slower. Fixing the page-dragging by restructuring the app shell broke the sticky bottom nav
+  that had always worked, which is exactly what this rule is for.
 - One branch and one pull request per milestone; Juan reviews and merges. Never merge yourself.
 - Do not start the next milestone until Juan asks.
 - Ask Juan for any value you need (API keys, calendar names, times) instead of inventing one.
