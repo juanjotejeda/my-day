@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
-import { SECTIONS } from "./settings-schemas.ts";
+import { SECTIONS, suppliedFields } from "./settings-schemas.ts";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export { SECTIONS };
+export { SECTIONS, suppliedFields };
 export type SectionName = keyof typeof SECTIONS;
 export type Settings = { [K in SectionName]: z.infer<(typeof SECTIONS)[K]> };
 
@@ -52,7 +52,7 @@ export async function loadSettings(userId: string): Promise<Settings> {
 
 /** Saves one section, merging into its column, and keeps a history row. */
 export async function saveSection<K extends SectionName>(userId: string, section: K, values: unknown) {
-  const parsed = SECTIONS[section].partial().parse(values);
+  const parsed = suppliedFields(section, values);
   const current = await loadSettings(userId);
   const merged = { ...current[section], ...parsed };
   const column = COLUMN[section];

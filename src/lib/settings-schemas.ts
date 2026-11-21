@@ -89,3 +89,14 @@ export const SECTIONS = {
   appearance: appearanceSchema,
 } as const;
 
+/**
+ * What a save really changes: the validated fields the caller named. A partial
+ * parse still fills in the defaults for everything else, so merging the whole
+ * parse would reset the fields nobody touched: saving the view would put the
+ * theme back to day.
+ */
+export function suppliedFields(section: keyof typeof SECTIONS, values: unknown): Record<string, unknown> {
+  const parsed = SECTIONS[section].partial().parse(values) as Record<string, unknown>;
+  const named = values && typeof values === "object" ? (values as Record<string, unknown>) : {};
+  return Object.fromEntries(Object.entries(parsed).filter(([key]) => key in named));
+}

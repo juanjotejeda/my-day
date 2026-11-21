@@ -8,6 +8,7 @@ import {
   prioritiesSchema,
   privacySchema,
   rhythmSchema,
+  suppliedFields,
   workSchema,
 } from "./settings-schemas.ts";
 
@@ -32,4 +33,17 @@ test("nonsense is refused, so one bad write cannot break a screen", () => {
   assert.equal(privacySchema.safeParse({ retentionDays: 365 }).success, false);
   assert.equal(notificationsSchema.safeParse({ foundItems: "whenever" }).success, false);
   assert.equal(prioritiesSchema.safeParse({ vipPeople: "lena" }).success, false);
+});
+
+test("saving one field leaves the others alone", () => {
+  // The bug this guards: tapping the eye saved the view and reset the theme,
+  // so night mode turned into day on the next render.
+  assert.deepEqual(suppliedFields("appearance", { view: "simple" }), { view: "simple" });
+  assert.deepEqual(suppliedFields("appearance", { theme: "night" }), { theme: "night" });
+  assert.deepEqual(suppliedFields("work", { end: "17:00" }), { end: "17:00" });
+});
+
+test("a saved field is still validated, and nonsense is still refused", () => {
+  assert.deepEqual(suppliedFields("privacy", { retentionDays: 7 }), { retentionDays: 7 });
+  assert.throws(() => suppliedFields("appearance", { theme: "sepia" }));
 });
