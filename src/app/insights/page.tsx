@@ -42,7 +42,6 @@ export default async function Insights() {
       bars={week.byDay.map((day) => ({ label: day.label, percent: day.percent, planned: day.planned }))}
       patterns={week.patterns}
       questions={{ feeling: week.feeling, planRight: week.planRight, daysReviewed: week.daysReviewed }}
-      trust={week.trust}
       reviewCount={waiting}
       enoughData={week.days.length >= 3}
     />

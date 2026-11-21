@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
 
-import { saveTrust } from "@/app/insights/actions";
 import { BottomNav } from "@/components/bottom-nav";
-import { ChoiceGroup } from "@/components/controls";
 import { DetailRow, ListCard, Screen, ScreenHeader, SectionTitle, StatTile } from "@/components/ui";
 
 const FEELING_WORDS: Record<string, string> = {
@@ -24,7 +21,6 @@ export function InsightsScreen({
   bars,
   patterns,
   questions,
-  trust,
   reviewCount,
   enoughData,
 }: {
@@ -33,13 +29,9 @@ export function InsightsScreen({
   bars: { label: string; percent: number; planned: number }[];
   patterns: string[];
   questions: { feeling: string | null; planRight: string | null; daysReviewed: number };
-  trust: number | null;
   reviewCount: number;
   enoughData: boolean;
 }) {
-  const [status, setStatus] = useState("");
-  const [, start] = useTransition();
-
   return (
     <Screen>
       <ScreenHeader label={label} title="This week" size={40} />
@@ -105,22 +97,6 @@ export function InsightsScreen({
             sub={`${questions.daysReviewed} ${questions.daysReviewed === 1 ? "day" : "days"} reviewed`}
             value={questions.feeling ? (FEELING_WORDS[questions.feeling] ?? questions.feeling) : "not answered"}
           />
-          <div className="flex flex-col gap-2 py-2">
-            <p className="text-[13px] text-muted">How much do you trust My Day as your main overview?</p>
-            <ChoiceGroup
-              label="How much do you trust My Day as your main overview?"
-              choices={["1", "2", "3", "4", "5"].map((value) => ({ value, label: value }))}
-              defaultValue={trust ? [String(trust)] : []}
-              onChange={(picked) =>
-                start(async () => {
-                  const result = await saveTrust(Number(picked[0]));
-                  setStatus(result.message);
-                  setTimeout(() => setStatus(""), 2500);
-                })
-              }
-            />
-            {status ? <p className="text-[13px] text-muted">{status}</p> : null}
-          </div>
         </ListCard>
       </section>
 
