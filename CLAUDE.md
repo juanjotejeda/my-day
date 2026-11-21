@@ -83,10 +83,12 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   Calendar". The rule is pure and tested in `lib/plan/deletable.ts`.
 - Only the composer's Calendar button may create a Google Calendar event. A line of text or a
   voice note never writes to Google, and the model is never allowed to choose that type.
-- **The model improves wording, never structure.** `parseWithMistral` returns the deterministic
-  parser's kind, day, time, length and effort, and only takes the model's title. It has been
-  wrong about every one of those: an invented time, a calendar write nobody asked for, work
-  called a reminder, deep work called light. Juan confirms the fields in the composer anyway.
+- **The model reads the line; Juan confirms it.** `parseWithMistral` takes the model's kind,
+  day, date, time, length and effort as the composer's starting point, because it sees the whole
+  sentence. Every field is validated by `mergeParsed` and anything missing or malformed falls
+  back to the deterministic parser, so a bad answer degrades instead of breaking. The one path
+  with no composer, `addFromText` behind `/api/add`, still refuses to create a Google Calendar
+  event off a reading: that needs the Calendar type chosen by hand.
 - A pinned item (`items.pinned`) is one Juan placed himself: the scheduler treats it as fixed
   and never moves it. Every move writes a `moved_time` correction carrying the hour it came
   from and the hour it went to, which is what a time-preference rule will read.

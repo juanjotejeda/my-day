@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { parseInput, type ParsedInput } from "@/lib/parse/input";
 
+import { mergeParsed } from "./merge";
+
 import { CHAT_MODEL } from "./mistral";
 
 /**
@@ -11,11 +13,13 @@ import { CHAT_MODEL } from "./mistral";
  */
 const schema = z.object({
   type: z.enum(["gcal", "appt", "reminder", "task"]),
-  title: z.string().min(1).max(60),
+  title: z.string().min(1).max(80),
   day: z.enum(["today", "tomorrow"]),
-  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")),
-  duration_min: z.number().int().min(5).max(480),
+  time: z.string(),
+  duration_min: z.number(),
   effort: z.enum(["deep", "light", "meeting", "errand"]),
+  /** A date, when the line names one rather than today or tomorrow. */
+  due: z.string().nullable().optional(),
 });
 
 const JSON_SCHEMA = {
@@ -54,11 +58,11 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
   const prompt = [
     `Today is ${context.today} in ${context.timezone}.`,
     context.people?.length ? `People who may be mentioned: ${context.people.join(", ")}.` : "",
-    "Read the line into one entry for a personal day planner.",
-    "A reminder is a nudge at a set time. An appointment is a fixed meeting at a stated time. A task has no stated time and gets placed for the person.",
-    "If the line states no clock time, the type is always task, whatever the wording sounds like.",
-    "Never invent a time that was not said: use an empty string.",
-    "Never answer gcal: creating a Google Calendar event is a choice the person makes by hand.",
+    "Read the line into one entry for a personal day planner. The person checks every field before it is saved, so read it as you see it.",
+    "A reminder is a nudge at a set time. An appointment is an event with other people or a place. A task is work the person does alone, whether or not it names an hour.",
+    "Answer gcal only when the line asks for a calendar event.",
+    "Never invent a time that was not said: use an empty string, and the app fills a sensible default.",
+    "due is an ISO date when the line names a day other than today or tomorrow.",
     "effort: deep for focused writing or design, meeting for calls, errand for things done out of the house, light for replies and admin.",
   ]
     .filter(Boolean)
@@ -92,17 +96,9 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
     const parsed = schema.safeParse(JSON.parse(content));
     if (!parsed.success) return fallback;
 
-    // The model has been wrong about structure in every way that matters: it
-    // invented times, chose a calendar write nobody asked for, called work a
-    // reminder and deep work light. So it may only improve the wording. The
-    // kind, the day, the time, the length and the effort come from the
-    // deterministic parser, which is tested, and Juan confirms in the composer.
-    const title = parsed.data.title.trim();
-
-    return {
-      ...fallback,
-      title: title || fallback.title,
-    };
+    // The model's reading is the starting point: it sees the whole sentence, and
+    // every field is checked and shown in the composer before anything is saved.
+    return mergeParsed(parsed.data, fallback);
   } catch {
     // A model that is slow, down or odd must never block the add bar.
     return fallback;

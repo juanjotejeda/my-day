@@ -63,8 +63,8 @@ export type AddResult = { ok: boolean; message: string };
 /** Reads a line with the parser, stores the item, then re-plans the day. */
 export async function addFromText(userId: string, said: string): Promise<AddResult> {
   const draft = await parseWithMistral(said, { today: dayKey(new Date()), timezone: TIMEZONE });
-  // A line of text never writes to Google Calendar: that needs the Calendar
-  // button in the composer, so an event is always something Juan chose.
+  // This path saves without a composer, so it never creates a Google Calendar
+  // event off a reading: that needs the Calendar type chosen by hand.
   return addDraft(userId, draft.type === "gcal" ? { ...draft, type: "appt" } : draft);
 }
 
