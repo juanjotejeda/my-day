@@ -103,7 +103,9 @@ export type PlanRun = {
 export async function runPlan(userId: string, day: Date, now = new Date()): Promise<PlanRun> {
   const key = dayKey(day, "UTC");
   const items = await prisma.item.findMany({
-    where: { userId, day: dayDate(key), status: { in: ["planned", "done"] }, archivedAt: null },
+    // Moved covers an item carried from an earlier day or pushed to this one:
+    // it is still to be done, so the scheduler must see it.
+    where: { userId, day: dayDate(key), status: { in: ["planned", "done", "moved"] }, archivedAt: null },
   });
 
   const plannable = items.filter((item) => !item.allDay);
