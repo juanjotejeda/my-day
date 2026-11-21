@@ -78,6 +78,8 @@ export async function GET(request: Request) {
       next: plan.next.length,
       later: plan.later.length,
       earlier: plan.earlier.length,
+      // On today with no slot: what the Later fold on the screen holds.
+      inLaterFold: plan.total - plan.banners.length - plan.blocks.length,
       headline: plan.current ? "NOW card" : plan.next.length ? "NEXT card" : plan.total ? "Nothing left today" : "Nothing planned",
     },
     settings,
