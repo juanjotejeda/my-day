@@ -1,12 +1,10 @@
 /**
  * Who may delete what. Pure, so the rule is testable without touching a real
- * calendar: only items My Day created can go, and an event from anywhere else
- * is deleted where it was made.
+ * calendar: anything can leave My Day, but an event My Day did not create is
+ * deleted where it was made. Email is read-only, so an item found in an email
+ * leaves the plan and the message itself is never touched.
  */
-export type DeleteDecision =
-  | { kind: "delete"; inGoogle: boolean }
-  | { kind: "ask-google" }
-  | { kind: "refuse"; message: string };
+export type DeleteDecision = { kind: "delete"; inGoogle: boolean } | { kind: "ask-google" };
 
 export function deleteDecision(item: {
   sourceKind: "calendar" | "gmail" | "manual" | "voice";
@@ -18,14 +16,8 @@ export function deleteDecision(item: {
     return { kind: "ask-google" };
   }
 
-  if (item.sourceKind === "manual" || item.sourceKind === "voice") {
-    return { kind: "delete", inGoogle: false };
-  }
-
-  return {
-    kind: "refuse",
-    message: "This item came from your email. Dismiss it in Review instead.",
-  };
+  // Typed, spoken, or found in an email: it only ever lived here.
+  return { kind: "delete", inGoogle: false };
 }
 
 export const CALENDAR_REFUSAL = "This event came from your calendar. Delete this in Google Calendar.";

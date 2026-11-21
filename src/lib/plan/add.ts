@@ -272,10 +272,6 @@ export async function deleteItem(userId: string, itemId: string): Promise<Delete
 
   const decision = deleteDecision({ sourceKind: item.sourceKind, createdHere: item.createdHere });
 
-  if (decision.kind === "refuse") {
-    return { ok: false, deletable: false, message: decision.message };
-  }
-
   // An event created before the marker was stored locally still carries it in Google.
   const ownsEvent =
     decision.kind === "delete"

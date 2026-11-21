@@ -33,9 +33,9 @@ export function AdjustSheet({
   const [moving, setMoving] = useState(false);
   const [date, setDate] = useState(today);
   const [time, setTime] = useState(item.start ? fmt(item.start) : "09:00");
-  // My Day's own items can go; an event from the calendar is deleted in Google.
-  const canDelete = Boolean(item.createdHere);
   const fromCalendar = item.source === "Calendar";
+  // Anything can leave the plan; an event My Day did not create goes in Google.
+  const canDelete = Boolean(item.createdHere) || !fromCalendar;
   const scheduled = !item.later && !item.moved;
   // An event from the calendar is moved in Google, not here.
   const fromCalendarOnly = item.source === "Calendar" && !item.createdHere;
