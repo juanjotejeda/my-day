@@ -265,6 +265,8 @@ model DayReview {
   feeling      String?
   planRight    String?
   note         String?
+  /// How much Juan trusts My Day as his main overview, 1 to 5.
+  trust        Int?
   carryOver    Json     @default("[]")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

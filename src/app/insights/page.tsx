@@ -1,85 +1,50 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 
-import { BottomNav } from "@/components/bottom-nav";
-import { ChoiceGroup } from "@/components/controls";
+import { InsightsScreen } from "@/components/insights-screen";
 import { auth } from "@/auth";
+import { loadWeek } from "@/lib/insights/load";
+import { dur } from "@/lib/plan/format";
 import { reviewCount } from "@/lib/plan/review-count";
-import { DetailRow, ListCard, Screen, ScreenHeader, SectionTitle, StatTile } from "@/components/ui";
-import { SAMPLE_INSIGHTS } from "@/lib/plan/sample-screens";
+import { prisma } from "@/lib/prisma";
 
-// The five measures come from events_log, items, candidates and day_reviews in milestone 8.
+/** D5 on real data: the five measures for the week so far. */
 export default async function Insights() {
   const session = await auth();
-  if (!session?.user) redirect("/signin");
+  if (!session?.user?.email) redirect("/signin");
   const waiting = await reviewCount();
+  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  if (!user) redirect("/signin");
 
-  const data = SAMPLE_INSIGHTS;
+  const week = await loadWeek(user.id);
+  const started = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(
+    new Date(`${week.start}T12:00:00Z`),
+  );
 
   return (
-    <Screen>
-      <ScreenHeader label={data.label} title="This week" size={40} />
-
-      <div className="grid grid-cols-2 gap-2">
-        {data.tiles.map((tile) => (
-          <StatTile key={tile.label} value={tile.value} label={tile.label} />
-        ))}
-      </div>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Plan followed, by day</SectionTitle>
-        <ListCard>
-          <div className="flex gap-2.5 py-2.5">
-            {data.days.map((day) => (
-              <div key={day.day} className="flex flex-1 flex-col items-center gap-1.5">
-                <div className="flex h-[90px] w-full items-end">
-                  <div
-                    className={`w-full rounded-t-lg rounded-b-sm ${day.strong ? "bg-mid" : "bg-sky"}`}
-                    style={{ height: `${day.height}%` }}
-                  />
-                </div>
-                <span className="text-xs text-muted">{day.day}</span>
-              </div>
-            ))}
-          </div>
-        </ListCard>
-      </section>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Patterns</SectionTitle>
-        <ListCard>
-          {data.patterns.map((pattern) => (
-            <p key={pattern} className="py-1.5 text-[15px] leading-relaxed">
-              {pattern}
-            </p>
-          ))}
-          <Link href="/settings/rules" className="block py-1.5 text-sm text-accent">
-            See learned rules
-          </Link>
-        </ListCard>
-      </section>
-
-      <section className="flex flex-col gap-1.5">
-        <SectionTitle>Your test questions</SectionTitle>
-        <ListCard>
-          {data.questions.map((question) => (
-            <DetailRow key={question.q} label={question.q} value={question.a} />
-          ))}
-          <div className="flex flex-col gap-2 py-2">
-            <p className="text-[13px] text-muted">How much do you trust My Day as your main overview?</p>
-            <ChoiceGroup
-              label="How much do you trust My Day as your main overview?"
-              choices={data.trustChoices}
-              defaultValue={["4"]}
-            />
-          </div>
-        </ListCard>
-      </section>
-
-      <p className="text-xs leading-relaxed text-muted">Sample data for the prototype.</p>
-
-      <div className="flex-1" />
-      <BottomNav active="insights" reviewCount={waiting} />
-    </Screen>
+    <InsightsScreen
+      label={`Insights · week of ${started}`}
+      tiles={[
+        { value: `${week.planAccepted}%`, label: "Plan accepted as proposed" },
+        { value: String(week.correctionsPerDay), label: "Corrections per day" },
+        {
+          value: week.emailCorrect.decided
+            ? `${week.emailCorrect.kept} of ${week.emailCorrect.decided}`
+            : "none yet",
+          label: "Email items kept",
+        },
+        {
+          value: week.focus.plannedMin
+            ? `${dur(week.focus.doneMin)} of ${dur(week.focus.plannedMin)}`
+            : "none planned",
+          label: "Focus done, of planned",
+        },
+      ]}
+      bars={week.byDay.map((day) => ({ label: day.label, percent: day.percent, planned: day.planned }))}
+      patterns={week.patterns}
+      questions={{ feeling: week.feeling, planRight: week.planRight, daysReviewed: week.daysReviewed }}
+      trust={week.trust}
+      reviewCount={waiting}
+      enoughData={week.days.length >= 3}
+    />
   );
 }
