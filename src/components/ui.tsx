@@ -366,7 +366,7 @@ export function DayHeaderLine({
   const tail = right ?? parts.join(" · ");
 
   return (
-    <div className="-mb-2.5 flex items-center justify-between gap-2 pl-1 text-[15px] text-muted tabular-nums">
+    <div className="mb-1 flex items-center justify-between gap-2 pl-1 text-[15px] text-muted tabular-nums">
       {/* The date owns the first line; the times sit under it. */}
       <span>
         <h1 className="block text-[15px] font-normal text-navy">{date}</h1>
