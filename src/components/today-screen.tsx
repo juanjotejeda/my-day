@@ -170,7 +170,8 @@ export function TodayScreen({
         }
       />
 
-      <AddBar onAdd={add} today={todayDate} tomorrow={tomorrowDate} />
+      {/* Adding is the full view's job; the simple view only shows the day. */}
+      {simple ? null : <AddBar onAdd={add} today={todayDate} tomorrow={tomorrowDate} />}
 
       {!simple && banners.length ? (
         <div className="flex flex-col gap-1.5">
