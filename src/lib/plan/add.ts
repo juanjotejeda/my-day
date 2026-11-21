@@ -500,8 +500,10 @@ export async function editItem(
 ): Promise<AddResult> {
   const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
   if (!item) return { ok: false, message: "That item is gone." };
-  if (item.sourceKind === "calendar" && !item.createdHere) {
-    return { ok: false, message: "This event came from your calendar. Change it in Google Calendar." };
+  // The name is My Day's own words for it; when it happens is Google's.
+  const calendarOnly = item.sourceKind === "calendar" && !item.createdHere;
+  if (calendarOnly && (fields.date || fields.time || fields.minutes !== undefined)) {
+    return { ok: false, message: "This event came from your calendar. Move it in Google Calendar." };
   }
 
   const title = fields.title?.trim();

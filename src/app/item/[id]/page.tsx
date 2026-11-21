@@ -152,6 +152,8 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
       <ItemActions
         id={item.id}
         done={item.status === "done"}
+        important={item.important}
+        pinned={item.pinned}
         fromCalendar={item.sourceKind === "calendar"}
         calendarOnly={calendarOnly}
         flexible={!item.fixed}

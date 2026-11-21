@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { AddBar } from "@/components/add-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ViewToggle } from "@/components/view-toggle";
-import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { DayStrip } from "@/components/day-strip";
 import {
   Card,
@@ -24,7 +24,7 @@ import { fmt } from "@/lib/plan/format";
 import type { PlanItem } from "@/lib/plan/types";
 import type { ComposerDraft } from "@/lib/plan/draft";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
-import { addDraft, applyCorrection, deleteItem, moveItem, unpinItem } from "@/app/actions";
+import { addDraft, applyCorrection } from "@/app/actions";
 import { DAY_CLOSE } from "@/lib/flags";
 import type { Rhythm } from "@/lib/plan/curve";
 import type { Theme, View as Appearance } from "@/lib/theme";
@@ -68,7 +68,6 @@ export function TodayScreen({
   const [, start] = useTransition();
   const simple = appearance === "simple";
   const [view, setView] = useState<View>("now");
-  const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [restOpen, setRestOpen] = useState(true);
   const [laterOpen, setLaterOpen] = useState(true);
@@ -80,49 +79,9 @@ export function TodayScreen({
     toastTimer.current = setTimeout(() => setToast(""), 5000);
   }
 
-  const selectedItem = items.find((item) => item.id === selected) ?? null;
 
-  function act(action: AdjustAction) {
-    if (!selectedItem) return;
-    const kind = action === "time" ? "more_time" : action === "personal" ? "category" : action;
-    setSelected(null);
-    say("Saving");
-    start(async () => {
-      const result = await applyCorrection(selectedItem.id, kind);
-      say(result.message);
-      router.refresh();
-    });
-  }
 
-  function remove(id: string) {
-    setSelected(null);
-    say("Deleting");
-    start(async () => {
-      const result = await deleteItem(id);
-      say(result.message);
-      router.refresh();
-    });
-  }
 
-  function move(id: string, when: { date: string; time: string }) {
-    setSelected(null);
-    say("Moving");
-    start(async () => {
-      const result = await moveItem(id, when);
-      say(result.message);
-      router.refresh();
-    });
-  }
-
-  function unpin(id: string) {
-    setSelected(null);
-    say("Unpinning");
-    start(async () => {
-      const result = await unpinItem(id);
-      say(result.message);
-      router.refresh();
-    });
-  }
 
   function markDone(id: string) {
     start(async () => {
@@ -227,13 +186,12 @@ export function TodayScreen({
                   <div className="h-1.5 bg-mid" style={{ width: `${card.progress}%` }} />
                 </div>
                 <p className="text-[13px] leading-relaxed text-muted">{card.why}</p>
-                <button
-                  type="button"
-                  onClick={() => setSelected(card.id)}
-                  className="min-h-11 self-start rounded-full border border-sky px-4 text-sm text-navy"
+                <Link
+                  href={`/item/${card.id}`}
+                  className="flex min-h-11 items-center self-start rounded-full border border-sky px-4 text-sm text-navy"
                 >
-                  Adjust
-                </button>
+                  Details and source
+                </Link>
               </>
             ) : null}
           </section>
@@ -270,11 +228,10 @@ export function TodayScreen({
               <SectionTitle>Next</SectionTitle>
               <Card className="overflow-hidden">
                 {next.map((row) => (
-                  <button
+                  <Link
                     key={row.id}
-                    type="button"
                     aria-label={row.aria}
-                    onClick={() => setSelected(row.id)}
+                    href={`/item/${row.id}`}
                     className="flex min-h-[60px] w-full items-center gap-3 border-b border-divider px-[14px] py-2.5 text-left last:border-b-0"
                   >
                     <span className="w-1 self-stretch rounded-sm" style={{ background: row.fill }} />
@@ -285,7 +242,7 @@ export function TodayScreen({
                         <span>{row.meta}</span>
                       </span>
                     </span>
-                  </button>
+                  </Link>
                 ))}
               </Card>
             </section>
@@ -304,16 +261,15 @@ export function TodayScreen({
               </button>
               {restOpen
                 ? rest.map((row) => (
-                    <button
+                    <Link
                       key={row.id}
-                      type="button"
-                      onClick={() => setSelected(row.id)}
+                      href={`/item/${row.id}`}
                       className="flex min-h-11 w-full items-center gap-2.5 border-t border-divider py-1.5 text-left text-sm"
                     >
                       <span className="h-6 w-1 flex-none rounded-sm" style={{ background: row.fill }} />
                       <span className="w-11 flex-none text-muted tabular-nums">{row.time.slice(0, 5)}</span>
                       <span>{row.title}</span>
-                    </button>
+                    </Link>
                   ))
                 : null}
             </Card>
@@ -332,17 +288,16 @@ export function TodayScreen({
               </button>
               {laterOpen
                 ? later.map((row) => (
-                    <button
+                    <Link
                       key={row.id}
-                      type="button"
-                      onClick={() => setSelected(row.id)}
+                      href={`/item/${row.id}`}
                       className="flex min-h-12 w-full flex-col gap-0.5 border-t border-dashed border-divider py-2 text-left"
                     >
                       <span className="text-sm">{row.title}</span>
                       <span className="text-xs text-muted">
                         {row.tag} · {row.source}
                       </span>
-                    </button>
+                    </Link>
                   ))
                 : null}
             </div>
@@ -401,9 +356,8 @@ export function TodayScreen({
                         ) : null}
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelected(row.id)}
+                    <Link
+                      href={`/item/${row.id}`}
                       className="flex min-w-0 flex-1 flex-col gap-1 py-3 text-left"
                     >
                       <span className={`text-[15px] ${row.done ? "line-through opacity-55" : ""}`}>{row.title}</span>
@@ -412,7 +366,7 @@ export function TodayScreen({
                         <EnergyDot fill={row.fill} />
                         <span>{row.meta}</span>
                       </span>
-                    </button>
+                    </Link>
                   </div>
                 ))}
               </Card>
@@ -428,17 +382,16 @@ export function TodayScreen({
             <section className="flex flex-col gap-2">
               <SectionTitle count={later.length}>Later</SectionTitle>
               {later.map((row) => (
-                <button
+                <Link
                   key={row.id}
-                  type="button"
-                  onClick={() => setSelected(row.id)}
+                  href={`/item/${row.id}`}
                   className="flex min-h-[52px] w-full flex-col gap-0.5 rounded-card border border-dashed border-sky px-3.5 py-2.5 text-left"
                 >
                   <span className="text-sm">{row.title}</span>
                   <span className="text-xs text-muted">
                     {row.tag} · {row.source}
                   </span>
-                </button>
+                </Link>
               ))}
             </section>
           ) : null}
@@ -456,18 +409,6 @@ export function TodayScreen({
         <Toast>{toast}</Toast>
       ) : null}
 
-      {selectedItem ? (
-        <AdjustSheet
-          item={selectedItem}
-          onAct={act}
-          onDelete={remove}
-          onMove={move}
-          onUnpin={unpin}
-          onClose={() => setSelected(null)}
-          today={todayDate}
-          tomorrow={tomorrowDate}
-        />
-      ) : null}
     </main>
   );
 }

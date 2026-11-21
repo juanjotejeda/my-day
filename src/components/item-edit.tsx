@@ -26,6 +26,7 @@ export function ItemEdit({
   /** HH:MM, or "" when the scheduler has not placed it. */
   time: string;
   minutes: number | null;
+  /** A Google event: it is read here and moved in Google. */
   readOnly?: boolean;
   readOnlyNote?: string;
 }) {
@@ -34,11 +35,12 @@ export function ItemEdit({
   const [status, setStatus] = useState("");
   const [saving, start] = useTransition();
 
-  const dirty =
-    draft.title !== title ||
-    draft.date !== date ||
-    draft.time !== time ||
-    draft.minutes !== (minutes ? String(minutes) : "");
+  const dirty = readOnly
+    ? draft.title !== title
+    : draft.title !== title ||
+      draft.date !== date ||
+      draft.time !== time ||
+      draft.minutes !== (minutes ? String(minutes) : "");
 
   function save() {
     setStatus("Saving");
@@ -56,20 +58,6 @@ export function ItemEdit({
 
   const field = "min-h-10 rounded-full border border-sky bg-card px-3 text-right text-[15px] text-navy";
 
-  if (readOnly) {
-    return (
-      <>
-        <h1 className="px-1 text-[36px] leading-tight font-light tracking-[-0.02em]">{title}</h1>
-        <PanelCard>
-          <DetailRow label="Planned" value={time || "Not scheduled"} />
-          <DetailRow label="Length" value={minutes ? `${minutes} min` : "not set"} />
-          <DetailRow label="Day" value={date || "Later"} />
-        </PanelCard>
-        {readOnlyNote ? <p className="px-1 text-[13px] leading-snug text-muted">{readOnlyNote}</p> : null}
-      </>
-    );
-  }
-
   return (
     <>
       <textarea
@@ -81,49 +69,61 @@ export function ItemEdit({
       />
 
       <PanelCard>
-        <DetailRow
-          label="Planned"
-          value={
-            <input
-              type="time"
-              aria-label="Planned"
-              value={draft.time}
-              onChange={(event) => setDraft({ ...draft, time: event.target.value })}
-              className={field}
+        {readOnly ? (
+          <>
+            <DetailRow label="Planned" value={time || "Not scheduled"} />
+            <DetailRow label="Length" value={minutes ? `${minutes} min` : "not set"} />
+            <DetailRow label="Day" value={date || "Later"} />
+          </>
+        ) : (
+          <>
+            <DetailRow
+              label="Planned"
+              value={
+                <input
+                  type="time"
+                  aria-label="Planned"
+                  value={draft.time}
+                  onChange={(event) => setDraft({ ...draft, time: event.target.value })}
+                  className={field}
+                />
+              }
             />
-          }
-        />
-        <DetailRow
-          label="Length"
-          value={
-            <span className="flex items-center gap-2">
-              <input
-                type="number"
-                aria-label="Length in minutes"
-                min={5}
-                max={600}
-                step={5}
-                value={draft.minutes}
-                onChange={(event) => setDraft({ ...draft, minutes: event.target.value })}
-                className={`${field} w-24`}
-              />
-              <span className="text-[15px] text-muted">min</span>
-            </span>
-          }
-        />
-        <DetailRow
-          label="Day"
-          value={
-            <input
-              type="date"
-              aria-label="Day"
-              value={draft.date}
-              onChange={(event) => setDraft({ ...draft, date: event.target.value })}
-              className={field}
+            <DetailRow
+              label="Length"
+              value={
+                <span className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    aria-label="Length in minutes"
+                    min={5}
+                    max={600}
+                    step={5}
+                    value={draft.minutes}
+                    onChange={(event) => setDraft({ ...draft, minutes: event.target.value })}
+                    className={`${field} w-24`}
+                  />
+                  <span className="text-[15px] text-muted">min</span>
+                </span>
+              }
             />
-          }
-        />
+            <DetailRow
+              label="Day"
+              value={
+                <input
+                  type="date"
+                  aria-label="Day"
+                  value={draft.date}
+                  onChange={(event) => setDraft({ ...draft, date: event.target.value })}
+                  className={field}
+                />
+              }
+            />
+          </>
+        )}
       </PanelCard>
+
+      {readOnlyNote ? <p className="px-1 text-[13px] leading-snug text-muted">{readOnlyNote}</p> : null}
 
       {dirty ? (
         <button
