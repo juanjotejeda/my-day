@@ -353,7 +353,6 @@ export function DayHeaderLine({
   workEnd,
   right,
   action,
-  stacked = false,
 }: {
   date: string;
   now?: string;
@@ -362,17 +361,16 @@ export function DayHeaderLine({
   right?: string;
   /** The eye and the moon sit at the end of the line. */
   action?: ReactNode;
-  /** The simple view gives the date its own line, with the times below it. */
-  stacked?: boolean;
 }) {
   const parts = [now ? `${now} now` : null, workEnd ? `${workEnd} work ends` : null].filter(Boolean);
   const tail = right ?? parts.join(" · ");
 
   return (
     <div className="-mb-2.5 flex items-center justify-between gap-2 pl-1 text-[15px] text-muted tabular-nums">
+      {/* The date owns the first line; the times sit under it. */}
       <span>
-        <h1 className={`text-[15px] font-normal text-navy ${stacked ? "block" : "inline"}`}>{date}</h1>
-        {tail ? (stacked ? tail : ` · ${tail}`) : null}
+        <h1 className="block text-[15px] font-normal text-navy">{date}</h1>
+        {tail}
       </span>
       {action}
     </div>

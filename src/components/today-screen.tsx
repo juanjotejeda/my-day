@@ -160,7 +160,6 @@ export function TodayScreen({
         now={fmt(now)}
         workEnd={workEnd}
         right={headerRight}
-        stacked={simple}
         action={
           <span className="flex items-center gap-2">
             <ViewToggle view={appearance} />
