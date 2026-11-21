@@ -32,6 +32,10 @@ export async function loadWeek(userId: string, now = new Date()): Promise<WeekMe
           return {
             day: dayKey(item.day as Date, "UTC"),
             status: item.status,
+            // A fixed event that has ended happened, unless it was dropped.
+            followed:
+              item.status === "done" ||
+              (item.fixed && item.status !== "dropped" && Boolean(item.end && item.end <= now)),
             effort: item.effort,
             plannedMin: planned,
             doneMin: item.status === "done" ? planned : 0,

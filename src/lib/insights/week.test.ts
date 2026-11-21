@@ -36,6 +36,7 @@ test("plan accepted is what was not corrected", () => {
         plannedMin: 30,
         doneMin: index < 6 ? 30 : 0,
         corrected: index < 2,
+        followed: index < 6,
       })),
     }),
   );
@@ -73,22 +74,33 @@ test("focus is the deep minutes done against the deep minutes planned", () => {
   const measures = weekMeasures(
     input({
       items: [
-        { day: "2026-11-17", status: "done", effort: "deep", plannedMin: 120, doneMin: 120, corrected: false },
-        { day: "2026-11-18", status: "planned", effort: "deep", plannedMin: 90, doneMin: 0, corrected: false },
-        { day: "2026-11-18", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false },
+        { day: "2026-11-17", status: "done", effort: "deep", plannedMin: 120, doneMin: 120, corrected: false, followed: true },
+        { day: "2026-11-18", status: "planned", effort: "deep", plannedMin: 90, doneMin: 0, corrected: false, followed: false },
+        { day: "2026-11-18", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false, followed: true },
       ],
     }),
   );
   assert.deepEqual(measures.focus, { doneMin: 120, plannedMin: 210 });
 });
 
+test("a fixed event that has passed counts as followed, without a tick", () => {
+  const measures = weekMeasures(
+    input({
+      items: [
+        { day: "2026-11-17", status: "planned", effort: "meeting", plannedMin: 30, doneMin: 0, corrected: false, followed: true },
+      ],
+    }),
+  );
+  assert.equal(measures.byDay.find((day) => day.date === "2026-11-17")?.percent, 100);
+});
+
 test("the bars show what share of each day was done", () => {
   const measures = weekMeasures(
     input({
       items: [
-        { day: "2026-11-16", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false },
-        { day: "2026-11-16", status: "planned", effort: "light", plannedMin: 30, doneMin: 0, corrected: false },
-        { day: "2026-11-17", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false },
+        { day: "2026-11-16", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false, followed: true },
+        { day: "2026-11-16", status: "planned", effort: "light", plannedMin: 30, doneMin: 0, corrected: false, followed: false },
+        { day: "2026-11-17", status: "done", effort: "light", plannedMin: 30, doneMin: 30, corrected: false, followed: true },
       ],
     }),
   );

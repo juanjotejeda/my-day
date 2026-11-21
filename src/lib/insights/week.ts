@@ -11,6 +11,12 @@ export type WeekItem = {
   doneMin: number;
   /** Whether Juan corrected this item: moved, stretched or reranked it. */
   corrected: boolean;
+  /**
+   * Whether the plan held for this item: ticked done, or a fixed event that has
+   * passed. Nobody ticks a meeting they attended, so without this the bars read
+   * zero for days that went exactly as planned.
+   */
+  followed: boolean;
 };
 
 export type WeekInput = {
@@ -86,11 +92,11 @@ export function weekMeasures(input: WeekInput, now = new Date(`${input.today}T12
 
   const byDay = days.map((date) => {
     const ofDay = items.filter((item) => item.day === date);
-    const done = ofDay.filter((item) => item.status === "done").length;
+    const followed = ofDay.filter((item) => item.followed || item.status === "done").length;
     return {
       date,
       label: LABELS[(new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7],
-      percent: ofDay.length ? round((done / ofDay.length) * 100, 0) : 0,
+      percent: ofDay.length ? round((followed / ofDay.length) * 100, 0) : 0,
       planned: ofDay.length,
     };
   });
