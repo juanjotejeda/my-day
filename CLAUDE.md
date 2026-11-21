@@ -90,7 +90,9 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
 - Pre-filters run before every AI call, so a newsletter never reaches the model, and an
   `ignore_sender` rule joins them.
 - A rule is proposed, never imposed: a suggestion is stored inactive and changes nothing until
-  Juan accepts it in Learned rules.
+  Juan accepts it in Learned rules. Rules Juan asked for by name are seeded as `origin: stated`
+  by `ensureStatedRules`, so they are visible and switchable rather than hidden in the code.
+- Auto-add stays off: every candidate goes through Review.
 - Never widen the Google scopes to make an API call work. `calendar.events` cannot list the
   calendar list, so the sync reads the calendars in `sources.calendarIds`, default `primary`.
 

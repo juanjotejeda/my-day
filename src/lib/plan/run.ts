@@ -30,6 +30,8 @@ function toSchedulerItem(item: Item): SchedulerItem {
     effort: item.effort ?? (item.type === "task" ? "light" : "meeting"),
     important: item.important,
     dueDay: item.day ? dayKey(item.day, "UTC") : undefined,
+    // Status moved means it came forward from an earlier day.
+    carried: item.status === "moved",
   };
 }
 

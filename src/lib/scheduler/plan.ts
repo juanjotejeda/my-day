@@ -27,6 +27,8 @@ export type SchedulerItem = {
   person?: string;
   /** Which clash group this belongs to: family, clients, team, admin. */
   group?: string;
+  /** Came forward from an earlier day, so a rule can let it go first. */
+  carried?: boolean;
 };
 
 export type Placement = {
@@ -153,13 +155,23 @@ function applyRules(item: SchedulerItem, rules: Rule[]): SchedulerItem {
   return next;
 }
 
-function sortFlexible(items: SchedulerItem[], settings: SchedulerSettings): SchedulerItem[] {
+function sortFlexible(
+  items: SchedulerItem[],
+  settings: SchedulerSettings,
+  carriedFirst = false,
+): SchedulerItem[] {
   const clash = settings.priorities.clashOrder;
   const vip = settings.priorities.vipPeople.map((person) => person.toLowerCase());
 
   return [...items].sort((a, b) => {
     const rank = RANK_ORDER[a.rank] - RANK_ORDER[b.rank];
     if (rank) return rank;
+
+    // Work that waited over the weekend goes before work that is new today.
+    if (carriedFirst) {
+      const carried = Number(b.carried ?? false) - Number(a.carried ?? false);
+      if (carried) return carried;
+    }
 
     const important = Number(b.important ?? false) - Number(a.important ?? false);
     if (important) return important;
@@ -261,9 +273,18 @@ export function plan({
   ]);
 
   // Steps 4 and 7: rank the flexible items, with rules applied first.
+  // A rule may say that carried work goes first on this weekday.
+  const carriedFirst = rules.some(
+    (rule) =>
+      rule.active &&
+      rule.kind === "carried_first" &&
+      (!rule.params?.weekday || rule.params.weekday === weekdayKey(day)),
+  );
+
   const flexible = sortFlexible(
     items.filter((item) => !item.fixed).map((item) => applyRules(item, rules)),
     settings,
+    carriedFirst,
   );
 
   const later: Postponed[] = [];

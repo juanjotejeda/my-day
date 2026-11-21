@@ -6,6 +6,7 @@ import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 import { loadSettings } from "@/lib/settings";
 import { purgeArchive } from "@/lib/plan/add";
+import { ensureStatedRules } from "@/lib/rules/store";
 import { carryForwardToToday, runPlan } from "@/lib/plan/run";
 import { loadToday } from "@/lib/today";
 
@@ -142,6 +143,7 @@ export async function POST(request: Request) {
       error: error instanceof Error ? error.message.slice(0, 160) : "gmail sync failed",
     }));
     // The scheduler runs after every sync, so new events reshape the day at once.
+    await ensureStatedRules(user.id);
     // Anything unfinished from a past day joins today before the plan runs.
     const carried = await carryForwardToToday(user.id);
     const run = await runPlan(user.id, dayDate(dayKey(new Date())));

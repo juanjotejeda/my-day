@@ -29,7 +29,7 @@ export function RulesScreen({
 }: {
   suggestions: Suggestion[];
   learned: RuleRow[];
-  stated: { id: string; text: string }[];
+  stated: { id: string; text: string; active: boolean; switchable: boolean }[];
 }) {
   const [open, setOpen] = useState(suggestions);
   const [status, setStatus] = useState("");
@@ -87,7 +87,20 @@ export function RulesScreen({
           stated.map((rule) => (
             <div key={rule.id} className="flex min-h-14 items-center gap-3 border-t border-divider py-2">
               <span className="flex-1 text-base">{rule.text}</span>
-              <span className="text-[13px] text-muted">From settings</span>
+              {rule.switchable ? (
+                <Switch
+                  label={rule.text}
+                  defaultOn={rule.active}
+                  onChange={(on) =>
+                    start(async () => {
+                      const result = await toggleRule(rule.id, on);
+                      say(result.message);
+                    })
+                  }
+                />
+              ) : (
+                <span className="text-[13px] text-muted">From settings</span>
+              )}
             </div>
           ))
         ) : (

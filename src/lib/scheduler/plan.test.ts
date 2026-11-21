@@ -182,6 +182,45 @@ test("an errand waits for the shops, never 06:45", () => {
   assert.ok(gift.start >= 9 * 60, `an errand should not start at ${gift.start}`);
 });
 
+test("on a Monday, carried work goes before fresh work of the same rank", () => {
+  const items = [
+    task("fresh", 30, { rank: "must" }),
+    task("carried", 30, { rank: "must", carried: true }),
+  ];
+  const rules = [{ id: "r", kind: "carried_first", active: true, params: { weekday: "mo" } }];
+
+  const monday = plan({ day: MONDAY, items, settings: SETTINGS, rules });
+  const order = monday.placements.filter((p) => !p.fixed).sort((a, b) => a.start - b.start).map((p) => p.id);
+  assert.deepEqual(order, ["carried", "fresh"]);
+});
+
+test("on another day the rule changes nothing", () => {
+  const items = [
+    task("fresh", 30, { rank: "must" }),
+    task("carried", 30, { rank: "must", carried: true }),
+  ];
+  const rules = [{ id: "r", kind: "carried_first", active: true, params: { weekday: "mo" } }];
+
+  const tuesday = plan({ day: "2026-11-24", items, settings: SETTINGS, rules });
+  const order = tuesday.placements.filter((p) => !p.fixed).sort((a, b) => a.start - b.start).map((p) => p.id);
+  assert.deepEqual(order, ["carried", "fresh"].sort(), "ids decide, as before");
+});
+
+test("with the rule off, a carried item waits its turn", () => {
+  const items = [
+    task("afresh", 30, { rank: "must" }),
+    task("zcarried", 30, { rank: "must", carried: true }),
+  ];
+  const off = plan({
+    day: MONDAY,
+    items,
+    settings: SETTINGS,
+    rules: [{ id: "r", kind: "carried_first", active: false, params: { weekday: "mo" } }],
+  });
+  const order = off.placements.filter((p) => !p.fixed).sort((a, b) => a.start - b.start).map((p) => p.id);
+  assert.deepEqual(order, ["afresh", "zcarried"]);
+});
+
 test("rules add minutes and can move a category", () => {
   const result = plan({
     day: MONDAY,

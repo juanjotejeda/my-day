@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { RulesScreen } from "@/components/rules-screen";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { refreshSuggestions, statedRules } from "@/lib/rules/store";
+import { ensureStatedRules, refreshSuggestions, statedRules } from "@/lib/rules/store";
 
 export default async function Rules() {
   const session = await auth();
@@ -11,7 +11,8 @@ export default async function Rules() {
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
   if (!user) redirect("/signin");
 
-  // Opening the screen looks for anything new the corrections now propose.
+  // Opening the screen seeds the stated rules and looks for new suggestions.
+  await ensureStatedRules(user.id);
   await refreshSuggestions(user.id);
 
   const [rules, stated] = await Promise.all([
@@ -25,14 +26,19 @@ export default async function Rules() {
         .filter((rule) => rule.origin === "suggested")
         .map((rule) => ({ id: rule.id, text: rule.text, evidence: rule.evidenceCount }))}
       learned={rules
-        .filter((rule) => rule.origin !== "suggested")
+        .filter((rule) => rule.origin === "learned")
         .map((rule) => ({
           id: rule.id,
           text: rule.text,
           active: rule.active,
           evidence: rule.evidenceCount,
         }))}
-      stated={stated.map((rule) => ({ id: rule.id, text: rule.text }))}
+      stated={[
+        ...rules
+          .filter((rule) => rule.origin === "stated")
+          .map((rule) => ({ id: rule.id, text: rule.text, active: rule.active, switchable: true })),
+        ...stated.map((rule) => ({ id: rule.id, text: rule.text, active: true, switchable: false })),
+      ]}
     />
   );
 }

@@ -27,6 +27,23 @@ export async function vipFromRules(userId: string): Promise<string[]> {
     .filter(Boolean);
 }
 
+/** The rules Juan asked for by name, seeded once so they are visible and switchable. */
+export async function ensureStatedRules(userId: string): Promise<void> {
+  const existing = await prisma.rule.findFirst({ where: { userId, kind: "carried_first" } });
+  if (existing) return;
+
+  await prisma.rule.create({
+    data: {
+      userId,
+      text: "On Mondays, work carried over goes before work that is new",
+      kind: "carried_first",
+      params: { weekday: "mo" } as Prisma.InputJsonValue,
+      origin: "stated",
+      active: true,
+    },
+  });
+}
+
 /** Looks at the corrections and writes any new suggestion into the rules table. */
 export async function refreshSuggestions(userId: string): Promise<number> {
   const [corrections, existing] = await Promise.all([
