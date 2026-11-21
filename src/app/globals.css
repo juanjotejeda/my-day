@@ -108,8 +108,8 @@ body {
   font-family: var(--font-sans);
   font-weight: 400;
   overscroll-behavior: none;
-  /* The home-screen app runs full screen; keep content clear of the home bar. */
-  padding-bottom: env(safe-area-inset-bottom);
+  /* No padding here: it made every page taller than the window, so the page
+     scrolled and the bottom bar came with it. The bar owns the home-bar inset. */
 }
 
 /* The form controls follow the theme, so a time field is not a white box at night. */

@@ -88,45 +88,51 @@ export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCou
   const current = Math.max(index, 0);
 
   return (
-    <nav
-      aria-label="Main"
-      className="sticky bottom-0 z-10 -mx-4 -mb-12 border-t border-line bg-card/95 px-3 pt-1.5 pb-3.5 backdrop-blur"
-    >
-      <div className="relative flex">
-        {/* The indicator wraps the icon and its label, and slides to the new tab. */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-1 left-0 flex w-1/4 justify-center transition-transform duration-[250ms] ease-out motion-reduce:transition-none"
-          style={{ transform: `translateX(${current * 100}%)` }}
-        >
-          <span className="h-full min-w-[68px] rounded-2xl bg-sky" />
-        </span>
+    <>
+      {/* The bar is fixed to the window, so nothing it sits on can move it. This
+          spacer plus the screen's own bottom padding keeps content clear of it. */}
+      <div aria-hidden="true" className="h-[calc(2rem+env(safe-area-inset-bottom))]" />
 
-        {TABS.map((tab, position) => {
-          const on = position === current;
-          return (
-            <Link
-              key={tab.key}
-              href={tab.href}
-              prefetch
-              aria-current={on ? "page" : undefined}
-              className={`relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-[3px] text-[11px] transition-colors ${
-                on ? "text-navy" : "text-muted"
-              }`}
-            >
-              <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-                {tab.icon}
-              </svg>
-              {tab.label}
-              {tab.key === "review" && reviewCount > 0 ? (
-                <span className="absolute top-0.5 left-[52%] flex h-4 min-w-4 items-center justify-center rounded-lg bg-accent px-1 text-[10px] text-on-primary">
-                  {reviewCount}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card/95 px-3 pt-1.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur"
+      >
+        <div className="relative mx-auto flex w-full max-w-[406px]">
+          {/* The indicator wraps the icon and its label, and slides to the new tab. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-1 left-0 flex w-1/4 justify-center transition-transform duration-[250ms] ease-out motion-reduce:transition-none"
+            style={{ transform: `translateX(${current * 100}%)` }}
+          >
+            <span className="h-full min-w-[68px] rounded-2xl bg-sky" />
+          </span>
+
+          {TABS.map((tab, position) => {
+            const on = position === current;
+            return (
+              <Link
+                key={tab.key}
+                href={tab.href}
+                prefetch
+                aria-current={on ? "page" : undefined}
+                className={`relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-[3px] text-[11px] transition-colors ${
+                  on ? "text-navy" : "text-muted"
+                }`}
+              >
+                <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+                  {tab.icon}
+                </svg>
+                {tab.label}
+                {tab.key === "review" && reviewCount > 0 ? (
+                  <span className="absolute top-0.5 left-[52%] flex h-4 min-w-4 items-center justify-center rounded-lg bg-accent px-1 text-[10px] text-on-primary">
+                    {reviewCount}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }
