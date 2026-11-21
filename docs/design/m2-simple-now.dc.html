@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Day Today simple</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#8AA9DE}a:hover{color:#243A63}
+button{font-family:inherit}
+.vb{animation:vb 0.9s ease-in-out infinite;transform-origin:center}
+@keyframes vb{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; position: relative; background: #FFFFFF; display: flex; flex-direction: column; font-family: Roboto, system-ui, sans-serif; color: #243A63">
+<div style="flex: 1; box-sizing: border-box; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 0 0 4px; margin-bottom: 0; font-size: 15px; font-weight: 400; color: #56647D; font-variant-numeric: tabular-nums"><span><span style="color: #243A63">Friday 20.11<br></span>{{nowLbl}} now · 18:00 work ends</span><a href="m2-minimal-calm-now.dc.html" aria-label="Switch to full view" style="margin-left: auto; width: 44px; height: 44px; flex: none; box-sizing: border-box; border-radius: 50%; border: 1px solid #D5E1F5; background: #D5E1F5; display: flex; align-items: center; justify-content: center; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linejoin="round"></path><circle cx="12" cy="12" r="2.8" fill="none" stroke="#243A63" stroke-width="1.6"></circle></svg></a><a href="m2-simple-night.dc.html" aria-label="Switch to night mode" style="width: 44px; height: 44px; flex: none; box-sizing: border-box; border-radius: 50%; border: 1px solid #D5E1F5; display: flex; align-items: center; justify-content: center; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linejoin="round"></path></svg></a></div>
+<div style="position: sticky; top: 0; z-index: 6; background: #FFFFFF; padding: 6px 0 8px; margin: -6px 0 0">
+<div style="display: flex; gap: 8px; align-items: center">
+<button onClick="{{openType}}" style="flex: 1; min-height: 52px; border-radius: 999px; background: #FFFFFF; border: 1px solid #8AA9DE; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; font-size: 15px; font-weight: 400; color: #243A63; cursor: pointer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linecap="round"></path></svg>Add appointment, reminder or task</button>
+<button onClick="{{openVoice}}" aria-label="Add by voice" style="width: 52px; height: 52px; flex: none; border-radius: 50%; border: none; background: #243A63; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="#FFFFFF" stroke-width="1.6"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+</div>
+<sc-if value="{{cType}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 10px; background: #FFFFFF; border: 1px solid #D5E1F5; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 8px 24px rgba(36,58,99,0.08)">
+<div role="group" aria-label="What kind" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{types}}" as="ty" hint-placeholder-count="4">
+<button onClick="{{ty.pick}}" aria-pressed="{{ty.pressed}}" style="min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1px solid #D5E1F5; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px; color: #243A63; {{ty.st}}"><span style="font-size: 15px; font-weight: 400">{{ty.t}}</span><span style="font-size: 12px; color: #56647D">{{ty.sub}}</span></button>
+</sc-for>
+</div>
+<sc-if value="{{isGcal}}" hint-placeholder-val="{{ false }}"><div style="font-size: 12px; line-height: 1.45; color: #56647D">Creates the event in Google Calendar. My Day only ever adds new events.</div></sc-if>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #56647D">What
+<input type="text" value="{{draft.text}}" onChange="{{onText}}" placeholder="For example: Dentist with Thiago" style="min-height: 48px; border-radius: 14px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 14px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63; box-sizing: border-box; width: 100%">
+</label>
+<sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #56647D">When</span><div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{modes}}" as="c" hint-placeholder-count="2">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
+</sc-for>
+</div></div>
+</sc-if>
+<sc-if value="{{isAppt}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid #EAF0FA; padding-top: 8px"><span style="flex: 1; font-size: 16px">All day</span><button onClick="{{toggleAllDay}}" role="switch" aria-checked="{{draft.allDay}}" aria-label="All day" style="position: relative; width: 46px; height: 26px; flex: none; border: none; border-radius: 999px; cursor: pointer; padding: 0; {{allDayTrack}}"><span style="position: absolute; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; {{allDayKnob}}"></span></button></div>
+</sc-if>
+<sc-if value="{{showDate}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #56647D">Date</span><div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<sc-for list="{{days}}" as="c" hint-placeholder-count="2">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
+</sc-for>
+<input type="date" aria-label="Date" value="{{draft.date}}" onChange="{{onDate}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+</div></div>
+</sc-if>
+<sc-if value="{{showTime}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #56647D">{{timeLbl}}
+<input type="time" value="{{draft.start}}" onChange="{{onStart}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+</label>
+<sc-if value="{{showEnd}}" hint-placeholder-val="{{ false }}">
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #56647D">to
+<input type="time" value="{{draft.end}}" onChange="{{onEnd}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+</label>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center"><span style="font-size: 12px; color: #56647D">How long</span>
+<sc-for list="{{durs}}" as="c" hint-placeholder-count="2">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{isAppt}}" hint-placeholder-val="{{ false }}">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #56647D">Where, if anywhere
+<input type="text" value="{{draft.loc}}" onChange="{{onLoc}}" placeholder="A room, an address, a link" style="min-height: 48px; border-radius: 14px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 14px; font-family: inherit; font-size: 16px; font-weight: 300; color: #243A63; box-sizing: border-box; width: 100%">
+</label>
+</sc-if>
+<div style="font-size: 12px; line-height: 1.45; color: #56647D">{{draftHint}}</div>
+<div style="display: flex; gap: 8px">
+<button onClick="{{addItem}}" style="flex: 1; min-height: 48px; border-radius: 999px; border: none; background: #243A63; color: #FFFFFF; font-size: 15px; font-weight: 400; cursor: pointer">Add to my day</button>
+<button onClick="{{closeComposer}}" style="min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid #D5E1F5; background: #FFFFFF; color: #243A63; font-size: 15px; font-weight: 400; cursor: pointer">Cancel</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{cVoice}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 10px; background: #FFFFFF; border: 1px solid #D5E1F5; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(36,58,99,0.08)">
+<div style="display: flex; align-items: center; gap: 10px">
+<div aria-hidden="true" style="display: flex; gap: 3px; align-items: center; height: 24px">
+<span class="vb" style="width: 3px; height: 10px; border-radius: 2px; background: #8AA9DE; animation-delay: 0s"></span>
+<span class="vb" style="width: 3px; height: 18px; border-radius: 2px; background: #8AA9DE; animation-delay: 0.15s"></span>
+<span class="vb" style="width: 3px; height: 24px; border-radius: 2px; background: #8AA9DE; animation-delay: 0.3s"></span>
+<span class="vb" style="width: 3px; height: 14px; border-radius: 2px; background: #8AA9DE; animation-delay: 0.45s"></span>
+<span class="vb" style="width: 3px; height: 8px; border-radius: 2px; background: #8AA9DE; animation-delay: 0.6s"></span>
+</div>
+<span role="status" style="font-size: 14px; color: #56647D">{{voiceLabel}}</span>
+</div>
+<div style="font-size: 22px; font-weight: 300; line-height: 1.3; min-height: 58px; color: #243A63">{{heardShow}}</div>
+<div style="font-size: 12px; line-height: 1.45; color: #56647D">Say what, when and what kind. For example: remind me to call the plumber tomorrow at 9.</div>
+<div style="display: flex; gap: 8px">
+<button onClick="{{useVoice}}" style="flex: 1; min-height: 48px; border-radius: 999px; border: none; background: #243A63; color: #FFFFFF; font-size: 15px; font-weight: 400; cursor: pointer">Review and add</button>
+<button onClick="{{closeComposer}}" style="min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid #D5E1F5; background: #FFFFFF; color: #243A63; font-size: 15px; font-weight: 400; cursor: pointer">Cancel</button>
+</div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{isNow}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="background: #F4F7FC; color: #243A63; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px; ">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 12px; font-weight: 400; letter-spacing: 0.1em; color: #4A6FAE">{{cur.label}}</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 400; padding: 3px 8px; border-radius: 999px; border: 1px solid #D5E1F5; color: #243A63"><span style="width: 8px; height: 8px; border-radius: 2px; {{cur.energyDot}}"></span>{{cur.energy}}</span>
+</div>
+<h2 style="margin: 0; font-family: Roboto, system-ui, sans-serif; font-size: 32px; font-weight: 300; line-height: 1.15; letter-spacing: -0.01em;">{{cur.t}}</h2>
+<div style="font-size: 15px; font-weight: 400; color: #243A63; opacity: 0.85">{{cur.sub}}</div>
+<sc-if value="{{cur.has}}" hint-placeholder-val="{{ true }}">
+<div style="height: 6px; background: #EAF0FA; border-radius: 999px; overflow: hidden"><div style="height: 6px; background: #8AA9DE; {{cur.prog}}"></div></div>
+<div style="font-size: 13px; line-height: 1.5; color: #56647D">{{cur.why}}</div>
+<button onClick="{{cur.open}}" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 999px; border: none; background: transparent; font-size: 14px; font-weight: 400; color: #243A63; cursor: pointer; border: 1px solid #D5E1F5;">Adjust</button>
+</sc-if>
+</div>
+<section style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0 4px; font-family: Roboto, system-ui, sans-serif; font-size: 22px; font-weight: 300;">Next</h2>
+<div style="background: #FFFFFF; border-radius: 22px; overflow: hidden; border: 1px solid #E3EBF8;">
+<sc-for list="{{next}}" as="n" hint-placeholder-count="3">
+<button onClick="{{n.open}}" aria-label="{{n.aria}}" style="display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 14px; border: none; border-bottom: 1px solid #EAF0FA; background: transparent; text-align: left; cursor: pointer; color: #243A63">
+<span style="width: 4px; align-self: stretch; border-radius: 2px; flex: none; {{n.energyBar}}"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 400">{{n.t}}</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #56647D">
+<span style="padding: 2px 7px; border-radius: 999px; font-weight: 400; font-variant-numeric: tabular-nums; {{n.chip}}">{{n.time}}</span>
+<span>{{n.meta}}</span>
+</span>
+</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+</div>
+</sc-if>
+
+</div>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 24px; z-index: 9; background: #243A63; color: #FFFFFF; font-size: 13px; line-height: 1.4; padding: 12px 14px; border-radius: 999px">{{toast}}</div>
+</sc-if>
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10; background: rgba(36,58,99,0.25); display: flex; flex-direction: column; justify-content: flex-end">
+<div role="dialog" aria-label="Adjust item" style="background: #FFFFFF; border-radius: 22px 22px 0 0; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 8px; ">
+<div style="font-size: 12px; font-weight: 400; color: #56647D">{{selItem.kind}} · {{selItem.time}} · {{selItem.energy}}</div>
+<div style="font-size: 18px; font-weight: 400; font-family: Roboto, system-ui, sans-serif">{{selItem.t}}</div>
+<div style="font-size: 13px; color: #56647D; line-height: 1.45; padding-bottom: 6px">{{selItem.why}} Source: {{selItem.src}}.</div>
+<sc-if value="{{selItem.pinned}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 12px; border-radius: 999px; background: #EAF0FA; padding: 4px 6px 4px 14px"><span style="flex: 1; font-size: 13px">Pinned by you</span><button onClick="{{doUnpin}}" style="min-height: 36px; padding: 0 10px; border: none; background: transparent; font-size: 14px; color: #4A6FAE; cursor: pointer">Unpin</button></div>
+</sc-if>
+<sc-if value="{{moveOpen}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; border-radius: 18px; background: #F4F7FC; padding: 12px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<sc-for list="{{moveDays}}" as="c" hint-placeholder-count="2">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
+</sc-for>
+<input type="date" aria-label="Date" value="{{moveDate}}" onChange="{{onMoveDate}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #FFFFFF; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+<input type="time" aria-label="Time" value="{{moveTime}}" onChange="{{onMoveTime}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #FFFFFF; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+</div>
+<div style="display: flex; gap: 8px"><button onClick="{{doMove}}" style="flex: 1; min-height: 44px; border-radius: 999px; border: none; background: #243A63; color: #FFFFFF; font-size: 14px; cursor: pointer">Move here</button><button onClick="{{closeMove}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #D5E1F5; background: #FFFFFF; color: #243A63; font-size: 14px; cursor: pointer">Cancel</button></div>
+</div>
+</sc-if>
+<sc-if value="{{moveClosed}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{openMove}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #F4F7FC; text-align: left; font-size: 15px; color: #243A63; cursor: pointer">Change date and time</button>
+</sc-if>
+<button onClick="{{doImportant}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #EAF0FA; text-align: left; font-size: 15px; font-weight: 400; color: #243A63; cursor: pointer">{{selItem.impLabel}}</button>
+<button onClick="{{doTomorrow}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #F4F7FC; text-align: left; font-size: 15px; color: #243A63; cursor: pointer">{{selItem.tomLabel}}</button>
+<button onClick="{{doTime}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #F4F7FC; text-align: left; font-size: 15px; color: #243A63; cursor: pointer">{{selItem.timeLabel}}</button>
+<button onClick="{{doPersonal}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #F4F7FC; text-align: left; font-size: 15px; color: #243A63; cursor: pointer">{{selItem.catLabel}}</button>
+<sc-if value="{{selItem.canDelete}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{doDelete}}" style="min-height: 46px; padding: 0 14px; border-radius: 999px; border: none; background: #F4F7FC; text-align: left; font-size: 15px; color: #A3341F; cursor: pointer">{{delLabel}}</button>
+</sc-if>
+<sc-if value="{{selItem.calOnly}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 6px 14px; font-size: 13px; color: #56647D">Delete this in Google Calendar.</div>
+</sc-if>
+<a href="app-d2-detail.dc.html" style="display: flex; align-items: center; min-height: 46px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 15px; color: #243A63; text-decoration: none">See details and source</a>
+<button onClick="{{close}}" style="min-height: 46px; border: none; background: transparent; font-size: 15px; font-weight: 400; color: #243A63; cursor: pointer">Close</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"nowMin":{"editor":"range","default":620,"min":420,"max":1320,"step":5,"unit":"min after midnight"},"view":{"editor":"enum","options":["now","priority"],"default":"now"},"$preview":{"width":390,"height":1000}}'>
+var T = {"fix": "#8AA9DE", "flex": "#8AA9DE", "fixbg": "#EAF0FA", "fixink": "#243A63", "flexink": "#4A6FAE", "acc": "#8AA9DE", "ok": "#2E7A55", "done": "#8AA9DE", "idle": "#B3C8EC", "togOn": "background:#FFFFFF;color:#243A63;box-shadow:0 1px 3px rgba(36,58,99,0.08);", "togOff": "background:transparent;color:#56647D;", "en": ["#EAF0FA", "#D5E1F5", "#A3BDE8"]};
+var BASE = [
+  {id:'run', t:'Morning run', s:450, e:495, fx:0, cat:'personal', src:'Reminder', why:'Exercise time you reserved before work.', rank:'should', eff:'Personal'},
+  {id:'sync', t:'Co-founder sync', s:510, e:540, fx:1, cat:'work', src:'Calendar', why:'Recurring meeting, Monday, Wednesday and Friday.', rank:'must', eff:'Meeting'},
+  {id:'prop', t:'Write Northwind proposal', s:555, e:675, fx:0, cat:'work', src:'Gmail', why:'You told Lena Hoffmann you would send it by Monday. Placed in your peak focus hours.', rank:'must', pri:'high', eff:'Deep work'},
+  {id:'call', t:'Northwind client call', s:690, e:720, fx:1, cat:'work', src:'Calendar', why:'Video call with Lena Hoffmann.', rank:'must', eff:'Meeting'},
+  {id:'lunch', t:'Lunch break', s:720, e:780, fx:0, cat:'personal', src:'Settings', why:'Your preferred lunch window.', rank:'protected', eff:'Break'},
+  {id:'marco', t:'Reply to Marco about the invoice', s:780, e:800, fx:0, cat:'work', src:'Gmail', why:'Marco asked twice this week. Short reply, placed in your low-energy dip.', rank:'should', eff:'Light task'},
+  {id:'inv', t:'Intro call, Fieldstone Capital', s:840, e:885, fx:1, cat:'work', src:'Calendar', why:'Intro call with Hanna Berg.', rank:'must', eff:'Meeting'},
+  {id:'slides', t:'Review slides for Monday', s:900, e:930, fx:0, cat:'work', src:'Suggested', why:'Light task that fits your afternoon energy dip.', rank:'could', eff:'Light task'},
+  {id:'dent', t:'Take Thiago to the dentist', s:960, e:1020, fx:1, cat:'personal', src:'Reminder', why:'You added this on Tuesday. Leave home at 15:40.', rank:'must', eff:'Family'},
+  {id:'gift', t:'Pick up birthday gift', s:1035, e:1060, fx:0, cat:'personal', src:'Reminder', why:'The shop is on the way back from the dentist.', rank:'should', eff:'Errand'},
+  {id:'dinner', t:'Family dinner', s:1110, e:1170, fx:1, cat:'personal', src:'Calendar', why:'Time you protect for family.', rank:'protected', eff:'Family'},
+  {id:'flights', t:'Book flights for December', later:1, s:0, e:0, fx:0, cat:'personal', src:'Gmail', why:'The airline offer in your inbox expires next Friday.', rank:'later', eff:'Errand'},
+  {id:'tax', t:'Send receipts to tax advisor', later:1, s:0, e:0, fx:0, cat:'work', src:'Gmail', why:'Requested by 30 November.', rank:'later', eff:'Light task'}
+];
+var DEMO = 'Remind me to call the plumber tomorrow at 9';
+function parseSpeech(t){
+  var s = (t || '').toLowerCase(), d = {type:'task', text:'', auto:true, day:'today', date:'', start:'', end:'', allDay:false, dur:30, loc:''};
+  if (/remind/.test(s)) d.type = 'reminder';
+  else if (/(meeting|call with|appointment|dentist|doctor|lunch with|dinner with|coffee with)/.test(s)) d.type = 'appt';
+  if (/tomorrow/.test(s)) d.day = 'tomorrow';
+  var m = s.match(/at (\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?/);
+  if (m) { var h = parseInt(m[1], 10), mi = m[2] ? parseInt(m[2], 10) : 0; if (m[3] === 'pm' && h < 12) h += 12; if (m[3] === 'am' && h === 12) h = 0; if (!m[3] && h < 7) h += 12; d.start = (h<10?'0':'')+h+':'+(mi<10?'0':'')+mi; if (d.type === 'appt') { var h2 = h + 1; d.end = (h2<10?'0':'')+h2+':'+(mi<10?'0':'')+mi; } }
+  var txt = (t || '').replace(/^\s*(please\s+)?(remind me to|remind me|add a task to|add)\s+/i, '').replace(/\s+tomorrow/i, '').replace(/\s+today/i, '').replace(/\s+at \d{1,2}([:.]\d{2})?\s*(am|pm)?/i, '').trim();
+  d.text = txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
+  if (d.type === 'task' && d.start) d.auto = false;
+  return d;
+}
+function freeSlot(items, from, dur){
+  var busy = items.filter(function(x){ return !x.later && !x.moved; }).sort(function(a, b){ return a.s - b.s; });
+  var t = Math.ceil(from / 15) * 15, moved = true, guard = 0;
+  while (moved && guard < 50) { moved = false; guard++; busy.forEach(function(x){ if (x.s < t + dur && x.e > t) { t = Math.ceil(x.e / 15) * 15; moved = true; } }); }
+  return t;
+}
+function fmt(m){ var h = Math.floor(m/60)%24, n = m%60; return (h<10?'0':'')+h+':'+(n<10?'0':'')+n; }
+function dur(m){ var h = Math.floor(m/60), n = m%60; return h ? (h+'h'+(n ? ' '+n+'m' : '')) : n+'m'; }
+function g(m, mu, sd){ var z = (m - mu) / sd; return Math.exp(-z*z/2); }
+function energy(m){ var e = 0.22 + 0.68*g(m, 615, 95) + 0.12*g(m, 460, 50) + 0.32*g(m, 990, 75) - 0.12*g(m, 860, 45); return Math.max(0.06, Math.min(1, e)); }
+var LV = [
+  {name:'Low energy', fill:T.en[0], fit:'Light tasks fit'},
+  {name:'Steady energy', fill:T.en[1], fit:'Meetings fit'},
+  {name:'Peak energy', fill:T.en[2], fit:'Deep work fits'}
+];
+function level(m){ var e = energy(m); return e >= 0.7 ? 2 : (e >= 0.4 ? 1 : 0); }
+class Component extends DCLogic {
+  getItems(){ var s = this.state || {}; return s.items || BASE; }
+  pick(id){ this.setState({sel:id, moveOpen:false, delArm:false}); }
+  act(kind){
+    var s = this.state || {}, id = s.sel, msg = '';
+    if (!id) return;
+    var items = this.getItems().map(function(x){
+      if (x.id !== id) return x;
+      var y = Object.assign({}, x);
+      if (kind === 'tomorrow') {
+        if (y.fx) msg = 'Calendar events are read-only here. Move it in Google Calendar.';
+        else if (y.moved) { y.moved = false; msg = 'Back on your list.'; }
+        else { y.moved = true; msg = 'Moved to tomorrow. I will remember this for similar items.'; }
+      }
+      if (kind === 'important') { y.pri = y.pri === 'high' ? '' : 'high'; if (y.pri) y.rank = 'must'; msg = y.pri ? 'Marked as important. Similar items rank higher from now on.' : 'Back to normal priority.'; }
+      if (kind === 'time') { if (y.fx || y.later) msg = 'This item has no flexible duration.'; else { y.e = y.e + 30; msg = 'Added 30 minutes. I will plan more time for tasks like this.'; } }
+      if (kind === 'personal') { y.cat = y.cat === 'personal' ? 'work' : 'personal'; msg = y.cat === 'personal' ? 'Saved as a personal commitment.' : 'Saved as a work task.'; }
+      return y;
+    });
+    this.setState({items:items, sel:null, toast:msg});
+    var self = this; clearTimeout(this._t); this._t = setTimeout(function(){ self.setState({toast:''}); }, 2800);
+  }
+  moveTo(){
+    var s = this.state || {}, id = s.sel, v = (s.moveTimeV || '').split(':');
+    if (!id || v.length < 2) { this.toastMsg('Pick a time.'); return; }
+    if (s.moveDay === 'other' && !s.moveDateV) { this.toastMsg('Pick a date.'); return; }
+    var tm = parseInt(v[0], 10) * 60 + parseInt(v[1], 10), day = s.moveDay || 'today';
+    var items = this.getItems().map(function(x){
+      if (x.id !== id) return x;
+      var y = Object.assign({}, x), len = y.later ? 30 : (y.e - y.s);
+      y.s = tm; y.e = tm + len; y.later = 0; y.pinned = 1; y.moved = day !== 'today';
+      return y;
+    });
+    var where = day === 'other' ? s.moveDateV : day;
+    this.setState({items:items, sel:null, moveOpen:false});
+    this.toastMsg('Moved to '+where+', '+fmt(tm)+'. Pinned, so re-planning leaves it there.');
+  }
+  unpin(){
+    var s = this.state || {}, id = s.sel;
+    var items = this.getItems().map(function(x){ return x.id === id ? Object.assign({}, x, {pinned:0}) : x; });
+    this.setState({items:items, sel:null}); this.toastMsg('Unpinned. My Day may move it again when it re-plans.');
+  }
+  remove(){
+    var s = this.state || {}, id = s.sel;
+    var items = this.getItems().filter(function(x){ return x.id !== id; });
+    this.setState({items:items, sel:null, delArm:false}); this.toastMsg('Deleted. You can restore it from Settings, Archive.');
+  }
+  common(){
+    var self = this, s = this.state || {}, sel = null;
+    this.getItems().forEach(function(x){ if (x.id === s.sel) sel = x; });
+    var si = {t:'', why:'', src:'', kind:'', time:'', energy:'', tomLabel:'', impLabel:'', timeLabel:'', catLabel:'', pinned:false, calOnly:false, canDelete:false};
+    if (sel) si = {
+      t: sel.t, why: sel.why, src: sel.src,
+      kind: sel.fx ? 'Fixed event' : 'Flexible',
+      time: sel.later ? 'Not scheduled' : fmt(sel.s)+'-'+fmt(sel.e),
+      energy: sel.later ? 'Energy not set' : LV[level(sel.s)].name,
+      tomLabel: sel.fx ? 'Fixed in your calendar' : (sel.moved ? 'Bring back' : 'Move to tomorrow'),
+      impLabel: sel.pri === 'high' ? 'Remove importance' : 'This is more important',
+      timeLabel: (sel.fx || sel.later) ? 'Duration is fixed' : 'I need 30 more minutes',
+      catLabel: sel.cat === 'personal' ? 'This is a work task' : 'This is a personal commitment',
+      pinned: !!sel.pinned, calOnly: sel.src === 'Calendar' && !sel.mine, canDelete: !(sel.src === 'Calendar' && !sel.mine)
+    };
+    return {
+      sheetOpen: !!sel, selItem: si,
+      doTomorrow: function(){ self.act('tomorrow'); },
+      doImportant: function(){ self.act('important'); },
+      doTime: function(){ self.act('time'); },
+      doPersonal: function(){ self.act('personal'); },
+      close: function(){ self.setState({sel:null, moveOpen:false, delArm:false}); },
+      moveOpen: !!(sel && s.moveOpen), moveClosed: !!(sel && !s.moveOpen && !si.calOnly),
+      openMove: function(){ self.setState({moveOpen:true, moveDay:'today', moveDateV:'', moveTimeV: sel && !sel.later ? fmt(sel.s) : '14:00'}); },
+      closeMove: function(){ self.setState({moveOpen:false}); },
+      moveDays: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ var p = (s.moveDay || 'today') === c.k; return {t:c.t, pressed:p, st: p ? 'background:#D5E1F5;border-color:#8AA9DE;' : 'background:#FFFFFF;', pick: function(){ self.setState({moveDay:c.k, moveDateV:''}); }}; }),
+      moveDate: s.moveDateV || '', moveTime: s.moveTimeV || '',
+      onMoveDate: function(e){ self.setState({moveDay:'other', moveDateV: e.target.value}); },
+      onMoveTime: function(e){ self.setState({moveTimeV: e.target.value}); },
+      doMove: function(){ self.moveTo(); },
+      doUnpin: function(){ self.unpin(); },
+      delLabel: s.delArm ? 'Tap again to delete' : 'Delete',
+      doDelete: function(){ if (!s.delArm) { self.setState({delArm:true}); return; } self.remove(); },
+      toastOn: !!s.toast, toast: s.toast || ''
+    };
+  }
+  toastMsg(m){ var self = this; this.setState({toast:m}); clearTimeout(this._t); this._t = setTimeout(function(){ self.setState({toast:''}); }, 3000); }
+  startVoice(){
+    var self = this; this.stopVoice(); this.setState({cmode:'voice', heard:'', listening:true});
+    var SR = (typeof window !== 'undefined') && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (SR) { try { var r = new SR(); r.lang = 'en-GB'; r.interimResults = true;
+      r.onresult = function(ev){ var t = ''; for (var i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; self.setState({heard:t}); };
+      r.onend = function(){ self.setState({listening:false}); };
+      r.onerror = function(){ self.demoVoice(); };
+      r.start(); this._rec = r; return; } catch (e) {} }
+    this.demoVoice();
+  }
+  demoVoice(){ var self = this, i = 0; clearInterval(this._v); this._v = setInterval(function(){ i += 2; self.setState({heard: DEMO.slice(0, i)}); if (i >= DEMO.length) { clearInterval(self._v); self.setState({listening:false}); } }, 55); }
+  stopVoice(){ try { if (this._rec) this._rec.stop(); } catch (e) {} this._rec = null; clearInterval(this._v); }
+  componentWillUnmount(){ this.stopVoice(); clearTimeout(this._t); }
+  addDraft(){
+    var s = this.state || {}, d = s.draft || {type:'task', text:'', auto:true, day:'today', dur:30};
+    var text = (d.text || '').trim();
+    if (!text) { this.toastMsg('Type or say what to add first.'); return; }
+    if (d.day === 'other' && !d.date) { this.toastMsg('Pick a date first.'); return; }
+    var toMin = function(v){ var p = (v || '').split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); };
+    var now = this.props.nowMin ?? 620, items = this.getItems().slice();
+    var when = d.day === 'other' ? d.date : (d.day === 'tomorrow' ? 'tomorrow' : 'today');
+    var it = {id:'n'+Date.now(), t:text, fx:1, cat:'personal', src:'Added by you', mine:1, rank:'should', eff:'Personal'};
+    var msg = '';
+    if (d.type === 'task') {
+      var du = d.dur || 30, st;
+      if (d.auto === false) { if (!d.start) { this.toastMsg('Pick a time, or switch back to Automatic.'); return; } st = toMin(d.start); it.pinned = 1; }
+      else st = freeSlot(items, Math.max(now, 510), du);
+      it.fx = 0; it.cat = 'work'; it.eff = 'Light task'; it.s = st; it.e = st + du;
+      it.why = d.auto === false ? 'Task you added at the time you chose.' : 'Task you added. Placed in the next free slot that fits.';
+      msg = d.auto === false ? 'Task added for '+when+' at '+fmt(st)+'.' : (when === 'today' ? 'Task added. Placed at '+fmt(st)+', the next free slot.' : 'Task added for '+when+'.');
+    } else if ((d.type === 'appt' || d.type === 'gcal') && d.allDay) {
+      this.setState({cmode:'', draft:null, heard:''}); this.toastMsg('All-day event added for '+when+'. It shows as a day banner.'); return;
+    } else {
+      if (!d.start) { this.toastMsg('Add a time.'); return; }
+      var tm = toMin(d.start), en = d.type === 'reminder' ? tm + 10 : toMin(d.end);
+      if (d.type !== 'reminder' && !(en > tm)) { this.toastMsg('The end has to be after the start.'); return; }
+      it.s = tm; it.e = en; it.rank = 'must';
+      if (d.type === 'gcal') { it.src = 'Calendar'; it.cat = 'work'; it.eff = 'Meeting'; it.why = 'You added this. It is also in Google Calendar.'; }
+      else if (d.type === 'appt') { it.eff = 'Meeting'; it.why = 'Appointment you added'+(d.loc ? ', at '+d.loc : '')+'.'; }
+      else { it.src = 'Reminder'; it.eff = 'Errand'; it.why = 'Reminder you added.'; }
+      msg = (d.type === 'reminder' ? 'Reminder' : 'Appointment')+' added for '+when+' at '+d.start+'.';
+    }
+    if (d.day !== 'today') it.moved = true;
+    items.push(it);
+    this.setState({items:items, cmode:'', draft:null, heard:''});
+    this.toastMsg(msg);
+  }
+  composer(){
+    var self = this, s = this.state || {}, mode = s.cmode || '', now = this.props.nowMin ?? 620;
+    var nextHour = Math.min(22, Math.floor(now / 60) + 1);
+    var d = s.draft || {type:'task', text:'', auto:true, day:'today', date:'', start:'', end:'', allDay:false, dur:30, loc:''};
+    var set = function(p){ self.setState({draft: Object.assign({}, d, p)}); };
+    var on = 'background:#D5E1F5;border-color:#8AA9DE;', off = 'background:#FFFFFF;';
+    var isAppt = d.type === 'appt' || d.type === 'gcal';
+    var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a set time'}, {k:'task', t:'Task', sub:'Placed for you'}];
+    var pickType = function(k){
+      var p = {type:k};
+      if ((k === 'appt' || k === 'gcal') && !d.start) { p.start = fmt(nextHour * 60); p.end = fmt(nextHour * 60 + 60); }
+      if (k === 'reminder' && !d.start) p.start = fmt(nextHour * 60);
+      set(p);
+    };
+    var timed = d.type !== 'task' || d.auto === false;
+    var hint = d.type === 'task' ? (d.auto === false ? 'It goes exactly where you put it, and nothing moves it.' : 'I will place it in the next free slot that fits.')
+      : d.type === 'reminder' ? 'You get a reminder at this time.'
+      : d.allDay ? 'A day banner, with no time of its own.' : 'Fixed in your day at this time.';
+    var heard = s.heard || '';
+    return {
+      cType: mode === 'type', cVoice: mode === 'voice',
+      openType: function(){ self.stopVoice(); self.setState({cmode:'type'}); },
+      openVoice: function(){ self.startVoice(); },
+      closeComposer: function(){ self.stopVoice(); self.setState({cmode:'', draft:null, heard:''}); },
+      types: types.map(function(t){ return {t:t.t, sub:t.sub, pressed: d.type === t.k, st: d.type === t.k ? on : off, pick: function(){ pickType(t.k); }}; }),
+      modes: [{k:true, t:'Automatic'}, {k:false, t:'Set date and time'}].map(function(c){ var p = (d.auto !== false) === c.k; return {t:c.t, pressed:p, st: p ? on : off, pick: function(){ set(c.k ? {auto:true} : {auto:false, start: d.start || fmt(nextHour * 60)}); }}; }),
+      days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k, date:''}); }}; }),
+      durs: [15, 30, 60, 90, 120].map(function(n){ return {t: n < 60 ? n+' min' : (n/60)+'h', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
+      draft: {text: d.text || '', date: d.date || '', start: d.start || '', end: d.end || '', loc: d.loc || '', allDay: !!d.allDay},
+      isTask: d.type === 'task', isAppt: isAppt, isGcal: d.type === 'gcal',
+      showDate: timed, showTime: timed && !d.allDay, showEnd: isAppt,
+      timeLbl: isAppt ? 'From' : 'At',
+      allDayTrack: d.allDay ? 'background:#243A63;' : 'background:#D5E1F5;', allDayKnob: d.allDay ? 'left:23px;' : 'left:3px;',
+      toggleAllDay: function(){ set({allDay: !d.allDay}); },
+      draftHint: hint,
+      onText: function(e){ set({text: e.target.value}); },
+      onDate: function(e){ set({day:'other', date: e.target.value}); },
+      onStart: function(e){ set({start: e.target.value}); },
+      onEnd: function(e){ set({end: e.target.value}); },
+      onLoc: function(e){ set({loc: e.target.value}); },
+      addItem: function(){ self.addDraft(); },
+      voiceLabel: s.listening ? 'Listening' : 'Got it. Review before adding.',
+      heardShow: heard || 'Speak now',
+      useVoice: function(){ self.stopVoice(); self.setState({cmode:'type', listening:false, draft: parseSpeech(heard || DEMO)}); }
+    };
+  }
+  renderVals(){
+    var self = this, s = this.state || {}, now = this.props.nowMin ?? 620, done = s.done || {};
+    var view = s.view || this.props.view || 'now';
+    var all = this.getItems();
+    var vis = all.filter(function(x){ return !x.later && !x.moved; }).sort(function(a, b){ return a.s - b.s; });
+    var pct = function(m){ return Math.max(0, Math.min(100, (m - 420) / 900 * 100)); };
+    var strip = vis.map(function(x){
+      return {st: 'left:'+pct(x.s).toFixed(2)+'%;width:calc('+(pct(x.e) - pct(x.s)).toFixed(2)+'% - 2px);' + (x.fx ? 'background:'+T.fix+';' : 'background:transparent;border:1.5px dashed '+T.flex+';')};
+    });
+    var energyTrack = [];
+    for (var m = 420; m < 1320; m += 30) energyTrack.push({st: 'background:'+LV[level(m + 15)].fill+';'});
+    var chip = function(x){ return x.fx ? 'background:'+T.fixbg+';color:'+T.fixink+';' : 'background:transparent;color:'+T.flexink+';border:1px dashed '+T.flex+';'; };
+    var bar = function(x){ return 'background:'+LV[level(x.s)].fill+';'; };
+    var cur = null, nextFree = null;
+    vis.forEach(function(x){ if (x.s <= now && now < x.e && !cur) cur = x; if (x.s > now && !nextFree) nextFree = x; });
+    var lvNow = LV[level(now)];
+    var curV;
+    if (cur) curV = {has: true, label: 'NOW', t: cur.t, sub: 'Until '+fmt(cur.e)+' · '+(cur.e - now)+' min left',
+      energy: lvNow.name, energyDot: 'background:'+lvNow.fill+';',
+      prog: 'width:'+((now - cur.s) / (cur.e - cur.s) * 100).toFixed(1)+'%;', why: cur.why+' From '+cur.src+'.', open: function(){ self.pick(cur.id); }};
+    else curV = {has: false, label: 'FREE', t: nextFree ? 'Free until '+fmt(nextFree.s) : 'Nothing left today',
+      energy: lvNow.name, energyDot: 'background:'+lvNow.fill+';',
+      sub: nextFree ? lvNow.fit+'. Take a break or pull something forward.' : 'Enjoy your evening.', prog: '', why: '', open: function(){}};
+    var after = vis.filter(function(x){ return x.s > now || (x.s <= now && x.e > now && x !== cur); });
+    var mk = function(x){ return {t: x.t, time: x.fx ? fmt(x.s) : fmt(x.s)+' ~'+dur(x.e - x.s), chip: chip(x), energyBar: bar(x),
+      meta: (x.fx ? 'Fixed' : 'Flexible')+' · '+LV[level(x.s)].name+(x.pri === 'high' ? ' · Important' : '')+(x.pinned ? ' · Pinned' : ''),
+      aria: x.t+', '+fmt(x.s), open: function(){ self.pick(x.id); }}; };
+    var next = after.slice(0, 3).map(mk);
+    var rest = after.slice(3).map(mk);
+    var laterList = all.filter(function(x){ return x.later || x.moved; }).map(function(x){
+      return {t:x.t, src:x.src, tag:x.moved ? 'Tomorrow' : 'No date yet', open:function(){ self.pick(x.id); }};
+    });
+    var row = function(x){
+      var d = !!done[x.id] || x.e <= now;
+      return {
+        t: x.t, done: d, doneAria: (d ? 'Mark not done: ' : 'Mark done: ')+x.t,
+        time: x.fx ? fmt(x.s) : '~'+dur(x.e - x.s), chip: chip(x),
+        energyDot: bar(x),
+        meta: (x.fx ? 'Fixed' : 'Flexible, planned '+fmt(x.s))+' · '+LV[level(x.s)].name+' · '+x.src,
+        circle: d ? 'background:'+T.done+';border:2px solid '+T.done+';' : (x.pri === 'high' ? 'border:2px solid '+T.acc+';' : 'border:2px solid '+T.idle+';'),
+        titleSt: d ? 'text-decoration:line-through;opacity:0.55;' : '',
+        toggle: function(){ var nd = Object.assign({}, done); nd[x.id] = !d; self.setState({done: nd}); },
+        open: function(){ self.pick(x.id); }
+      };
+    };
+    var defs = [
+      {k:'must', name:'Must happen today', hint:'Non-negotiable'},
+      {k:'should', name:'Should happen', hint:'If the day allows'},
+      {k:'could', name:'Could happen', hint:'Nice to have'}
+    ];
+    var sections = defs.map(function(d){
+      var its = vis.filter(function(x){ return (x.pri === 'high' ? 'must' : x.rank) === d.k; });
+      its.sort(function(a, b){ return (b.pri === 'high') - (a.pri === 'high') || a.s - b.s; });
+      return {name: d.name, hint: d.hint, count: its.length, items: its.map(row)};
+    }).filter(function(sec){ return sec.count > 0; });
+    var fixedM = 0, flexM = 0;
+    vis.forEach(function(x){ if (x.rank === 'protected') return; if (x.fx) fixedM += x.e - x.s; else flexM += x.e - x.s; });
+    var avail = 570, total = fixedM + flexM, over = total > avail;
+    var load = {
+      fixed: dur(fixedM), flex: dur(flexM), avail: dur(avail)+' working time',
+      fixedW: 'width:'+Math.min(100, fixedM / avail * 100).toFixed(1)+'%;',
+      flexW: 'width:'+Math.max(0, Math.min(100 - fixedM / avail * 100, flexM / avail * 100)).toFixed(1)+'%;',
+      verdict: over ? 'Over by '+dur(total - avail) : dur(avail - total)+' buffer',
+      col: over ? 'color:'+T.acc+';' : 'color:'+T.ok+';'
+    };
+    var prot = vis.filter(function(x){ return x.rank === 'protected'; }).map(function(x){ return x.t+' '+fmt(x.s); }).join(' · ');
+    var restOpen = s.restOpen !== false, laterOpen = s.laterOpen !== false;
+    var on = T.togOn, off = T.togOff;
+    return Object.assign(this.common(), this.composer(), {
+      nowLbl: fmt(now), nowLeft: 'left:calc('+pct(now).toFixed(2)+'% - 1px);',
+      strip: strip, energyTrack: energyTrack,
+      isNow: view === 'now', isPri: view === 'priority',
+      tabNowSt: view === 'now' ? on : off, tabPriSt: view === 'priority' ? on : off,
+      showNow: function(){ self.setState({view:'now'}); },
+      showPri: function(){ self.setState({view:'priority'}); },
+      cur: curV, next: next, rest: rest, laterList: laterList,
+      restCount: rest.length, laterCount: laterList.length,
+      restOpen: restOpen, laterOpen: laterOpen,
+      restHint: restOpen ? 'Hide' : 'Show', laterHint: laterOpen ? 'Hide' : 'Show',
+      toggleRest: function(){ self.setState({restOpen: !restOpen}); },
+      toggleLater: function(){ self.setState({laterOpen: !laterOpen}); },
+      sections: sections, load: load, protectedLine: prot || 'None today'
+    });
+  }
+}
+</script>
+</body>
+</html>

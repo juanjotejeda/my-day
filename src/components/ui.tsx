@@ -59,14 +59,28 @@ export function PillLink({ href, children }: { href: string; children: ReactNode
   );
 }
 
-export function BackLink({ href, children }: { href: string; children: ReactNode }) {
+/** Back to where this screen came from: a round button and that screen's name. */
+export function BackRow({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="flex min-h-11 items-center gap-2 text-[15px] text-muted">
-      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-        <path d="M9 2.5L4.5 7 9 11.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-      {children}
-    </Link>
+    <div className="flex min-h-12 items-center gap-2">
+      <Link
+        href={href}
+        aria-label={`Back to ${label}`}
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-navy"
+      >
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path
+            d="M11 3.5L5.5 9l5.5 5.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+      <span className="flex-1 text-[15px] text-muted">{label}</span>
+    </div>
   );
 }
 
@@ -339,14 +353,17 @@ export function DayHeaderLine({
   workEnd,
   right,
   action,
+  stacked = false,
 }: {
   date: string;
   now?: string;
   workEnd?: string;
   /** Said instead of the times, when a day has no working hours. */
   right?: string;
-  /** The moon and sun button sits at the end of the line. */
+  /** The eye and the moon sit at the end of the line. */
   action?: ReactNode;
+  /** The simple view gives the date its own line, with the times below it. */
+  stacked?: boolean;
 }) {
   const parts = [now ? `${now} now` : null, workEnd ? `${workEnd} work ends` : null].filter(Boolean);
   const tail = right ?? parts.join(" · ");
@@ -354,8 +371,8 @@ export function DayHeaderLine({
   return (
     <div className="-mb-2.5 flex items-center justify-between gap-2 pl-1 text-[15px] text-muted tabular-nums">
       <span>
-        <h1 className="inline text-[15px] font-normal text-navy">{date}</h1>
-        {tail ? ` · ${tail}` : null}
+        <h1 className={`text-[15px] font-normal text-navy ${stacked ? "block" : "inline"}`}>{date}</h1>
+        {tail ? (stacked ? tail : ` · ${tail}`) : null}
       </span>
       {action}
     </div>

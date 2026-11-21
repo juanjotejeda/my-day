@@ -7,6 +7,7 @@ import { closeTheDay, type CarryChoice } from "@/app/end-of-day/actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { ChoiceGroup } from "@/components/controls";
 import {
+  BackRow,
   DetailRow,
   ListCard,
   NoteCard,
@@ -61,6 +62,7 @@ export function EndOfDayScreen({
 
   return (
     <Screen>
+      <BackRow href="/" label="Today" />
       <ScreenHeader label={when} title={headline} size={44} />
 
       <PanelCard>

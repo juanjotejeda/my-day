@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
 import {
+  BackRow,
   DayHeaderLine,
   ItemRow,
   ListCard,
@@ -76,6 +77,7 @@ export default async function Tomorrow() {
 
   return (
     <Screen>
+      <BackRow href="/" label="Today" />
       <DayHeaderLine date={`Tomorrow · ${label}`} workEnd={isWorkday ? settings.work.end : undefined} right={isWorkday ? undefined : "no work tomorrow"} />
 
       <div className="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">

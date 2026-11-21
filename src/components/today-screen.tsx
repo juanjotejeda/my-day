@@ -5,6 +5,7 @@ import { useRef, useState, useTransition } from "react";
 
 import { AddBar } from "@/components/add-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ViewToggle } from "@/components/view-toggle";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
@@ -26,7 +27,7 @@ import type { ComposerDraft } from "@/lib/plan/draft";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
 import { addDraft, applyCorrection, deleteItem, moveItem, unpinItem } from "@/app/actions";
 import type { Rhythm } from "@/lib/plan/curve";
-import type { Theme } from "@/lib/theme";
+import type { Theme, View as Appearance } from "@/lib/theme";
 
 type View = "now" | "priority";
 
@@ -44,6 +45,7 @@ export function TodayScreen({
   tomorrowDate,
   headerRight,
   theme,
+  appearance,
 }: {
   weekday: string;
   date: string;
@@ -59,9 +61,12 @@ export function TodayScreen({
   /** Said instead of the times when today is not a working day. */
   headerRight?: string;
   theme: Theme;
+  /** The simple view keeps the date line, the add bar, Now and Next. */
+  appearance: Appearance;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
+  const simple = appearance === "simple";
   const [view, setView] = useState<View>("now");
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState("");
@@ -155,12 +160,18 @@ export function TodayScreen({
         now={fmt(now)}
         workEnd={workEnd}
         right={headerRight}
-        action={<ThemeToggle theme={theme} />}
+        stacked={simple}
+        action={
+          <span className="flex items-center gap-2">
+            <ViewToggle view={appearance} />
+            <ThemeToggle theme={theme} />
+          </span>
+        }
       />
 
       <AddBar onAdd={add} today={todayDate} tomorrow={tomorrowDate} />
 
-      {banners.length ? (
+      {!simple && banners.length ? (
         <div className="flex flex-col gap-1.5">
           {banners.map((title) => (
             <div key={title} className="rounded-card bg-surface px-4 py-3 text-[15px]">
@@ -171,15 +182,16 @@ export function TodayScreen({
         </div>
       ) : null}
 
-      <DayStrip items={items} now={now} rhythm={rhythm} />
+      {simple ? null : <DayStrip items={items} now={now} rhythm={rhythm} />}
 
-      {waitingForMonday ? (
+      {!simple && waitingForMonday ? (
         <NoteCard label="WEEKEND">
           {waitingForMonday} work {waitingForMonday === 1 ? "item waits" : "items wait"} for Monday.
           Weekends are protected, so only what you choose happens today.
         </NoteCard>
       ) : null}
 
+      {simple ? null : (
       <div role="group" aria-label="View" className="grid grid-cols-2 gap-1 rounded-full bg-sky p-1">
         {(["now", "priority"] as const).map((key) => (
           <button
@@ -195,8 +207,9 @@ export function TodayScreen({
           </button>
         ))}
       </div>
+      )}
 
-      {view === "now" ? (
+      {simple || view === "now" ? (
         <div className="flex flex-col gap-4">
           <section className="flex flex-col gap-2.5 rounded-card bg-surface p-4">
             <div className="flex items-center justify-between">
@@ -226,7 +239,7 @@ export function TodayScreen({
           </section>
 
           {/* X1: a day with nothing on it still offers what there is. */}
-          {!scheduled.length && !banners.length ? (
+          {!simple && !scheduled.length && !banners.length ? (
             <section className="flex flex-col gap-2">
               <SectionTitle>If you want something</SectionTitle>
               <Card className="px-[14px]">
@@ -278,7 +291,7 @@ export function TodayScreen({
             </section>
           ) : null}
 
-          {rest.length ? (
+          {!simple && rest.length ? (
             <Card className="px-[14px]">
               <button
                 type="button"
@@ -306,7 +319,7 @@ export function TodayScreen({
             </Card>
           ) : null}
 
-          {later.length ? (
+          {!simple && later.length ? (
             <div className="rounded-card border border-dashed border-sky px-[14px]">
               <button
                 type="button"
@@ -432,12 +445,16 @@ export function TodayScreen({
         </div>
       )}
 
-      <div className="flex gap-2 pt-2 pb-5">
-        <PillLink href="/tomorrow">Plan tomorrow</PillLink>
-        <PillLink href="/end-of-day">Close the day</PillLink>
-      </div>
+      {simple ? null : (
+        <>
+          <div className="flex gap-2 pt-2 pb-5">
+            <PillLink href="/tomorrow">Plan tomorrow</PillLink>
+            <PillLink href="/end-of-day">Close the day</PillLink>
+          </div>
 
-      <BottomNav active="today" reviewCount={reviewCount} />
+          <BottomNav active="today" reviewCount={reviewCount} />
+        </>
+      )}
 
       {toast ? (
         <Toast>{toast}</Toast>

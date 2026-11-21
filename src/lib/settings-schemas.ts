@@ -65,9 +65,10 @@ export const privacySchema = z.object({
   processSentMail: z.boolean().default(true),
 });
 
-/** Night mode is a choice, remembered per user, never automatic. */
+/** Night mode and the simple view: choices, remembered per user, never automatic. */
 export const appearanceSchema = z.object({
   theme: z.enum(["day", "night"]).default("day"),
+  view: z.enum(["full", "simple"]).default("full"),
 });
 
 export const profileSchema = z.object({

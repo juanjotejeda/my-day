@@ -1,7 +1,16 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { DetailRow, NoteCard, PanelCard, PrimaryLink, Screen, ScreenHeader, SecondaryLink } from "@/components/ui";
+import {
+  BackRow,
+  DetailRow,
+  NoteCard,
+  PanelCard,
+  PrimaryLink,
+  Screen,
+  ScreenHeader,
+  SecondaryLink,
+} from "@/components/ui";
 import { TIMEZONE } from "@/lib/day";
 
 // O7 First day ready. The counts come from the real plan once the milestones land.
@@ -18,6 +27,7 @@ export default async function Ready() {
 
   return (
     <Screen>
+      <BackRow href="/onboarding/focus" label="Focus and breaks" />
       <div className="h-8" />
       <ScreenHeader label={today} title="Your first day is ready" size={40} />
 

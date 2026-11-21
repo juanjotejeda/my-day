@@ -7,3 +7,11 @@ export async function currentTheme(): Promise<Theme> {
   const settings = await currentSettings();
   return settings?.appearance.theme ?? "day";
 }
+
+export type View = "full" | "simple";
+
+/** Full Today, or the simple one: the eye in the date line stores this. */
+export async function currentView(): Promise<View> {
+  const settings = await currentSettings();
+  return settings?.appearance.view ?? "full";
+}
