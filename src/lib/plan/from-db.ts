@@ -25,6 +25,7 @@ export function toPlanItem(item: Item): PlanItem {
     important: item.important,
     done: item.status === "done",
     createdHere: item.createdHere,
+    carried: item.status === "moved",
   };
 }
 

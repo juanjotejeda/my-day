@@ -7,7 +7,7 @@ import { AddBar } from "@/components/add-bar";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
-import { Card, EnergyDot, PillLink, SectionTitle, TimeChip } from "@/components/ui";
+import { Card, EnergyDot, NoteCard, PillLink, SectionTitle, TimeChip } from "@/components/ui";
 
 import { fmt } from "@/lib/plan/format";
 import type { Draft, PlanItem } from "@/lib/plan/types";
@@ -26,6 +26,7 @@ export function TodayScreen({
   banners,
   reviewCount,
   rhythm,
+  waitingForMonday,
 }: {
   weekday: string;
   date: string;
@@ -35,6 +36,7 @@ export function TodayScreen({
   banners: string[];
   reviewCount: number;
   rhythm: Rhythm;
+  waitingForMonday: number;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -142,6 +144,13 @@ export function TodayScreen({
       ) : null}
 
       <DayStrip items={items} now={now} rhythm={rhythm} />
+
+      {waitingForMonday ? (
+        <NoteCard label="WEEKEND">
+          {waitingForMonday} work {waitingForMonday === 1 ? "item waits" : "items wait"} for Monday.
+          Weekends are protected, so only what you choose happens today.
+        </NoteCard>
+      ) : null}
 
       <div role="group" aria-label="View" className="grid grid-cols-2 gap-1 rounded-full bg-sky p-1">
         {(["now", "priority"] as const).map((key) => (

@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { TodayScreen } from "@/components/today-screen";
 import { auth } from "@/auth";
 import { TIMEZONE, dayDate, dayKey } from "@/lib/day";
+import { weekendWaiting } from "@/lib/plan/carry";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
 import { loadSettings } from "@/lib/settings";
+import { carryForwardToToday } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
 
 
@@ -18,6 +20,9 @@ export default async function Today() {
   if (!user) redirect("/signin");
 
   const now = new Date();
+  // Opening Today is also a morning: bring yesterday's unfinished work along.
+  await carryForwardToToday(user.id, now);
+
   const [stored, source, settings, openCandidates] = await Promise.all([
     prisma.item.findMany({
       where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" }, archivedAt: null },
@@ -32,6 +37,15 @@ export default async function Today() {
 
   // Real items only now: the scheduler fills the day, so no sample day here.
   const items = toPlanItems(stored);
+
+  const weekdayKeys = ["su", "mo", "tu", "we", "th", "fr", "sa"];
+  const isWorkday = settings.work.days.includes(
+    weekdayKeys[new Date(`${dayKey(now)}T12:00:00Z`).getUTCDay()],
+  );
+  const waitingForMonday = weekendWaiting(
+    stored.map((item) => ({ category: item.category, start: item.start, allDay: item.allDay })),
+    { isWorkday, noWorkWeekends: settings.protectedTime.noWorkWeekends },
+  );
   const banners = stored.filter((item) => item.allDay).map((item) => item.title);
 
   const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, weekday: "long" }).format(now);
@@ -52,6 +66,7 @@ export default async function Today() {
       items={items}
       banners={banners}
       reviewCount={openCandidates}
+      waitingForMonday={waitingForMonday}
       rhythm={{
         ...DEFAULT_RHYTHM,
         peakStart: settings.rhythm.peakStart,

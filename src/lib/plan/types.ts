@@ -21,6 +21,8 @@ export type PlanItem = {
   done?: boolean;
   /** My Day created this, so it can be deleted from the app. */
   createdHere?: boolean;
+  /** Came forward from an earlier day. */
+  carried?: boolean;
 };
 
 export type AddType = "gcal" | "appt" | "reminder" | "task";

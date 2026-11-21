@@ -124,7 +124,7 @@ export function laterRows(items: PlanItem[]): LaterRow[] {
       id: item.id,
       title: item.title,
       source: item.source,
-      tag: item.moved ? "Tomorrow" : "No date yet",
+      tag: item.carried ? "Carried over" : item.moved ? "Tomorrow" : "No date yet",
     }));
 }
 

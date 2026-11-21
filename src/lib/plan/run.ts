@@ -1,6 +1,7 @@
 import type { Item } from "@/generated/prisma/client";
 
 import { TIMEZONE, dayDate, dayKey, minutesOfDay } from "@/lib/day";
+import { carryForward } from "@/lib/plan/carry";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { prisma } from "@/lib/prisma";
 import { plan, type Rule, type SchedulerItem, type SchedulerSettings } from "@/lib/scheduler/plan";
@@ -206,4 +207,46 @@ export async function runPlan(userId: string, day: Date, now = new Date()): Prom
       return postponed ? { reason: postponed.reason } : null;
     },
   };
+}
+
+/**
+ * Brings unfinished items from past days onto today, so nothing is lost behind
+ * the date it was planned for. Idempotent: once an item is on today it stays.
+ */
+export async function carryForwardToToday(userId: string, now = new Date()): Promise<number> {
+  const today = dayKey(now);
+  const stale = await prisma.item.findMany({
+    where: {
+      userId,
+      archivedAt: null,
+      day: { lt: dayDate(today), not: null },
+      status: { in: ["planned", "moved"] },
+    },
+  });
+
+  const ids = carryForward(
+    stale.map((item) => ({
+      id: item.id,
+      day: item.day ? dayKey(item.day, "UTC") : null,
+      status: item.status,
+      allDay: item.allDay,
+      sourceKind: item.sourceKind,
+      category: item.category,
+      start: item.start,
+    })),
+    today,
+  );
+  if (!ids.length) return 0;
+
+  await prisma.item.updateMany({
+    where: { id: { in: ids } },
+    // Status moved marks it as carried, so the screens can say where it is from.
+    data: { day: dayDate(today), start: null, end: null, status: "moved" },
+  });
+
+  await prisma.eventLog.create({
+    data: { userId, kind: "carried_forward", payload: { day: today, count: ids.length } },
+  });
+
+  return ids.length;
 }

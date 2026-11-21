@@ -6,7 +6,7 @@ import { dayDate, dayKey } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 import { loadSettings } from "@/lib/settings";
 import { purgeArchive } from "@/lib/plan/add";
-import { runPlan } from "@/lib/plan/run";
+import { carryForwardToToday, runPlan } from "@/lib/plan/run";
 import { loadToday } from "@/lib/today";
 
 /** The worker with the shared secret, or Juan's own session. */
@@ -140,13 +140,15 @@ export async function POST(request: Request) {
       error: error instanceof Error ? error.message.slice(0, 160) : "gmail sync failed",
     }));
     // The scheduler runs after every sync, so new events reshape the day at once.
+    // Anything unfinished from a past day joins today before the plan runs.
+    const carried = await carryForwardToToday(user.id);
     const run = await runPlan(user.id, dayDate(dayKey(new Date())));
     const settings = await loadSettings(user.id);
     const purged = await purgeArchive(user.id, settings.privacy.retentionDays);
     await prisma.eventLog.create({
       data: { userId: user.id, kind: "calendar_sync", payload: result },
     });
-    return Response.json({ ok: true, ...result, gmail: mail, planned: run.placed, later: run.later, purged });
+    return Response.json({ ok: true, ...result, gmail: mail, planned: run.placed, later: run.later, carried, purged });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await prisma.eventLog.create({
