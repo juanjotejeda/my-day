@@ -29,7 +29,18 @@ export default async function EmptyDay() {
         <span className="flex min-h-[52px] flex-1 items-center rounded-full border border-sky bg-surface px-[18px] text-[15px] text-muted">
           Add appointment, reminder or task
         </span>
-        <span className="h-[52px] w-[52px] rounded-full bg-primary" />
+        <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-primary text-on-primary">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+            <path
+              d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
       </div>
 
       <div className="flex flex-col gap-2.5 rounded-card border border-line p-4">

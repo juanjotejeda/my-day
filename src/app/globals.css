@@ -24,6 +24,8 @@
   --energy-steady: #d5e1f5;
   --energy-peak: #a3bde8;
   --idle: #b3c8ec;
+  --switch-on: #243a63;
+  --knob: #ffffff;
   --ok: #2e7a55;
   --alert: #fbedea;
   --alert-ink: #a3341f;
@@ -52,6 +54,9 @@
   --energy-steady: #3a5583;
   --energy-peak: #7f9fd8;
   --idle: #3a5583;
+  /* The night design gives the switch a mid track and a background-dark knob. */
+  --switch-on: #8aa9de;
+  --knob: #0f1a2e;
   --ok: #6fbf95;
   --alert: #3a1f1a;
   --alert-ink: #f0a89a;
@@ -79,6 +84,8 @@
   --color-energy-steady: var(--energy-steady);
   --color-energy-peak: var(--energy-peak);
   --color-idle: var(--idle);
+  --color-switch-on: var(--switch-on);
+  --color-knob: var(--knob);
   --color-ok: var(--ok);
   --color-alert: var(--alert);
   --color-alert-ink: var(--alert-ink);

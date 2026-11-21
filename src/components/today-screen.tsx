@@ -349,7 +349,7 @@ export function TodayScreen({
                       className="flex h-11 w-11 flex-none items-center justify-center"
                     >
                       <span
-                        className="flex h-5 w-5 items-center justify-center rounded-full border-2"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border-2 text-white"
                         style={{
                           background: row.done ? "var(--mid)" : "transparent",
                           borderColor: row.done || row.important ? "var(--mid)" : "var(--idle)",

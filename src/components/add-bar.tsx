@@ -141,7 +141,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
           type="button"
           onClick={openVoice}
           aria-label="Add by voice"
-          className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-primary"
+          className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-primary text-on-primary"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
             <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />

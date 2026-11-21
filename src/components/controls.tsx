@@ -24,9 +24,9 @@ export function Switch({
       }}
       className="flex h-11 w-14 flex-none items-center justify-center"
     >
-      <span className={`relative block h-[26px] w-[46px] rounded-full ${on ? "bg-primary" : "bg-sky"}`}>
+      <span className={`relative block h-[26px] w-[46px] rounded-full ${on ? "bg-switch-on" : "bg-sky"}`}>
         <span
-          className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-card shadow-[var(--shadow-knob)] transition-transform"
+          className="absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-knob shadow-[var(--shadow-knob)] transition-transform"
           style={{ transform: on ? "translateX(20px)" : undefined }}
         />
       </span>
