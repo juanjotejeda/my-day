@@ -94,7 +94,7 @@ export function InsightsScreen({
       </section>
 
       <section className="flex flex-col gap-1.5">
-        <SectionTitle>Your test questions</SectionTitle>
+        <SectionTitle>Did it really capture the important things of the day?</SectionTitle>
         <ListCard>
           <DetailRow
             label="Captured the important things?"
