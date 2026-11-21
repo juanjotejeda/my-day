@@ -298,3 +298,21 @@ export function FieldBlock({ label, children }: { label: string; children: React
     </div>
   );
 }
+
+/** A row inside a card that leads somewhere, with a value on the right. */
+export function PillRow({ href, label, value }: { href: string; label: string; value: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-[56px] items-center justify-between border-b border-divider text-[15px] text-navy last:border-b-0"
+    >
+      <span>{label}</span>
+      <span className="flex items-center gap-2 text-sm text-muted">
+        {value}
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <path d="M5 2.5L9.5 7 5 11.5" fill="none" stroke="#56647D" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      </span>
+    </Link>
+  );
+}

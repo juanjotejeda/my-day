@@ -2,9 +2,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 /** Everything My Day holds about Juan, as one JSON file. Tokens are never included. */
-export async function GET() {
-  const session = await auth();
-  const email = session?.user?.email?.toLowerCase();
+export async function GET(request: Request) {
+  const secret = request.headers.get("x-worker-secret");
+  const fromWorker = Boolean(
+    process.env.WORKER_SECRET && secret && secret === process.env.WORKER_SECRET,
+  );
+  const session = fromWorker ? null : await auth();
+  const email = fromWorker
+    ? process.env.ALLOWED_EMAIL?.toLowerCase()
+    : session?.user?.email?.toLowerCase();
   if (!email || email !== process.env.ALLOWED_EMAIL?.toLowerCase()) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }

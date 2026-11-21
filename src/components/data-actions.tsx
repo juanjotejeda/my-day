@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { ListCard } from "@/components/ui";
+import { signOutEverywhere } from "@/app/settings/actions";
 import { deleteMyData } from "@/app/settings/actions";
 
 /** S7: export everything, or clear the plan data after a second tap. */
@@ -14,13 +15,18 @@ export function DataActions() {
   function remove() {
     if (!armed) {
       setArmed(true);
-      setStatus("Tap again to delete every item, candidate, correction and rule.");
+      setStatus("Tap again to delete every item, candidate, correction, rule and setting, and sign out.");
       return;
     }
     start(async () => {
       const result = await deleteMyData();
       setArmed(false);
-      setStatus(result.ok ? "Deleted. Your next sync fills the day again." : "Could not delete");
+      if (!result.ok) {
+        setStatus("Could not delete");
+        return;
+      }
+      setStatus("Everything is deleted. Signing you out.");
+      await signOutEverywhere();
     });
   }
 
@@ -35,7 +41,7 @@ export function DataActions() {
           onClick={remove}
           className="flex min-h-14 w-full items-center border-t border-divider text-[15px] text-alert-ink"
         >
-          {armed ? "Tap again to delete all My Day data" : "Delete all My Day data"}
+          {armed ? "Tap again to delete everything and sign out" : "Delete all My Day data"}
         </button>
       </ListCard>
       {status ? <p className="px-1 text-[13px] leading-relaxed text-muted">{status}</p> : null}

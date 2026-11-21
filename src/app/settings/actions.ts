@@ -62,7 +62,10 @@ export async function disconnectGoogle() {
   return { ok: true as const };
 }
 
-/** S7: remove the plan data, keeping the account and the Google connection. */
+/**
+ * S7: removes every row and signs out, as the spec says. The Google events
+ * themselves are untouched: deleting My Day's data never changes a calendar.
+ */
 export async function deleteMyData() {
   const user = await me();
   if (!user) return { ok: false as const, error: "unauthorized" };
@@ -75,10 +78,11 @@ export async function deleteMyData() {
     prisma.dayReview.deleteMany({ where: { userId: user.id } }),
     prisma.eventLog.deleteMany({ where: { userId: user.id } }),
     prisma.settingsHistory.deleteMany({ where: { userId: user.id } }),
-    prisma.source.updateMany({
-      where: { userId: user.id },
-      data: { calendarSyncToken: {}, lastSyncAt: null },
-    }),
+    prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
+    prisma.settings.deleteMany({ where: { userId: user.id } }),
+    // The encrypted Google token goes with it: signing in again starts fresh.
+    prisma.source.deleteMany({ where: { userId: user.id } }),
+    prisma.user.delete({ where: { id: user.id } }),
   ]);
 
   return { ok: true as const };
@@ -131,4 +135,10 @@ export async function setGmailReach(values: {
   });
 
   return { ok: true as const };
+}
+
+/** Used after a delete: there is no account left to stay signed in to. */
+export async function signOutEverywhere() {
+  const { signOut } = await import("@/auth");
+  await signOut({ redirectTo: "/signin" });
 }

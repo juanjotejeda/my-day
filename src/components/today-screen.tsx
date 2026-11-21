@@ -7,7 +7,7 @@ import { AddBar } from "@/components/add-bar";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
-import { Card, EnergyDot, NoteCard, PillLink, SectionTitle, TimeChip } from "@/components/ui";
+import { Card, EnergyDot, NoteCard, PillLink, PillRow, SectionTitle, TimeChip } from "@/components/ui";
 
 import { fmt } from "@/lib/plan/format";
 import type { Draft, PlanItem } from "@/lib/plan/types";
@@ -102,6 +102,8 @@ export function TodayScreen({
   }
 
   const card = nowCard(items, now);
+  // A day with no slot filled at all is the empty-day state.
+  const scheduled = items.filter((item) => !item.later && !item.moved && item.start);
   const { next, rest } = ahead(items, now);
   const later = laterRows(items);
   const sections = prioritySections(
@@ -196,6 +198,33 @@ export function TodayScreen({
               </>
             ) : null}
           </section>
+
+          {/* X1: a day with nothing on it still offers what there is. */}
+          {!scheduled.length && !banners.length ? (
+            <section className="flex flex-col gap-2">
+              <SectionTitle>If you want something</SectionTitle>
+              <Card className="px-[14px]">
+                {later.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setLaterOpen(true)}
+                    className="flex min-h-[56px] w-full items-center justify-between border-b border-divider text-left text-[15px]"
+                  >
+                    <span>Later</span>
+                    <span className="text-sm text-muted">
+                      {later.length} {later.length === 1 ? "item" : "items"}
+                    </span>
+                  </button>
+                ) : null}
+                <PillRow href="/tomorrow" label="Tomorrow" value="see the plan" />
+                <PillRow
+                  href="/review"
+                  label="Review"
+                  value={reviewCount ? `${reviewCount} waiting` : "nothing waiting"}
+                />
+              </Card>
+            </section>
+          ) : null}
 
           {next.length ? (
             <section className="flex flex-col gap-2">

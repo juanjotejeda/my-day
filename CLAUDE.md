@@ -176,4 +176,18 @@ docs/SPEC.md        the build spec, the source of truth
    screen, the permission button sits in Notifications settings, and the worker runs it after
    every sync. End of day saves to `day_reviews` and carries items over; Tomorrow runs the
    scheduler for the next day.
-8. Insights and hardening. See `docs/SPEC.md` for each one's "done when".
+8. **Insights and hardening** — done: `lib/insights/week.ts` computes the five measures from
+   the week's own rows, Insights reads them, the trust answer saves with the ratings, export
+   covers every table, Delete removes every row and signs out, Today shows the empty-day state
+   and redirects to Connection lost when Google drops.
+
+Backups: the worker writes the whole database as JSON to `BACKUP_DIR` at 03:30 and keeps 14
+days. The volume is not created yet, so set it up once:
+
+```bash
+railway volume add --service worker --mount-path /data
+railway variables --service worker --set "BACKUP_DIR=/data"
+```
+
+Railway's own point-in-time recovery is the stronger option (`railway postgres pitr enable`),
+but it needs a bucket wired and may cost; that is Juan's call.
