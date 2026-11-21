@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 
-import { auth } from "@/auth";
 import {
   BackHeader,
   Chip,
@@ -16,6 +15,7 @@ import {
 import { ItemActions } from "@/components/item-actions";
 import { TIMEZONE, hhmm, minutesOfDay } from "@/lib/day";
 import { levelOf } from "@/lib/plan/curve";
+import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 const CORRECTION_WORDS: Record<string, string> = {
@@ -30,9 +30,7 @@ const CORRECTION_WORDS: Record<string, string> = {
 
 /** D2 Item detail: the real item, where it came from and what you changed. */
 export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
   const { id } = await params;

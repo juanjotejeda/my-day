@@ -1,7 +1,7 @@
+import { currentUser } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
-import { auth } from "@/auth";
 import { NightModeRow } from "@/components/night-mode-row";
 import { reviewCount } from "@/lib/plan/review-count";
 import { currentTheme } from "@/lib/theme";
@@ -9,8 +9,8 @@ import { DetailRow, LinkRow, ListCard, Screen, ScreenHeader, SettingsSection } f
 
 // S0 Settings hub.
 export default async function Settings() {
-  const session = await auth();
-  if (!session?.user) redirect("/signin");
+  const user = await currentUser();
+  if (!user) redirect("/signin");
   const waiting = await reviewCount();
   const theme = await currentTheme();
 

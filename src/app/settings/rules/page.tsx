@@ -1,19 +1,26 @@
 import { redirect } from "next/navigation";
 
 import { RulesScreen } from "@/components/rules-screen";
-import { auth } from "@/auth";
+import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { ensureStatedRules, refreshSuggestions, statedRules } from "@/lib/rules/store";
 
 export default async function Rules() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
-  // Opening the screen seeds the stated rules and looks for new suggestions.
+  // Seed the stated rules once, and look for new suggestions only when a
+  // correction has arrived since the newest rule was written.
   await ensureStatedRules(user.id);
-  await refreshSuggestions(user.id);
+  const newest = await prisma.rule.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
+  });
+  const freshCorrections = await prisma.correction.count({
+    where: { userId: user.id, ...(newest ? { createdAt: { gt: newest.createdAt } } : {}) },
+  });
+  if (freshCorrections) await refreshSuggestions(user.id);
 
   const [rules, stated] = await Promise.all([
     prisma.rule.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),

@@ -1,7 +1,7 @@
+import { currentUser } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
-import { auth } from "@/auth";
 import { reviewCount } from "@/lib/plan/review-count";
 import { DayHeaderLine, ItemRow, ListCard, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
 import { TIMEZONE, hhmm } from "@/lib/day";
@@ -11,8 +11,8 @@ import { TIMEZONE, hhmm } from "@/lib/day";
  * empty; the route also stands alone so the state can be checked any time.
  */
 export default async function EmptyDay() {
-  const session = await auth();
-  if (!session?.user) redirect("/signin");
+  const user = await currentUser();
+  if (!user) redirect("/signin");
   const waiting = await reviewCount();
 
   const now = new Date();

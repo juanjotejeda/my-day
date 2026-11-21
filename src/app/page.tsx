@@ -1,3 +1,4 @@
+import { settingsFor } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 import { TodayScreen } from "@/components/today-screen";
@@ -6,7 +7,6 @@ import { TIMEZONE, dayDate, dayKey } from "@/lib/day";
 import { weekendWaiting } from "@/lib/plan/carry";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
-import { loadSettings } from "@/lib/settings";
 import { carryForwardToToday } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
 import { currentTheme } from "@/lib/theme";
@@ -21,8 +21,17 @@ export default async function Today() {
   if (!user) redirect("/signin");
 
   const now = new Date();
-  // Opening Today is also a morning: bring yesterday's unfinished work along.
-  await carryForwardToToday(user.id, now);
+  // Opening Today is also a morning, but only look when something is actually
+  // waiting on an earlier day: one count instead of a write on every load.
+  const stale = await prisma.item.count({
+    where: {
+      userId: user.id,
+      archivedAt: null,
+      day: { lt: dayDate(dayKey(now)) },
+      status: { in: ["planned", "moved"] },
+    },
+  });
+  if (stale) await carryForwardToToday(user.id, now);
 
   const [stored, source, settings, openCandidates] = await Promise.all([
     prisma.item.findMany({
@@ -30,7 +39,7 @@ export default async function Today() {
       orderBy: [{ start: "asc" }, { title: "asc" }],
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
-    loadSettings(user.id),
+    settingsFor(user.id),
     prisma.candidate.count({ where: { userId: user.id, state: "open" } }),
   ]);
 

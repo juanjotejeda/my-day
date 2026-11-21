@@ -2,19 +2,16 @@ import { redirect } from "next/navigation";
 
 import { PushPermission } from "@/components/push-permission";
 import { SettingsScreen } from "@/components/settings-screen";
-import { auth } from "@/auth";
-import { loadSettings } from "@/lib/settings";
 import { NOTIFICATIONS_SCREEN } from "@/lib/settings-spec";
+import { currentUser, settingsFor } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export default async function Page() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
   const [settings, devices] = await Promise.all([
-    loadSettings(user.id),
+    settingsFor(user.id),
     prisma.pushSubscription.count({ where: { userId: user.id } }),
   ]);
 

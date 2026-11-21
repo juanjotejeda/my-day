@@ -1,16 +1,15 @@
 import { redirect } from "next/navigation";
 
 import { SourcesScreen, type CalendarChoice } from "@/components/sources-screen";
-import { SCOPES, auth } from "@/auth";
+import { SCOPES } from "@/auth";
 import { hhmm } from "@/lib/day";
+import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 const CALENDAR_LIST_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 
 export default async function Sources() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
   const source = await prisma.source.findUnique({

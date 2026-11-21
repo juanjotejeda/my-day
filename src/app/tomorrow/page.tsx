@@ -1,3 +1,4 @@
+import { settingsFor } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 import { BottomNav } from "@/components/bottom-nav";
@@ -18,7 +19,6 @@ import { pct } from "@/lib/plan/format";
 import { reviewCount } from "@/lib/plan/review-count";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
-import { loadSettings } from "@/lib/settings";
 
 const WEEKDAY_KEYS = ["su", "mo", "tu", "we", "th", "fr", "sa"];
 
@@ -34,10 +34,21 @@ export default async function Tomorrow() {
   const tomorrowDate = new Date(now.getTime() + 86_400_000);
   const tomorrow = dayDate(dayKey(tomorrowDate));
 
-  // The same scheduler, run for tomorrow, so the screen shows a real plan.
-  await runPlan(user.id, tomorrow, now);
+  // The scheduler runs for tomorrow only when something there is unplaced.
+  // The worker plans it after every sync, so a page load is usually a read.
+  const unplaced = await prisma.item.count({
+    where: {
+      userId: user.id,
+      day: tomorrow,
+      archivedAt: null,
+      allDay: false,
+      start: null,
+      status: { in: ["planned", "moved"] },
+    },
+  });
+  if (unplaced) await runPlan(user.id, tomorrow, now);
 
-  const settings = await loadSettings(user.id);
+  const settings = await settingsFor(user.id);
   const weekday = WEEKDAY_KEYS[new Date(`${dayKey(tomorrowDate)}T12:00:00Z`).getUTCDay()];
   const isWorkday = settings.work.days.includes(weekday);
 

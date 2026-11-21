@@ -1,19 +1,15 @@
 import { redirect } from "next/navigation";
 
 import { ArchiveScreen, type ArchivedItem } from "@/components/archive-screen";
-import { auth } from "@/auth";
 import { TIMEZONE } from "@/lib/day";
 import { loadArchive } from "@/lib/plan/add";
-import { prisma } from "@/lib/prisma";
-import { loadSettings } from "@/lib/settings";
+import { currentUser, settingsFor } from "@/lib/session";
 
 export default async function Archive() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
-  const settings = await loadSettings(user.id);
+  const settings = await settingsFor(user.id);
   const archived = await loadArchive(user.id, settings.privacy.retentionDays);
 
   const when = new Intl.DateTimeFormat("en-GB", {

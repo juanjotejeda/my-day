@@ -1,20 +1,18 @@
 import { redirect } from "next/navigation";
 
 import { SettingsScreen } from "@/components/settings-screen";
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
 import { DetailRow, ListCard, SectionTitle } from "@/components/ui";
-import { loadSettings } from "@/lib/settings";
 import { PROFILE_SCREEN } from "@/lib/settings-spec";
+import { currentUser, settingsFor } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export default async function Profile() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/signin");
-  const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
+  const user = await currentUser();
   if (!user) redirect("/signin");
 
   const [settings, source] = await Promise.all([
-    loadSettings(user.id),
+    settingsFor(user.id),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
   ]);
 
