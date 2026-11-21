@@ -13,22 +13,29 @@ if (!APP_URL || !SECRET) {
 
 let running = false;
 
+async function call(path) {
+  const startedAt = Date.now();
+  const response = await fetch(`${APP_URL}${path}`, {
+    method: "POST",
+    headers: { "x-worker-secret": SECRET, "content-type": "application/json" },
+    body: "{}",
+  });
+  const body = await response.text();
+  console.log(`worker: ${path} ${response.status} in ${Date.now() - startedAt}ms ${body}`);
+}
+
 async function sync() {
   if (running) {
-    console.log("worker: previous sync still running, skipping this tick");
+    console.log("worker: previous tick still running, skipping this one");
     return;
   }
   running = true;
-  const startedAt = Date.now();
   try {
-    const response = await fetch(`${APP_URL}/api/sync`, {
-      method: "POST",
-      headers: { "x-worker-secret": SECRET },
-    });
-    const body = await response.text();
-    console.log(`worker: sync ${response.status} in ${Date.now() - startedAt}ms ${body}`);
+    await call("/api/sync");
+    // Notifications read the day the sync just refreshed.
+    await call("/api/notifications/run");
   } catch (error) {
-    console.error(`worker: sync failed: ${error instanceof Error ? error.message : error}`);
+    console.error(`worker: tick failed: ${error instanceof Error ? error.message : error}`);
   } finally {
     running = false;
   }
