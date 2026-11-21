@@ -489,6 +489,63 @@ export async function moveItem(
 }
 
 /** Lets the scheduler place it again. */
+/**
+ * The detail screen's edits: the title, the length, and the day or time. A day
+ * or time you choose is a move, so it pins the item the way the sheet does.
+ */
+export async function editItem(
+  userId: string,
+  itemId: string,
+  fields: { title?: string; date?: string; time?: string; minutes?: number },
+): Promise<AddResult> {
+  const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
+  if (!item) return { ok: false, message: "That item is gone." };
+  if (item.sourceKind === "calendar" && !item.createdHere) {
+    return { ok: false, message: "This event came from your calendar. Change it in Google Calendar." };
+  }
+
+  const title = fields.title?.trim();
+  if (fields.title !== undefined && !title) return { ok: false, message: "It needs a name." };
+  const minutes = fields.minutes;
+  if (minutes !== undefined && (!Number.isFinite(minutes) || minutes < 5 || minutes > 600)) {
+    return { ok: false, message: "A length between 5 and 600 minutes." };
+  }
+
+  const patch: Prisma.ItemUpdateInput = {};
+  if (title) patch.title = title.slice(0, 200);
+  if (minutes !== undefined) {
+    // A placed item keeps its start and ends later; an unplaced one just says
+    // how long it needs. Either way the move below reads the new length.
+    if (item.start) patch.end = new Date(item.start.getTime() + minutes * 60_000);
+    else patch.flexibleDuration = Math.round(minutes);
+    if (!item.fixed) patch.flexibleDuration = Math.round(minutes);
+  }
+  if (Object.keys(patch).length) await prisma.item.update({ where: { id: item.id }, data: patch });
+
+  const time = fields.time || (item.start ? hhmm(item.start) : "");
+  // A time on an item with no day means today, so picking one is never ignored.
+  const date =
+    fields.date || (item.day ? dayKey(item.day, "UTC") : fields.time ? dayKey(new Date()) : "");
+  const movedDay = Boolean(fields.date) && date !== (item.day ? dayKey(item.day, "UTC") : "");
+  const movedTime = Boolean(fields.time) && time !== (item.start ? hhmm(item.start) : "");
+
+  if ((movedDay || movedTime) && date && time) {
+    return moveItem(userId, itemId, { date, time, allDay: item.allDay });
+  }
+
+  // A day without a time: the scheduler places it on that day.
+  if (movedDay && date) {
+    await prisma.item.update({ where: { id: item.id }, data: { day: dayDate(date) } });
+    for (const when of new Set([item.day?.toISOString(), dayDate(date).toISOString()].filter(Boolean) as string[])) {
+      await runPlan(userId, new Date(when));
+    }
+    return { ok: true, message: `Saved for ${dayWord(dayDate(date))}.` };
+  }
+
+  if (item.day) await runPlan(userId, item.day);
+  return { ok: true, message: "Saved." };
+}
+
 export async function unpinItem(userId: string, itemId: string): Promise<AddResult> {
   const item = await prisma.item.findFirst({ where: { id: itemId, userId, pinned: true } });
   if (!item) return { ok: false, message: "That item is not pinned." };

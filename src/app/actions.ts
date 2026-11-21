@@ -8,6 +8,7 @@ import type { ComposerDraft } from "@/lib/plan/draft";
 import {
   addDraft as addDraftFor,
   deleteItem as deleteItemFor,
+  editItem as editItemFor,
   moveItem as moveItemFor,
   restoreItem as restoreItemFor,
   unpinItem as unpinItemFor,
@@ -62,6 +63,18 @@ export async function deleteItem(itemId: string): Promise<AddResult> {
   if (!user) return { ok: false, message: "Not signed in." };
   const result = await deleteItemFor(user.id, itemId);
   revalidatePath("/");
+  return result;
+}
+
+export async function editItem(
+  itemId: string,
+  fields: { title?: string; date?: string; time?: string; minutes?: number },
+): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await editItemFor(user.id, itemId, fields);
+  revalidatePath("/");
+  revalidatePath(`/item/${itemId}`);
   return result;
 }
 

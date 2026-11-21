@@ -2,18 +2,16 @@ import { notFound, redirect } from "next/navigation";
 
 import {
   BackHeader,
-  Chip,
   DetailRow,
   ItemRow,
   ListCard,
-  PanelCard,
   Quote,
   Screen,
-  ScreenHeader,
   SectionTitle,
 } from "@/components/ui";
 import { ItemActions } from "@/components/item-actions";
-import { TIMEZONE, hhmm, minutesOfDay } from "@/lib/day";
+import { ItemEdit } from "@/components/item-edit";
+import { TIMEZONE, dayKey, hhmm, minutesOfDay } from "@/lib/day";
 import { levelOf } from "@/lib/plan/curve";
 import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -55,45 +53,26 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
     : [];
 
   const day = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, day: "numeric", month: "short" });
-  const length = item.start && item.end
-    ? `${Math.round((item.end.getTime() - item.start.getTime()) / 60_000)} min`
-    : item.flexibleDuration
-      ? `${item.flexibleDuration} min`
-      : "not set";
-
-  const tags = [
-    item.fixed ? "Fixed" : "Flexible",
-    item.effort ? item.effort.charAt(0).toUpperCase() + item.effort.slice(1) : null,
-    item.important ? "Important" : null,
-  ].filter(Boolean) as string[];
+  const minutes =
+    item.start && item.end
+      ? Math.round((item.end.getTime() - item.start.getTime()) / 60_000)
+      : (item.flexibleDuration ?? null);
+  // An event from your own calendar is read here and changed in Google.
+  const calendarOnly = item.sourceKind === "calendar" && !item.createdHere;
 
   return (
     <Screen>
       <BackHeader href="/" label="Today" />
 
-      <div className="flex flex-wrap gap-1.5 px-1">
-        <Chip variant={item.fixed ? "divider" : "dashed"}>{tags[0]}</Chip>
-        {tags.slice(1).map((tag) => (
-          <Chip key={tag} variant={tag === "Important" ? "sky" : "divider"}>
-            {tag}
-          </Chip>
-        ))}
-      </div>
-
-      <ScreenHeader title={item.title} />
-
-      <PanelCard>
-        <DetailRow
-          label="Planned"
-          value={item.start ? `${hhmm(item.start)}${item.end ? ` to ${hhmm(item.end)}` : ""}` : "Not scheduled"}
-        />
-        <DetailRow label="Length" value={length} />
-        <DetailRow
-          label="Energy then"
-          value={item.start ? levelOf(minutesOfDay(item.start)).name.replace(" energy", "") : "not set"}
-        />
-        <DetailRow label="Day" value={item.day ? day.format(item.day) : "Later"} />
-      </PanelCard>
+      <ItemEdit
+        id={item.id}
+        title={item.title}
+        date={item.day ? dayKey(item.day, "UTC") : ""}
+        time={item.start ? hhmm(item.start) : ""}
+        minutes={minutes}
+        readOnly={calendarOnly}
+        readOnlyNote={calendarOnly ? "This event comes from your calendar. Change it in Google Calendar." : undefined}
+      />
 
       {item.reason ? (
         <section className="flex flex-col gap-1.5">
@@ -174,7 +153,7 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
         id={item.id}
         done={item.status === "done"}
         fromCalendar={item.sourceKind === "calendar"}
-        calendarOnly={item.sourceKind === "calendar" && !item.createdHere}
+        calendarOnly={calendarOnly}
         flexible={!item.fixed}
       />
     </Screen>

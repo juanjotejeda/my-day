@@ -47,7 +47,7 @@ export function AdjustSheet({
     kind: item.fixed ? "Fixed event" : "Flexible",
     time: scheduled ? `${fmt(item.start)}-${fmt(item.end)}` : "Not scheduled",
     energy: scheduled ? levelOf(item.start).name : "Energy not set",
-    important: item.important ? "Remove importance" : "This is more important",
+    important: item.important ? "Remove importance" : "Mark as important",
     tomorrow: item.fixed ? "Fixed in your calendar" : item.moved ? "Bring back" : "Move to tomorrow",
     duration: item.fixed || item.later ? "Duration is fixed" : "I need 30 more minutes",
     category: item.category === "personal" ? "This is a work task" : "This is a personal commitment",
