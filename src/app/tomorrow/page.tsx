@@ -1,7 +1,6 @@
 import { settingsFor } from "@/lib/session";
 import { redirect } from "next/navigation";
 
-import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
 import {
   BackRow,
@@ -17,7 +16,6 @@ import {
 import { TIMEZONE, dayDate, dayKey, hhmm, minutesOfDay } from "@/lib/day";
 import { levelOf } from "@/lib/plan/curve";
 import { pct } from "@/lib/plan/format";
-import { reviewCount } from "@/lib/plan/review-count";
 import { runPlan } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
 
@@ -27,7 +25,6 @@ const WEEKDAY_KEYS = ["su", "mo", "tu", "we", "th", "fr", "sa"];
 export default async function Tomorrow() {
   const session = await auth();
   if (!session?.user?.email) redirect("/signin");
-  const waiting = await reviewCount();
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
   if (!user) redirect("/signin");
 
@@ -166,7 +163,6 @@ export default async function Tomorrow() {
       <SecondaryLink href="/">Adjust tomorrow</SecondaryLink>
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={waiting} />
     </Screen>
   );
 }

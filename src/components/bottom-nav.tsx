@@ -76,23 +76,24 @@ const TABS: { key: Tab; href: string; label: string; match: (path: string) => bo
   },
 ];
 
+/** The two screens with no app behind them yet. */
+const WITHOUT_NAV = ["/signin", "/privacy"];
+
 /**
- * The bottom bar. The active tab is read from the path in the browser, so the
- * highlight moves the moment you tap rather than waiting for the next page, and
- * the pill behind the icon slides from the old tab to the new one.
+ * The bottom bar, rendered once by the root layout so it is on every screen.
+ * The active tab is read from the path in the browser, so the highlight moves
+ * the moment you tap rather than waiting for the page.
  */
-export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCount?: number }) {
+export function BottomNav({ reviewCount = 0 }: { reviewCount?: number }) {
   const pathname = usePathname() ?? "/";
-  const fromPath = TABS.findIndex((tab) => tab.match(pathname));
-  const index = fromPath >= 0 ? fromPath : TABS.findIndex((tab) => tab.key === active);
-  const current = Math.max(index, 0);
+  if (WITHOUT_NAV.includes(pathname)) return null;
+
+  const current = Math.max(
+    TABS.findIndex((tab) => tab.match(pathname)),
+    0,
+  );
 
   return (
-    <>
-      {/* The bar is fixed to the window, so nothing it sits on can move it. This
-          spacer plus the screen's own bottom padding keeps content clear of it. */}
-      <div aria-hidden="true" className="h-[calc(2rem+env(safe-area-inset-bottom))]" />
-
       <nav
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card/95 px-3 pt-1.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur"
@@ -133,6 +134,5 @@ export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCou
           })}
         </div>
       </nav>
-    </>
   );
 }

@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 
 import { acceptCandidate, dismissCandidate } from "@/app/actions";
-import { BottomNav } from "@/components/bottom-nav";
 import { SwitchRow } from "@/components/controls";
 import { saveSettings } from "@/app/settings/actions";
 import { Chip, ListCard, Quote, Screen, ScreenHeader, SectionTitle, Toast } from "@/components/ui";
@@ -126,7 +125,6 @@ export function ReviewScreen({
       </section>
 
       <div className="flex-1" />
-      <BottomNav active="review" reviewCount={open.length} />
 
       {toast ? (
         <Toast>{toast}</Toast>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { BottomNav } from "@/components/bottom-nav";
 import { DetailRow, ListCard, Screen, ScreenHeader, SectionTitle, StatTile } from "@/components/ui";
 
 const FEELING_WORDS: Record<string, string> = {
@@ -21,7 +20,6 @@ export function InsightsScreen({
   bars,
   patterns,
   questions,
-  reviewCount,
   enoughData,
 }: {
   label: string;
@@ -29,7 +27,6 @@ export function InsightsScreen({
   bars: { label: string; percent: number; planned: number }[];
   patterns: string[];
   questions: { feeling: string | null; planRight: string | null; daysReviewed: number };
-  reviewCount: number;
   enoughData: boolean;
 }) {
   return (
@@ -105,7 +102,6 @@ export function InsightsScreen({
       </p>
 
       <div className="flex-1" />
-      <BottomNav active="insights" reviewCount={reviewCount} />
     </Screen>
   );
 }

@@ -4,14 +4,12 @@ import { InsightsScreen } from "@/components/insights-screen";
 import { auth } from "@/auth";
 import { loadWeek } from "@/lib/insights/load";
 import { dur } from "@/lib/plan/format";
-import { reviewCount } from "@/lib/plan/review-count";
 import { prisma } from "@/lib/prisma";
 
 /** D5 on real data: the five measures for the week so far. */
 export default async function Insights() {
   const session = await auth();
   if (!session?.user?.email) redirect("/signin");
-  const waiting = await reviewCount();
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
   if (!user) redirect("/signin");
 
@@ -42,7 +40,6 @@ export default async function Insights() {
       bars={week.byDay.map((day) => ({ label: day.label, percent: day.percent, planned: day.planned }))}
       patterns={week.patterns}
       questions={{ feeling: week.feeling, planRight: week.planRight, daysReviewed: week.daysReviewed }}
-      reviewCount={waiting}
       enoughData={week.days.length >= 3}
     />
   );

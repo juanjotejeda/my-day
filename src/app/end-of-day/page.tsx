@@ -4,14 +4,12 @@ import { EndOfDayScreen } from "@/components/end-of-day-screen";
 import { auth } from "@/auth";
 import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
 import { dur } from "@/lib/plan/format";
-import { reviewCount } from "@/lib/plan/review-count";
 import { prisma } from "@/lib/prisma";
 
 /** D4 on real data: what today holds, what is still open, what you answered. */
 export default async function EndOfDay() {
   const session = await auth();
   if (!session?.user?.email) redirect("/signin");
-  const waiting = await reviewCount();
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() } });
   if (!user) redirect("/signin");
 
@@ -55,7 +53,6 @@ export default async function EndOfDay() {
       open={items
         .filter((item) => item.status !== "done")
         .map((item) => ({ id: item.id, title: item.title }))}
-      reviewCount={waiting}
       saved={{
         feeling: review?.feeling ?? undefined,
         planRight: review?.planRight ?? undefined,

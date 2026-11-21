@@ -87,7 +87,7 @@ export function BackRow({ href, label }: { href: string; label: string }) {
 /** The screen shell: 390px design width, centred, with room for the bottom nav. */
 export function Screen({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <main className={`mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-12 ${className}`}>
+    <main className={`mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] ${className}`}>
       {children}
     </main>
   );

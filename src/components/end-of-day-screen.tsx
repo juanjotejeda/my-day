@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { closeTheDay, type CarryChoice } from "@/app/end-of-day/actions";
-import { BottomNav } from "@/components/bottom-nav";
 import { ChoiceGroup } from "@/components/controls";
 import {
   BackRow,
@@ -42,14 +41,12 @@ export function EndOfDayScreen({
   headline,
   stats,
   open,
-  reviewCount,
   saved,
 }: {
   when: string;
   headline: string;
   stats: { label: string; sub?: string; value: string }[];
   open: { id: string; title: string }[];
-  reviewCount: number;
   saved: { feeling?: string; planRight?: string; note?: string };
 }) {
   const router = useRouter();
@@ -156,7 +153,6 @@ export function EndOfDayScreen({
       {status ? <p className="px-1 text-[13px] text-muted">{status}</p> : null}
 
       <div className="flex-1" />
-      <BottomNav active="today" reviewCount={reviewCount} />
     </Screen>
   );
 }

@@ -7,7 +7,6 @@ import { AddBar } from "@/components/add-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ViewToggle } from "@/components/view-toggle";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
-import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
 import {
   Card,
@@ -155,7 +154,7 @@ export function TodayScreen({
   const bar = load(items);
 
   return (
-    <main className="relative mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
+    <main className="relative mx-auto flex w-full max-w-[430px] min-h-[100dvh] flex-1 flex-col gap-4 px-4 pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
       <DayHeaderLine
         date={`${weekday} ${date}`}
         now={fmt(now)}
@@ -447,18 +446,12 @@ export function TodayScreen({
         </div>
       )}
 
-      {simple ? null : (
-        <>
-          {DAY_CLOSE ? (
-            <div className="flex gap-2 pt-2 pb-5">
-              <PillLink href="/tomorrow">Plan tomorrow</PillLink>
-              <PillLink href="/end-of-day">Close the day</PillLink>
-            </div>
-          ) : null}
-
-          <BottomNav active="today" reviewCount={reviewCount} />
-        </>
-      )}
+      {!simple && DAY_CLOSE ? (
+        <div className="flex gap-2 pt-2 pb-5">
+          <PillLink href="/tomorrow">Plan tomorrow</PillLink>
+          <PillLink href="/end-of-day">Close the day</PillLink>
+        </div>
+      ) : null}
 
       {toast ? (
         <Toast>{toast}</Toast>

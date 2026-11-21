@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 
+import { BottomNav } from "@/components/bottom-nav";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { reviewCount } from "@/lib/plan/review-count";
 import { currentTheme } from "@/lib/theme";
 
 import "./globals.css";
@@ -34,6 +36,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" data-theme={theme} className={`${roboto.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
+        {/* One bar for every screen, so it is there whatever is above it. */}
+        <BottomNav reviewCount={await reviewCount()} />
         <RegisterServiceWorker />
       </body>
     </html>
