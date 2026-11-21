@@ -22,7 +22,7 @@ button{font-family:inherit}
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 0 0 4px; margin-bottom: -10px; font-size: 15px; font-weight: 400; color: #56647D; font-variant-numeric: tabular-nums"><span><span style="color: #243A63">Friday 20.11</span> · {{nowLbl}} now · 18:00 work ends</span><a href="m2-minimal-calm-night.dc.html" aria-label="Switch to night mode" style="width: 44px; height: 44px; flex: none; box-sizing: border-box; border-radius: 50%; border: 1px solid #D5E1F5; display: flex; align-items: center; justify-content: center; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linejoin="round"></path></svg></a></div>
 <div style="position: sticky; top: 0; z-index: 6; background: #FFFFFF; padding: 6px 0 8px; margin: -6px 0 0">
 <div style="display: flex; gap: 8px; align-items: center">
-<button onClick="{{openType}}" style="flex: 1; min-height: 52px; border-radius: 999px; background: #F4F7FC; text-align: left; padding: 0 18px; font-size: 15px; font-weight: 400; color: #56647D; cursor: pointer; border-style: none">Add appointment, reminder or task</button>
+<button onClick="{{openType}}" style="flex: 1; min-height: 52px; border-radius: 999px; background: #FFFFFF; border: 1px solid #8AA9DE; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; font-size: 15px; font-weight: 400; color: #243A63; cursor: pointer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11" fill="none" stroke="#243A63" stroke-width="1.6" stroke-linecap="round"></path></svg>Add appointment, reminder or task</button>
 <button onClick="{{openVoice}}" aria-label="Add by voice" style="width: 52px; height: 52px; flex: none; border-radius: 50%; border: none; background: #243A63; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="#FFFFFF" stroke-width="1.6"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
 </div>
 <sc-if value="{{cType}}" hint-placeholder-val="{{ false }}">
@@ -40,7 +40,12 @@ button{font-family:inherit}
 <sc-for list="{{days}}" as="c" hint-placeholder-count="2">
 <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
 </sc-for>
-<sc-if value="{{notTask}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{modes}}" as="c" hint-placeholder-count="2">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
+</sc-for>
+</sc-if>
+<sc-if value="{{showTime}}" hint-placeholder-val="{{ false }}">
 <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #56647D">at
 <input type="time" value="{{draft.time}}" onChange="{{onTime}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
 </label>
@@ -270,6 +275,7 @@ function parseSpeech(t){
   if (m) { var h = parseInt(m[1], 10), mi = m[2] ? parseInt(m[2], 10) : 0; if (m[3] === 'pm' && h < 12) h += 12; if (m[3] === 'am' && h === 12) h = 0; if (!m[3] && h < 7) h += 12; d.time = (h<10?'0':'')+h+':'+(mi<10?'0':'')+mi; }
   var txt = (t || '').replace(/^\s*(please\s+)?(remind me to|remind me|add a task to|add)\s+/i, '').replace(/\s+tomorrow/i, '').replace(/\s+today/i, '').replace(/\s+at \d{1,2}([:.]\d{2})?\s*(am|pm)?/i, '').trim();
   d.text = txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
+  if (d.type === 'task' && d.time) d.auto = false;
   return d;
 }
 function freeSlot(items, from, dur){
@@ -356,10 +362,12 @@ class Component extends DCLogic {
     var it = {id:'n'+Date.now(), t:text, fx:1, cat:'personal', src:'Added by you', rank:'should', eff:'Personal'};
     var msg = '';
     if (d.type === 'task') {
-      var du = d.dur || 30, st = freeSlot(items, Math.max(now, 510), du);
+      var du = d.dur || 30, st;
+      if (d.auto === false) { if (!d.time) { this.toastMsg('Pick a time, or switch back to Automatic.'); return; } var pp = d.time.split(':'); st = parseInt(pp[0], 10) * 60 + parseInt(pp[1], 10); }
+      else st = freeSlot(items, Math.max(now, 510), du);
       it.fx = 0; it.cat = 'work'; it.eff = 'Light task'; it.s = st; it.e = st + du;
-      it.why = 'Task you added. Placed in the next free slot that fits.';
-      msg = d.day === 'tomorrow' ? 'Task added for tomorrow.' : 'Task added. Placed at '+fmt(st)+', the next free slot.';
+      it.why = d.auto === false ? 'Task you added at the time you chose.' : 'Task you added. Placed in the next free slot that fits.';
+      msg = d.day === 'tomorrow' ? 'Task added for tomorrow.' : (d.auto === false ? 'Task added at '+fmt(st)+'.' : 'Task added. Placed at '+fmt(st)+', the next free slot.');
     } else {
       if (!d.time) { this.toastMsg('Add a time for this '+(d.type === 'reminder' ? 'reminder.' : 'appointment.')); return; }
       var p = d.time.split(':'), tm = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
@@ -380,7 +388,7 @@ class Component extends DCLogic {
     var set = function(p){ self.setState({draft: Object.assign({}, d, p)}); };
     var on = 'background:#D5E1F5;border-color:#8AA9DE;', off = 'background:#FFFFFF;';
     var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a set time'}, {k:'task', t:'Task', sub:'Placed for you'}];
-    var hint = d.type === 'task' ? (d.day === 'tomorrow' ? 'Goes to tomorrow. I will place it in a free slot.' : 'I will place it in the next free slot today.') : (d.type === 'reminder' ? 'You get a reminder at this time.' : 'Fixed in your day at this time.');
+    var hint = d.type === 'task' ? (d.auto === false ? 'Placed at the time you set. You can change it later.' : d.day === 'tomorrow' ? 'Goes to tomorrow. I will place it in a free slot.' : 'I will place it in the next free slot today.') : (d.type === 'reminder' ? 'You get a reminder at this time.' : 'Fixed in your day at this time.');
     var heard = s.heard || '';
     return {
       cType: mode === 'type', cVoice: mode === 'voice',
@@ -391,7 +399,9 @@ class Component extends DCLogic {
       days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k}); }}; }),
       durs: [15, 30, 60].map(function(n){ return {t:n+' min', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
       draft: {text: d.text || '', time: d.time || ''},
-      isTask: d.type === 'task', notTask: d.type !== 'task', isGcal: d.type === 'gcal', draftHint: hint,
+      isTask: d.type === 'task', notTask: d.type !== 'task',
+      showTime: d.type !== 'task' || d.auto === false,
+      modes: [{k:true, t:'Automatic'}, {k:false, t:'Set a time'}].map(function(c){ var p = (d.auto !== false) === c.k; return {t:c.t, pressed:p, st: p ? on : off, pick: function(){ set({auto:c.k}); }}; }), isGcal: d.type === 'gcal', draftHint: hint,
       onText: function(e){ set({text: e.target.value}); },
       onTime: function(e){ set({time: e.target.value}); },
       addItem: function(){ self.addDraft(); },

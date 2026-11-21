@@ -33,6 +33,15 @@ export type Draft = {
   time: string;
   day: "today" | "tomorrow";
   dur: 15 | 30 | 60;
+  /** A task is placed by the scheduler unless Juan sets a time himself. */
+  auto: boolean;
 };
 
-export const EMPTY_DRAFT: Draft = { type: "task", text: "", time: "", day: "today", dur: 30 };
+export const EMPTY_DRAFT: Draft = {
+  type: "task",
+  text: "",
+  time: "",
+  day: "today",
+  dur: 30,
+  auto: true,
+};

@@ -74,9 +74,18 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
   if (!title) return { ok: false, message: "Type or say what to add first." };
 
   const day = draftDay(draft);
-  const timed = draft.type !== "task";
+  // A task Juan gave a time to is as fixed as an appointment: the scheduler
+  // leaves it alone and the reason says whose decision it was.
+  const chosenTime = draft.type === "task" && draft.auto === false && Boolean(draft.time);
+  const timed = draft.type !== "task" || chosenTime;
   if (timed && !draft.time) {
-    return { ok: false, message: `Add a time for this ${draft.type === "reminder" ? "reminder" : "appointment"}.` };
+    return {
+      ok: false,
+      message:
+        draft.type === "task"
+          ? "Set a time, or switch back to Automatic."
+          : `Add a time for this ${draft.type === "reminder" ? "reminder" : "appointment"}.`,
+    };
   }
 
   const start = timed ? at(day, draft.time) : null;
@@ -107,7 +116,7 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
       end,
       fixed: timed,
       flexibleDuration: timed ? null : draft.dur,
-      rank: timed ? "must" : "should",
+      rank: draft.type === "task" ? "should" : "must",
       category: draft.effort === "errand" ? "personal" : "work",
       effort: draft.effort,
       day,
@@ -115,13 +124,20 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
       createdHere: true,
       sourceRef,
       sourceUrl,
-      reason: timed ? "You added this at a fixed time." : "Task you added.",
+      reason: chosenTime
+        ? "At the time you chose."
+        : timed
+          ? "You added this at a fixed time."
+          : "Task you added.",
     },
   });
 
   const run = await runPlan(userId, day);
 
   const whenWord = dayWord(day);
+  if (chosenTime) {
+    return { ok: true, message: `Task added ${whenWord} at ${draft.time}, where you put it.` };
+  }
   if (timed) {
     return {
       ok: true,

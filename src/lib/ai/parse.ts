@@ -109,6 +109,7 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
       day: fallback.day,
       time,
       dur: parsed.data.duration_min,
+      auto: type === "task" ? !time : false,
       effort: parsed.data.effort,
     };
   } catch {

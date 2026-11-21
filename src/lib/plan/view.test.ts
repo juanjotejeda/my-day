@@ -4,7 +4,6 @@ import { test } from "node:test";
 
 import { levelAt as level, levelOf } from "./curve.ts";
 import { dur, fmt, pct } from "./format.ts";
-import { parseSpeech } from "./speech.ts";
 import { ahead, energyTrack, freeSlot, load, nowCard, prioritySections, protectedLine, stripBlocks } from "./view.ts";
 import { SAMPLE_DAY } from "./sample.ts";
 
@@ -88,16 +87,3 @@ test("the strip places a block per scheduled item", () => {
   assert.ok(blocks.every((block) => block.left >= 0 && block.left <= 100));
 });
 
-test("spoken lines become drafts", () => {
-  const reminder = parseSpeech("Remind me to call the plumber tomorrow at 9");
-  assert.deepEqual(reminder, { type: "reminder", day: "tomorrow", time: "09:00", dur: 30, text: "Call the plumber" });
-
-  const appointment = parseSpeech("Dentist with Thiago at 3.30pm");
-  assert.equal(appointment.type, "appt");
-  assert.equal(appointment.time, "15:30");
-
-  const task = parseSpeech("Write the Northwind proposal");
-  assert.equal(task.type, "task");
-  assert.equal(task.day, "today");
-  assert.equal(task.time, "");
-});

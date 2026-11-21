@@ -19,6 +19,8 @@ export type ParsedInput = {
   time: string;
   dur: number;
   effort: ParsedEffort;
+  /** False when a time was given for a task: it goes exactly there. */
+  auto?: boolean;
 };
 
 const FILLER =
@@ -122,5 +124,7 @@ export function parseInput(said: string, today?: string): ParsedInput {
     time,
     dur: readDuration(text) ?? 30,
     effort: readEffort(text, type),
+    // A task with a time is a task Juan placed himself.
+    auto: type === "task" ? !time : false,
   };
 }

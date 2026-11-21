@@ -120,9 +120,11 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
 
   const hint =
     draft.type === "task"
-      ? draft.day === "tomorrow"
-        ? "Goes to tomorrow. I will place it in a free slot."
-        : "I will place it in the next free slot today."
+      ? draft.auto
+        ? draft.day === "tomorrow"
+          ? "Goes to tomorrow. I will place it in a free slot."
+          : "I will place it in the next free slot today."
+        : "It goes exactly where you put it, and nothing moves it."
       : draft.type === "reminder"
         ? "You get a reminder at this time."
         : "Fixed in your day at this time.";
@@ -133,8 +135,11 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
         <button
           type="button"
           onClick={() => setMode("type")}
-          className="min-h-[52px] flex-1 rounded-full bg-surface px-[18px] text-left text-[15px] text-muted"
+          className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full border border-mid bg-card px-[18px] text-[15px] text-navy"
         >
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 2.5v11M2.5 8h11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
           Add appointment, reminder or task
         </button>
         <button
@@ -206,6 +211,34 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
               </button>
             ))}
 
+            {draft.type === "task"
+              ? ([true, false] as const).map((auto) => (
+                  <button
+                    key={String(auto)}
+                    type="button"
+                    aria-pressed={draft.auto === auto}
+                    onClick={() => set({ auto, ...(auto ? { time: "" } : {}) })}
+                    className={`min-h-10 rounded-full border px-3.5 text-sm text-navy ${pillStyle(
+                      draft.auto === auto,
+                    )}`}
+                  >
+                    {auto ? "Automatic" : "Set a time"}
+                  </button>
+                ))
+              : null}
+
+            {draft.type !== "task" || !draft.auto ? (
+              <label className="flex items-center gap-2 text-xs text-muted">
+                at
+                <input
+                  type="time"
+                  value={draft.time}
+                  onChange={(event) => set({ time: event.target.value })}
+                  className="min-h-10 rounded-full border border-sky bg-surface px-3 text-[15px] text-navy"
+                />
+              </label>
+            ) : null}
+
             {draft.type === "task" ? (
               DURATIONS.map((minutes) => (
                 <button
@@ -218,17 +251,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
                   {minutes} min
                 </button>
               ))
-            ) : (
-              <label className="flex items-center gap-2 text-xs text-muted">
-                at
-                <input
-                  type="time"
-                  value={draft.time}
-                  onChange={(event) => set({ time: event.target.value })}
-                  className="min-h-10 rounded-full border border-sky bg-surface px-3 text-[15px] text-navy"
-                />
-              </label>
-            )}
+            ) : null}
           </div>
 
           <p className="text-xs text-muted">{hint}</p>
@@ -300,6 +323,8 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
                     time: read.time ?? "",
                     day: (read.day ?? "today") as Draft["day"],
                     dur: ((read as { dur?: number }).dur ?? 30) as Draft["dur"],
+                    // A time that was said out loud is a time Juan chose.
+                    auto: (read as { auto?: boolean }).auto ?? !read.time,
                   });
                   setHeard("");
                   setParsed(null);

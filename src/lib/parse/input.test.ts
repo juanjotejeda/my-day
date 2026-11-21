@@ -90,3 +90,13 @@ test("a line with no clock time never becomes a timed entry", () => {
     assert.equal(draft.type, "task", `${line} should be a task`);
   }
 });
+
+test("a task with a time is one Juan placed himself", () => {
+  const chosen = parseInput("Review the deck at 14:00");
+  assert.equal(chosen.time, "14:00");
+  assert.equal(chosen.auto, false, "a stated time means Set a time");
+
+  const open = parseInput("Review the deck for 45 minutes");
+  assert.equal(open.time, "");
+  assert.equal(open.auto, true, "with no time the scheduler places it");
+});
