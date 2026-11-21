@@ -98,6 +98,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   background: var(--bg);
+  /* Dragging the page no longer drags the whole screen with it. */
+  overscroll-behavior: none;
 }
 
 body {
@@ -105,6 +107,7 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   font-weight: 400;
+  overscroll-behavior: none;
   /* The home-screen app runs full screen; keep content clear of the home bar. */
   padding-bottom: env(safe-area-inset-bottom);
 }
