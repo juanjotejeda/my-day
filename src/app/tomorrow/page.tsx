@@ -3,12 +3,12 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
 import {
+  DayHeaderLine,
   ItemRow,
   ListCard,
   NoteCard,
   PrimaryLink,
   Screen,
-  ScreenHeader,
   SecondaryLink,
   SectionTitle,
 } from "@/components/ui";
@@ -57,16 +57,15 @@ export default async function Tomorrow() {
   ]);
 
   const blocks = items.filter((item) => item.start && !item.allDay);
-  const label = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIMEZONE,
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(tomorrowDate);
+  const label = `${new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, weekday: "long" }).format(
+    tomorrowDate,
+  )} ${new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, day: "2-digit", month: "2-digit" })
+    .format(tomorrowDate)
+    .replace("/", ".")}`;
 
   return (
     <Screen>
-      <ScreenHeader label={label} title="Tomorrow" size={40} />
+      <DayHeaderLine date={`Tomorrow · ${label}`} workEnd={isWorkday ? settings.work.end : undefined} right={isWorkday ? undefined : "no work tomorrow"} />
 
       <div className="flex flex-col gap-2.5 rounded-card border border-line bg-white p-4">
         <div role="img" aria-label="Tomorrow from 07:00 to 22:00" className="relative h-[26px]">

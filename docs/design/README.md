@@ -15,6 +15,12 @@ Each `*.dc.html` file is one phone screen (390 px wide) from a design canvas. Th
 
 Do not ship these files or their runtime. Re-implement each screen as React components in the app, sharing components (cards, rows, pills, bottom nav, sheets) across screens.
 
+## Changes since the first version
+
+- 21 Nov 2026: the big date header is gone. Today, the empty day and Tomorrow open with one
+  small line instead: the date on the left, the time and the end of work on the right, 15 px,
+  regular weight, with the add bar directly underneath. The files below are updated.
+
 ## Design rules (apply everywhere)
 
 - One font: Roboto, weights 300 and 400 only. Hierarchy by size, never bold.

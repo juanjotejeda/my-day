@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { auth } from "@/auth";
 import { reviewCount } from "@/lib/plan/review-count";
-import { ItemRow, ListCard, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
-import { TIMEZONE } from "@/lib/day";
+import { DayHeaderLine, ItemRow, ListCard, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
+import { TIMEZONE, hhmm } from "@/lib/day";
 
 /**
  * X1: a day with nothing on it. Today falls back to this when the plan is
@@ -23,10 +23,7 @@ export default async function EmptyDay() {
 
   return (
     <Screen>
-      <header className="flex flex-col gap-0.5 px-1 pt-3 pb-2">
-        <span className="text-[17px] font-light text-muted">{weekday}</span>
-        <span className="text-[86px] font-light leading-[0.92] tracking-[-0.04em]">{date}</span>
-      </header>
+      <DayHeaderLine date={`${weekday} ${date}`} now={hhmm(now)} right={`${hhmm(now)} now · nothing planned`} />
 
       <div className="flex items-center gap-2">
         <span className="flex min-h-[52px] flex-1 items-center rounded-full border border-sky bg-surface px-[18px] text-[15px] text-muted">

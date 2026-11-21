@@ -316,3 +316,29 @@ export function PillRow({ href, label, value }: { href: string; label: string; v
     </Link>
   );
 }
+
+/**
+ * The line a day opens with: the date on the left, the time and the end of work
+ * on the right. One small line, with the add bar straight underneath.
+ */
+export function DayHeaderLine({
+  date,
+  now,
+  workEnd,
+  right,
+}: {
+  date: string;
+  now?: string;
+  workEnd?: string;
+  /** Said instead of the times, when a day has no working hours. */
+  right?: string;
+}) {
+  const parts = [now ? `${now} now` : null, workEnd ? `${workEnd} work ends` : null].filter(Boolean);
+
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-1 pt-2 pb-0.5 text-[15px]">
+      <h1 className="text-[15px] font-normal">{date}</h1>
+      <span className="text-muted tabular-nums">{right ?? parts.join(" · ")}</span>
+    </div>
+  );
+}

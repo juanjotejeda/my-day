@@ -7,7 +7,16 @@ import { AddBar } from "@/components/add-bar";
 import { AdjustSheet, type AdjustAction } from "@/components/adjust-sheet";
 import { BottomNav } from "@/components/bottom-nav";
 import { DayStrip } from "@/components/day-strip";
-import { Card, EnergyDot, NoteCard, PillLink, PillRow, SectionTitle, TimeChip } from "@/components/ui";
+import {
+  Card,
+  DayHeaderLine,
+  EnergyDot,
+  NoteCard,
+  PillLink,
+  PillRow,
+  SectionTitle,
+  TimeChip,
+} from "@/components/ui";
 
 import { fmt } from "@/lib/plan/format";
 import type { Draft, PlanItem } from "@/lib/plan/types";
@@ -27,6 +36,7 @@ export function TodayScreen({
   reviewCount,
   rhythm,
   waitingForMonday,
+  headerRight,
 }: {
   weekday: string;
   date: string;
@@ -37,6 +47,8 @@ export function TodayScreen({
   reviewCount: number;
   rhythm: Rhythm;
   waitingForMonday: number;
+  /** Said instead of the times when today is not a working day. */
+  headerRight?: string;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -115,22 +127,7 @@ export function TodayScreen({
 
   return (
     <main className="relative mx-auto flex w-full max-w-[430px] flex-1 flex-col gap-4 px-4 pt-6 pb-12">
-      <header className="flex items-end justify-between px-1 pt-3 pb-2">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[17px] font-light text-muted">{weekday}</span>
-          <span className="text-[86px] font-light leading-[0.92] tracking-[-0.04em]">{date}</span>
-        </div>
-        <div className="flex flex-col gap-3.5 pb-1.5 text-right">
-          <div>
-            <div className="text-2xl font-light tabular-nums">{fmt(now)}</div>
-            <div className="text-[13px] text-muted">now</div>
-          </div>
-          <div>
-            <div className="text-2xl font-light tabular-nums">{workEnd}</div>
-            <div className="text-[13px] text-muted">work ends</div>
-          </div>
-        </div>
-      </header>
+      <DayHeaderLine date={`${weekday} ${date}`} now={fmt(now)} workEnd={workEnd} right={headerRight} />
 
       <AddBar onAdd={add} />
 

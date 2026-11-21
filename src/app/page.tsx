@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { TodayScreen } from "@/components/today-screen";
 import { auth } from "@/auth";
-import { TIMEZONE, dayDate, dayKey } from "@/lib/day";
+import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
 import { weekendWaiting } from "@/lib/plan/carry";
 import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
@@ -67,6 +67,7 @@ export default async function Today() {
       banners={banners}
       reviewCount={openCandidates}
       waitingForMonday={waitingForMonday}
+      headerRight={isWorkday ? undefined : `${hhmm(now)} now · no work today`}
       rhythm={{
         ...DEFAULT_RHYTHM,
         peakStart: settings.rhythm.peakStart,
