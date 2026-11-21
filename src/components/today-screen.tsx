@@ -17,6 +17,7 @@ import {
   PillRow,
   SectionTitle,
   TimeChip,
+  Toast,
 } from "@/components/ui";
 
 import { fmt } from "@/lib/plan/format";
@@ -439,12 +440,7 @@ export function TodayScreen({
       <BottomNav active="today" reviewCount={reviewCount} />
 
       {toast ? (
-        <div
-          role="status"
-          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-primary px-3.5 py-3 text-[13px] leading-snug text-on-primary"
-        >
-          {toast}
-        </div>
+        <Toast>{toast}</Toast>
       ) : null}
 
       {selectedItem ? (

@@ -6,7 +6,7 @@ import { acceptCandidate, dismissCandidate } from "@/app/actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { SwitchRow } from "@/components/controls";
 import { saveSettings } from "@/app/settings/actions";
-import { Chip, ListCard, Quote, Screen, ScreenHeader, SectionTitle } from "@/components/ui";
+import { Chip, ListCard, Quote, Screen, ScreenHeader, SectionTitle, Toast } from "@/components/ui";
 import type { ReviewCandidate } from "@/lib/plan/candidates";
 
 /** D1 Review: what Mistral found in the email, nothing added without a yes. */
@@ -129,12 +129,7 @@ export function ReviewScreen({
       <BottomNav active="review" reviewCount={open.length} />
 
       {toast ? (
-        <div
-          role="status"
-          className="fixed right-4 bottom-24 left-4 z-30 mx-auto max-w-[398px] rounded-full bg-primary px-3.5 py-3 text-[13px] leading-snug text-on-primary"
-        >
-          {toast}
-        </div>
+        <Toast>{toast}</Toast>
       ) : null}
     </Screen>
   );

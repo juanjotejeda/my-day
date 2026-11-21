@@ -1,6 +1,18 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+/** What just happened: a dark pill at the top edge, gone after a moment. */
+export function Toast({ children }: { children: ReactNode }) {
+  return (
+    <div
+      role="status"
+      className="fixed inset-x-4 top-[calc(0.75rem+env(safe-area-inset-top))] z-30 mx-auto max-w-[398px] rounded-full bg-toast px-5 py-4 text-center text-[15px] leading-snug text-toast-ink shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur [animation:toast-in_180ms_ease-out] motion-reduce:animate-none"
+    >
+      {children}
+    </div>
+  );
+}
+
 /** White card, 1px line, 22px radius: the surface every list sits on. */
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-card border border-line bg-card ${className}`}>{children}</div>;
