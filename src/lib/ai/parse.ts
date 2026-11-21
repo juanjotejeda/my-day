@@ -92,25 +92,16 @@ export async function parseWithMistral(said: string, context: ParseContext): Pro
     const parsed = schema.safeParse(JSON.parse(content));
     if (!parsed.success) return fallback;
 
-    // Two guards on the model, because both mistakes are expensive:
-    // a model-invented time, and a calendar write nobody asked for.
-    const time = fallback.time ? parsed.data.time || fallback.time : "";
-    const type =
-      parsed.data.type === "gcal" || (time === "" && parsed.data.type !== "task")
-        ? ("task" as const)
-        : parsed.data.type;
+    // The model has been wrong about structure in every way that matters: it
+    // invented times, chose a calendar write nobody asked for, called work a
+    // reminder and deep work light. So it may only improve the wording. The
+    // kind, the day, the time, the length and the effort come from the
+    // deterministic parser, which is tested, and Juan confirms in the composer.
+    const title = parsed.data.title.trim();
 
     return {
-      type,
-      // When comes from the deterministic parser: weekdays and dates are its job,
-      // and a model-invented day is as costly as a model-invented time.
-      date: fallback.date,
-      title: parsed.data.title.trim().slice(0, 60),
-      day: fallback.day,
-      time,
-      dur: parsed.data.duration_min,
-      auto: type === "task" ? !time : false,
-      effort: parsed.data.effort,
+      ...fallback,
+      title: title || fallback.title,
     };
   } catch {
     // A model that is slow, down or odd must never block the add bar.

@@ -1,8 +1,14 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { parseWithMistral } from "@/lib/ai/parse";
-import { TIMEZONE, dayDate, dayKey, hhmm } from "@/lib/day";
+import { TIMEZONE, dayDate, dayKey, hhmm, minutesOfDay } from "@/lib/day";
 import { createCalendarEvent, deleteCalendarEvent, isMyDayEvent } from "@/lib/google/calendar-write";
 import type { ParsedInput } from "@/lib/parse/input";
+import {
+  draftFromParsed,
+  draftLength,
+  draftProblem,
+  type ComposerDraft,
+} from "@/lib/plan/draft";
 import { CALENDAR_REFUSAL, deleteDecision } from "@/lib/plan/deletable";
 import { refreshSuggestions } from "@/lib/rules/store";
 import { runPlan } from "@/lib/plan/run";
@@ -16,12 +22,6 @@ import { prisma } from "@/lib/prisma";
 function dayFor(which: "today" | "tomorrow", now = new Date()): Date {
   const when = which === "today" ? now : new Date(now.getTime() + 24 * 60 * 60 * 1000);
   return dayDate(dayKey(when));
-}
-
-/** The day a draft is for: its ISO date when it has one, else the pill. */
-function draftDay(draft: ParsedInput, now = new Date()): Date {
-  if (draft.date && /^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return dayDate(draft.date);
-  return dayFor(draft.day, now);
 }
 
 /** The person an item came from, where that is known from its source line. */
@@ -69,35 +69,36 @@ export async function addFromText(userId: string, said: string): Promise<AddResu
 }
 
 /** Stores one draft from the composer and re-plans the day. */
-export async function addDraft(userId: string, draft: ParsedInput): Promise<AddResult> {
-  const title = draft.title.trim();
+export async function addDraft(userId: string, draft: ParsedInput | ComposerDraft): Promise<AddResult> {
+  const composed: ComposerDraft =
+    "startTime" in draft ? draft : draftFromParsed(draft, new Date());
+
+  const title = composed.text.trim();
   if (!title) return { ok: false, message: "Type or say what to add first." };
 
-  const day = draftDay(draft);
-  // A task Juan gave a time to is as fixed as an appointment: the scheduler
-  // leaves it alone and the reason says whose decision it was.
-  const chosenTime = draft.type === "task" && draft.auto === false && Boolean(draft.time);
-  const timed = draft.type !== "task" || chosenTime;
-  if (timed && !draft.time) {
-    return {
-      ok: false,
-      message:
-        draft.type === "task"
-          ? "Set a time, or switch back to Automatic."
-          : `Add a time for this ${draft.type === "reminder" ? "reminder" : "appointment"}.`,
-    };
-  }
+  const problem = draftProblem(composed);
+  if (problem) return { ok: false, message: problem };
 
-  const start = timed ? at(day, draft.time) : null;
-  const lengthMin = draft.type === "reminder" ? 10 : draft.type === "task" ? draft.dur : 60;
-  const end = start ? new Date(start.getTime() + lengthMin * 60_000) : null;
+  const day = dayDate(composed.date);
+  const auto = composed.type === "task" && composed.auto;
+  const allDay = (composed.type === "appt" || composed.type === "gcal") && composed.allDay;
+  // A task Juan gave a time to is pinned: the scheduler leaves it alone.
+  const pinned = composed.type === "task" && !composed.auto;
+
+  const start = auto || allDay ? null : at(day, composed.startTime);
+  const end = start ? new Date(start.getTime() + draftLength(composed) * 60_000) : null;
 
   let sourceRef: string | null = null;
   let sourceUrl: string | null = null;
   let calendarNote = "";
 
-  if (draft.type === "gcal" && start && end) {
-    const created = await createCalendarEvent(userId, { title, start, end });
+  if (composed.type === "gcal" && start && end) {
+    const created = await createCalendarEvent(userId, {
+      title,
+      start,
+      end,
+      location: composed.location || undefined,
+    });
     if (created.ok) {
       sourceRef = created.sourceRef;
       sourceUrl = created.htmlLink;
@@ -109,41 +110,45 @@ export async function addDraft(userId: string, draft: ParsedInput): Promise<AddR
 
   const item = await prisma.item.create({
     data: {
-      userId: userId,
-      type: draft.type === "gcal" ? "calendar" : draft.type === "appt" ? "appointment" : draft.type,
+      userId,
+      type: composed.type === "gcal" ? "calendar" : composed.type === "appt" ? "appointment" : composed.type,
       title,
       start,
       end,
-      fixed: timed,
-      flexibleDuration: timed ? null : draft.dur,
-      rank: draft.type === "task" ? "should" : "must",
-      category: draft.effort === "errand" ? "personal" : "work",
-      effort: draft.effort,
+      allDay,
+      fixed: !auto,
+      pinned,
+      location: composed.location || null,
+      flexibleDuration: auto ? composed.dur : null,
+      rank: composed.type === "task" ? "should" : "must",
+      category: composed.effort === "errand" ? "personal" : composed.type === "task" ? "work" : "personal",
+      effort: composed.effort,
       day,
-      sourceKind: draft.type === "gcal" ? "calendar" : "manual",
-      createdHere: true,
+      sourceKind: composed.type === "gcal" ? "calendar" : "manual",
       sourceRef,
       sourceUrl,
-      reason: chosenTime
+      createdHere: true,
+      reason: pinned
         ? "At the time you chose."
-        : timed
-          ? "You added this at a fixed time."
-          : "Task you added.",
+        : allDay
+          ? "A day you blocked out."
+          : auto
+            ? "Task you added."
+            : "You added this at a fixed time.",
     },
   });
 
   const run = await runPlan(userId, day);
-
   const whenWord = dayWord(day);
-  if (chosenTime) {
-    return { ok: true, message: `Task added ${whenWord} at ${draft.time}, where you put it.` };
-  }
-  if (timed) {
+
+  if (allDay) return { ok: true, message: `Added as a day banner for ${whenWord}.${calendarNote}` };
+
+  if (!auto) {
+    const kindWord =
+      composed.type === "reminder" ? "Reminder" : composed.type === "task" ? "Task" : "Appointment";
     return {
       ok: true,
-      message: `${
-        draft.type === "reminder" ? "Reminder" : draft.type === "gcal" ? "Event" : "Appointment"
-      } added for ${whenWord} at ${draft.time}.${calendarNote}`,
+      message: `${kindWord} added for ${whenWord} at ${composed.startTime}.${calendarNote}`,
     };
   }
 
@@ -411,4 +416,111 @@ export async function purgeArchive(userId: string, retentionDays: number, now = 
   ]);
 
   return archived.count + quotes.count + corrections.count + logs.count + reviews.count;
+}
+
+/**
+ * Puts an item at a time Juan chose, and pins it: the scheduler never moves it
+ * again. Every move writes a moved_time correction, with the hour it went to,
+ * so the rules can learn when he likes this kind of work.
+ */
+export async function moveItem(
+  userId: string,
+  itemId: string,
+  when: { date: string; time: string; allDay?: boolean },
+): Promise<AddResult> {
+  const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
+  if (!item) return { ok: false, message: "That item is gone." };
+  if (item.sourceKind === "calendar" && !item.createdHere) {
+    return { ok: false, message: "This event came from your calendar. Move it in Google Calendar." };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(when.date)) return { ok: false, message: "That date did not read." };
+  if (!when.allDay && !/^\d{2}:\d{2}$/.test(when.time)) {
+    return { ok: false, message: "That time did not read." };
+  }
+
+  const day = dayDate(when.date);
+  const minutes =
+    item.start && item.end ? (item.end.getTime() - item.start.getTime()) / 60_000 : (item.flexibleDuration ?? 30);
+  const start = when.allDay ? null : at(day, when.time);
+  const end = start ? new Date(start.getTime() + minutes * 60_000) : null;
+
+  const updated = await prisma.item.update({
+    where: { id: item.id },
+    data: {
+      day,
+      start,
+      end,
+      allDay: Boolean(when.allDay),
+      pinned: true,
+      status: item.status === "done" ? "done" : "planned",
+      reason: when.allDay ? "A day you blocked out." : "At the time you chose.",
+    },
+  });
+
+  await prisma.correction.create({
+    data: {
+      userId,
+      itemId: item.id,
+      kind: "moved_time",
+      before: {
+        day: item.day,
+        start: item.start,
+        context: {
+          effort: item.effort,
+          sourceKind: item.sourceKind,
+          category: item.category,
+          hour: item.start ? Math.floor(minutesOfDay(item.start) / 60) : null,
+        },
+      } as Prisma.InputJsonValue,
+      after: {
+        day: updated.day,
+        start: updated.start,
+        hour: start ? Math.floor(minutesOfDay(start) / 60) : null,
+      } as Prisma.InputJsonValue,
+    },
+  });
+
+  await refreshSuggestions(userId);
+  for (const date of new Set([item.day?.toISOString(), day.toISOString()].filter(Boolean) as string[])) {
+    await runPlan(userId, new Date(date));
+  }
+
+  const whenWord = dayWord(day);
+  return {
+    ok: true,
+    message: when.allDay
+      ? `Moved to ${whenWord}, all day. Pinned, so nothing moves it.`
+      : `Moved to ${whenWord} at ${when.time}. Pinned, so nothing moves it.`,
+  };
+}
+
+/** Lets the scheduler place it again. */
+export async function unpinItem(userId: string, itemId: string): Promise<AddResult> {
+  const item = await prisma.item.findFirst({ where: { id: itemId, userId, pinned: true } });
+  if (!item) return { ok: false, message: "That item is not pinned." };
+
+  // An event keeps its time; anything else goes back to the scheduler, keeping
+  // the length it had so it is not silently shortened.
+  const minutes =
+    item.start && item.end
+      ? Math.round((item.end.getTime() - item.start.getTime()) / 60_000)
+      : (item.flexibleDuration ?? 30);
+
+  await prisma.item.update({
+    where: { id: item.id },
+    data:
+      item.sourceKind === "calendar"
+        ? { pinned: false }
+        : {
+            pinned: false,
+            fixed: false,
+            start: null,
+            end: null,
+            flexibleDuration: minutes,
+            reason: "Back with the scheduler.",
+          },
+  });
+  if (item.day) await runPlan(userId, item.day);
+
+  return { ok: true, message: "Unpinned. I will place it again." };
 }

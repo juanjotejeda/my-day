@@ -14,7 +14,8 @@ const DEFAULT_TASK_MIN = 30;
 function toSchedulerItem(item: Item): SchedulerItem {
   const start = item.start ? minutesOfDay(item.start) : undefined;
   const end = item.end ? minutesOfDay(item.end) : undefined;
-  const fixed = item.fixed && start !== undefined;
+  // A pinned item is one Juan placed: the scheduler treats it like a meeting.
+  const fixed = (item.fixed || item.pinned) && start !== undefined;
 
   return {
     id: item.id,

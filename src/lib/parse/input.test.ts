@@ -91,6 +91,19 @@ test("a line with no clock time never becomes a timed entry", () => {
   }
 });
 
+test("work with a stated time is a task Juan placed, not an appointment", () => {
+  const deck = parseInput("Review the deck on Monday at 16:00");
+  assert.equal(deck.type, "task", "reviewing a deck is work, whatever hour it names");
+  assert.equal(deck.time, "16:00");
+  assert.equal(deck.auto, false);
+
+  const dentist = parseInput("Dentist with Thiago at 15:30");
+  assert.equal(dentist.type, "appt", "a dentist is an event");
+
+  const lunch = parseInput("Lunch at 13:00");
+  assert.equal(lunch.type, "appt");
+});
+
 test("a task with a time is one Juan placed himself", () => {
   const chosen = parseInput("Review the deck at 14:00");
   assert.equal(chosen.time, "14:00");

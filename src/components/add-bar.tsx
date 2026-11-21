@@ -2,29 +2,46 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { Composer } from "@/components/composer";
+import { draftDefaults, draftFromParsed, type ComposerDraft } from "@/lib/plan/draft";
 import { parseInput } from "@/lib/parse/input";
-import { EMPTY_DRAFT, type AddType, type Draft } from "@/lib/plan/types";
-
-const TYPES: { key: AddType; label: string; sub: string }[] = [
-  { key: "gcal", label: "Calendar", sub: "Google event" },
-  { key: "appt", label: "Appointment", sub: "Other events" },
-  { key: "reminder", label: "Reminder", sub: "At a set time" },
-  { key: "task", label: "Task", sub: "Placed for you" },
-];
-
-const DURATIONS = [15, 30, 60] as const;
 
 type Mode = "" | "type" | "voice";
 
-export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
+/**
+ * The add bar: an outlined button that opens the composer, and a microphone
+ * that records a note. Both end in the same review before anything is saved.
+ */
+export function AddBar({
+  onAdd,
+  today,
+  tomorrow,
+  busy,
+}: {
+  onAdd: (draft: ComposerDraft) => void;
+  today: string;
+  tomorrow: string;
+  busy?: boolean;
+}) {
   const [mode, setMode] = useState<Mode>("");
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [draft, setDraft] = useState<ComposerDraft>(() => draftDefaults("task", new Date(), today));
   const [heard, setHeard] = useState("");
   const [listening, setListening] = useState(false);
   const [notice, setNotice] = useState("");
-  const [parsed, setParsed] = useState<(Draft & { title?: string }) | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+
+  function openComposer(type: ComposerDraft["type"] = "task") {
+    setDraft(draftDefaults(type, new Date(), today));
+    setMode("type");
+  }
+
+  function close() {
+    stopRecording();
+    setMode("");
+    setHeard("");
+    setNotice("");
+  }
 
   // Recording happens here and goes to /api/voice, which transcribes it with
   // Voxtral. The browser speech API is not used: the spec rules it out inside a
@@ -63,7 +80,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
           const response = await fetch("/api/voice", { method: "POST", body });
           const result = (await response.json()) as {
             transcript?: string;
-            draft?: Draft & { title?: string };
+            draft?: Parameters<typeof draftFromParsed>[0];
             error?: string;
           };
           if (!response.ok || !result.transcript) {
@@ -72,7 +89,8 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
           }
           setHeard(result.transcript);
           setNotice("");
-          setParsed(result.draft ?? null);
+          // The fields arrive filled in; Juan confirms before it is saved.
+          setDraft(draftFromParsed(result.draft ?? parseInput(result.transcript), new Date()));
         } catch {
           setNotice("That did not come through. Try again.");
         }
@@ -105,36 +123,12 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
     [],
   );
 
-  const set = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
-  const close = () => {
-    stopRecording();
-    setMode("");
-    setDraft(EMPTY_DRAFT);
-    setHeard("");
-    setNotice("");
-    setParsed(null);
-  };
-
-  const pillStyle = (on: boolean) =>
-    on ? "border-mid bg-sky" : "border-sky bg-card";
-
-  const hint =
-    draft.type === "task"
-      ? draft.auto
-        ? draft.day === "tomorrow"
-          ? "Goes to tomorrow. I will place it in a free slot."
-          : "I will place it in the next free slot today."
-        : "It goes exactly where you put it, and nothing moves it."
-      : draft.type === "reminder"
-        ? "You get a reminder at this time."
-        : "Fixed in your day at this time.";
-
   return (
-    <div className="sticky top-0 z-10 -mt-1.5 bg-card pt-1.5 pb-2">
+    <div className="sticky top-0 z-10 -mt-1.5 bg-bg pt-1.5 pb-2">
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() => setMode("type")}
+          onClick={() => openComposer()}
           className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full border border-mid bg-card px-[18px] text-[15px] text-navy"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -162,120 +156,18 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
       </div>
 
       {mode === "type" ? (
-        <div className="mt-2.5 flex flex-col gap-3.5 rounded-card border border-sky bg-card p-4 shadow-[var(--shadow-card)]">
-          <div role="group" aria-label="What kind" className="grid grid-cols-2 gap-2">
-            {TYPES.map((type) => (
-              <button
-                key={type.key}
-                type="button"
-                aria-pressed={draft.type === type.key}
-                onClick={() => set({ type: type.key })}
-                className={`flex min-h-14 flex-col gap-0.5 rounded-2xl border px-3 py-2 text-left ${pillStyle(
-                  draft.type === type.key,
-                )}`}
-              >
-                <span className="text-[15px]">{type.label}</span>
-                <span className="text-xs text-muted">{type.sub}</span>
-              </button>
-            ))}
-          </div>
-
-          {draft.type === "gcal" ? (
-            <p className="text-xs leading-snug text-muted">
-              Creates the event in Google Calendar. My Day only ever adds new events, it never changes
-              the ones already there.
-            </p>
-          ) : null}
-
-          <label className="flex flex-col gap-1.5 text-xs text-muted">
-            What
-            <input
-              type="text"
-              value={draft.text}
-              onChange={(event) => set({ text: event.target.value })}
-              placeholder="For example: Dentist with Thiago"
-              className="min-h-12 w-full rounded-[14px] border border-sky bg-surface px-3.5 text-base font-light text-navy"
-            />
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {(["today", "tomorrow"] as const).map((day) => (
-              <button
-                key={day}
-                type="button"
-                aria-pressed={draft.day === day}
-                onClick={() => set({ day })}
-                className={`min-h-10 rounded-full border px-3.5 text-sm text-navy ${pillStyle(draft.day === day)}`}
-              >
-                {day === "today" ? "Today" : "Tomorrow"}
-              </button>
-            ))}
-
-            {draft.type === "task"
-              ? ([true, false] as const).map((auto) => (
-                  <button
-                    key={String(auto)}
-                    type="button"
-                    aria-pressed={draft.auto === auto}
-                    onClick={() => set({ auto, ...(auto ? { time: "" } : {}) })}
-                    className={`min-h-10 rounded-full border px-3.5 text-sm text-navy ${pillStyle(
-                      draft.auto === auto,
-                    )}`}
-                  >
-                    {auto ? "Automatic" : "Set a time"}
-                  </button>
-                ))
-              : null}
-
-            {draft.type !== "task" || !draft.auto ? (
-              <label className="flex items-center gap-2 text-xs text-muted">
-                at
-                <input
-                  type="time"
-                  value={draft.time}
-                  onChange={(event) => set({ time: event.target.value })}
-                  className="min-h-10 rounded-full border border-sky bg-surface px-3 text-[15px] text-navy"
-                />
-              </label>
-            ) : null}
-
-            {draft.type === "task" ? (
-              DURATIONS.map((minutes) => (
-                <button
-                  key={minutes}
-                  type="button"
-                  aria-pressed={draft.dur === minutes}
-                  onClick={() => set({ dur: minutes })}
-                  className={`min-h-10 rounded-full border px-3.5 text-sm text-navy ${pillStyle(draft.dur === minutes)}`}
-                >
-                  {minutes} min
-                </button>
-              ))
-            ) : null}
-          </div>
-
-          <p className="text-xs text-muted">{hint}</p>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onAdd(draft);
-                close();
-              }}
-              className="min-h-12 flex-1 rounded-full bg-primary text-[15px] text-on-primary"
-            >
-              Add to my day
-            </button>
-            <button
-              type="button"
-              onClick={close}
-              className="min-h-12 rounded-full border border-sky px-[18px] text-[15px] text-navy"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <Composer
+          draft={draft}
+          today={today}
+          tomorrow={tomorrow}
+          busy={busy}
+          onChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
+          onAdd={() => {
+            onAdd(draft);
+            close();
+          }}
+          onCancel={close}
+        />
       ) : null}
 
       {mode === "voice" ? (
@@ -291,7 +183,7 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
               ))}
             </div>
             <span role="status" className="text-sm text-muted">
-              {listening ? "Listening, tap stop when you are done" : notice || "Got it. Review before adding."}
+              {listening ? "Listening, tap stop when you are done" : notice || "Got it. Check it before adding."}
             </span>
           </div>
 
@@ -316,23 +208,12 @@ export function AddBar({ onAdd }: { onAdd: (draft: Draft) => void }) {
                 type="button"
                 disabled={!heard}
                 onClick={() => {
-                  const read = parsed ?? parseInput(heard);
-                  setDraft({
-                    type: (read.type ?? "task") as AddType,
-                    text: (parsed?.title ?? parseInput(heard).title) || heard,
-                    time: read.time ?? "",
-                    day: (read.day ?? "today") as Draft["day"],
-                    dur: ((read as { dur?: number }).dur ?? 30) as Draft["dur"],
-                    // A time that was said out loud is a time Juan chose.
-                    auto: (read as { auto?: boolean }).auto ?? !read.time,
-                  });
                   setHeard("");
-                  setParsed(null);
                   setMode("type");
                 }}
                 className="min-h-12 flex-1 rounded-full bg-primary text-[15px] text-on-primary disabled:opacity-40"
               >
-                Review and add
+                Check and add
               </button>
             )}
             <button

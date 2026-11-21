@@ -4,10 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
 import type { ParsedInput } from "@/lib/parse/input";
+import type { ComposerDraft } from "@/lib/plan/draft";
 import {
   addDraft as addDraftFor,
   deleteItem as deleteItemFor,
+  moveItem as moveItemFor,
   restoreItem as restoreItemFor,
+  unpinItem as unpinItemFor,
   addFromText as addFromTextFor,
   applyCorrection as applyCorrectionFor,
   replanToday as replanTodayFor,
@@ -38,7 +41,7 @@ export async function addFromText(said: string): Promise<AddResult> {
   return result;
 }
 
-export async function addDraft(draft: ParsedInput): Promise<AddResult> {
+export async function addDraft(draft: ParsedInput | ComposerDraft): Promise<AddResult> {
   const user = await me();
   if (!user) return { ok: false, message: "Not signed in." };
   const result = await addDraftFor(user.id, draft);
@@ -85,6 +88,26 @@ export async function dismissCandidate(candidateId: string): Promise<AddResult> 
   if (!user) return { ok: false, message: "Not signed in." };
   const result = await dismissCandidateFor(user.id, candidateId);
   revalidatePath("/review");
+  return result;
+}
+
+export async function moveItem(
+  itemId: string,
+  when: { date: string; time: string; allDay?: boolean },
+): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await moveItemFor(user.id, itemId, when);
+  revalidatePath("/");
+  revalidatePath("/tomorrow");
+  return result;
+}
+
+export async function unpinItem(itemId: string): Promise<AddResult> {
+  const user = await me();
+  if (!user) return { ok: false, message: "Not signed in." };
+  const result = await unpinItemFor(user.id, itemId);
+  revalidatePath("/");
   return result;
 }
 

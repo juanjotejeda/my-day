@@ -77,6 +77,8 @@ export default async function Today() {
       banners={banners}
       reviewCount={openCandidates}
       waitingForMonday={waitingForMonday}
+      todayDate={dayKey(now)}
+      tomorrowDate={dayKey(new Date(now.getTime() + 86_400_000))}
       headerRight={isWorkday ? undefined : "no work today"}
       theme={await currentTheme()}
       rhythm={{

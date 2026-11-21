@@ -52,6 +52,21 @@ test("fixed items keep their times and are never moved", () => {
   assert.match(placed?.reason ?? "", /calendar|fixed/i);
 });
 
+test("a pinned item keeps the time Juan gave it", () => {
+  const pinned = fixedItem("groceries", 15 * 60, 15 * 60 + 30, { rank: "should", category: "personal" });
+  const result = plan({
+    day: MONDAY,
+    items: [pinned, task("proposal", 120, { effort: "deep", rank: "must" })],
+    settings: SETTINGS,
+  });
+  const placed = result.placements.find((p) => p.id === "groceries");
+  assert.equal(placed?.start, 15 * 60, "a pinned item is as immovable as a meeting");
+  assert.equal(placed?.end, 15 * 60 + 30);
+  const deep = result.placements.find((p) => p.id === "proposal");
+  const clash = Boolean(deep && deep.start < 15 * 60 + 30 && deep.end > 15 * 60);
+  assert.equal(clash, false, "and nothing is placed on top of it");
+});
+
 test("deep work lands in the peak window", () => {
   const result = plan({
     day: MONDAY,

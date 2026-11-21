@@ -12,7 +12,7 @@ export const MY_DAY_MARKER = "Added in My Day";
  */
 export async function createCalendarEvent(
   userId: string,
-  event: { title: string; start: Date; end: Date; calendarId?: string },
+  event: { title: string; start: Date; end: Date; calendarId?: string; location?: string },
 ): Promise<{ ok: true; sourceRef: string; htmlLink: string | null } | { ok: false; error: string }> {
   try {
     const { auth, source } = await googleAuth(userId);
@@ -23,6 +23,7 @@ export async function createCalendarEvent(
       calendarId,
       requestBody: {
         summary: event.title,
+        ...(event.location ? { location: event.location } : {}),
         start: { dateTime: event.start.toISOString() },
         end: { dateTime: event.end.toISOString() },
         description: MY_DAY_MARKER,

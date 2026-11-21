@@ -83,8 +83,13 @@ production values are Railway variables, with `DATABASE_URL` referencing the Pos
   Calendar". The rule is pure and tested in `lib/plan/deletable.ts`.
 - Only the composer's Calendar button may create a Google Calendar event. A line of text or a
   voice note never writes to Google, and the model is never allowed to choose that type.
-- The model may not invent a time: a draft's time comes from the deterministic parser, and a
-  timed type without a time becomes a task.
+- **The model improves wording, never structure.** `parseWithMistral` returns the deterministic
+  parser's kind, day, time, length and effort, and only takes the model's title. It has been
+  wrong about every one of those: an invented time, a calendar write nobody asked for, work
+  called a reminder, deep work called light. Juan confirms the fields in the composer anyway.
+- A pinned item (`items.pinned`) is one Juan placed himself: the scheduler treats it as fixed
+  and never moves it. Every move writes a `moved_time` correction carrying the hour it came
+  from and the hour it went to, which is what a time-preference rule will read.
 - A quote shown to Juan is always a line the email really contains: `bestQuote` keeps an exact
   copy, recovers the closest real line from a paraphrase, and otherwise shows none.
 - Pre-filters run before every AI call, so a newsletter never reaches the model, and an

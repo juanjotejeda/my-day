@@ -40,6 +40,11 @@ button{font-family:inherit}
 <sc-for list="{{days}}" as="c" hint-placeholder-count="2">
 <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
 </sc-for>
+<sc-if value="{{isOther}}" hint-placeholder-val="{{ false }}">
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #56647D">on
+<input type="date" value="{{draft.date}}" onChange="{{onDate}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
+</label>
+</sc-if>
 <sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{modes}}" as="c" hint-placeholder-count="2">
 <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
@@ -50,7 +55,7 @@ button{font-family:inherit}
 <input type="time" value="{{draft.time}}" onChange="{{onTime}}" style="min-height: 40px; border-radius: 999px; border: 1px solid #D5E1F5; background: #F4F7FC; padding: 0 12px; font-family: inherit; font-size: 15px; color: #243A63">
 </label>
 </sc-if>
-<sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{showDur}}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{durs}}" as="c" hint-placeholder-count="3">
 <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D5E1F5; font-size: 14px; color: #243A63; cursor: pointer; {{c.st}}">{{c.t}}</button>
 </sc-for>
@@ -228,7 +233,7 @@ button{font-family:inherit}
 </sc-if>
 </div>
 <div style="display: flex; gap: 8px; padding: 0 16px 20px"><a href="app-d3-tomorrow.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 999px; border: 1px solid #D5E1F5; color: #243A63; font-size: 15px; text-decoration: none">Plan tomorrow</a><a href="app-d4-endofday.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 999px; border: 1px solid #D5E1F5; color: #243A63; font-size: 15px; text-decoration: none">Close the day</a></div>
-<nav aria-label="Main" style="position: sticky; bottom: 0; z-index: 8; padding: 6px 12px 14px; background: rgba(255,255,255,0.96); border-top: 1px solid #E3EBF8; display: flex"><a href="m2-minimal-calm-now.dc.html" aria-current="page" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #243A63; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="none" stroke="#243A63" stroke-width="1.5"></circle><path d="M11 7v4l2.5 2" fill="none" stroke="#243A63" stroke-width="1.5" stroke-linecap="round"></path></svg>Today</a><a href="app-d1-review.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="3.5" y="5" width="15" height="12" rx="2.5" fill="none" stroke="#56647D" stroke-width="1.5"></rect><path d="M4 6l7 5.5L18 6" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linejoin="round"></path></svg>Review<span style="position: absolute; top: 2px; left: 52%; min-width: 16px; height: 16px; border-radius: 8px; background: #4A6FAE; color: #FFFFFF; font-size: 10px; display: flex; align-items: center; justify-content: center">4</span></a><a href="app-d5-insights.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 17V11M9 17V6M14 17v-8M19 17V4" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linecap="round"></path></svg>Insights</a><a href="app-s0-settings.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3" fill="none" stroke="#56647D" stroke-width="1.5"></circle><path d="M11 3v2.2M11 16.8V19M3 11h2.2M16.8 11H19M5.3 5.3l1.6 1.6M15.1 15.1l1.6 1.6M5.3 16.7l1.6-1.6M15.1 6.9l1.6-1.6" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linecap="round"></path></svg>Settings</a></nav><sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Main" style="position: sticky; bottom: 0; z-index: 8; padding: 6px 12px 14px; background: rgba(255,255,255,0.96); border-top: 1px solid #E3EBF8; display: flex"><a href="m2-minimal-calm-now.dc.html" aria-current="page" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #243A63; font-size: 11px"><span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px; border-radius: 999px; background: #D5E1F5"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="none" stroke="#243A63" stroke-width="1.5"></circle><path d="M11 7v4l2.5 2" fill="none" stroke="#243A63" stroke-width="1.5" stroke-linecap="round"></path></svg></span>Today</a><a href="app-d1-review.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="3.5" y="5" width="15" height="12" rx="2.5" fill="none" stroke="#56647D" stroke-width="1.5"></rect><path d="M4 6l7 5.5L18 6" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linejoin="round"></path></svg>Review<span style="position: absolute; top: 2px; left: 52%; min-width: 16px; height: 16px; border-radius: 8px; background: #4A6FAE; color: #FFFFFF; font-size: 10px; display: flex; align-items: center; justify-content: center">4</span></a><a href="app-d5-insights.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 17V11M9 17V6M14 17v-8M19 17V4" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linecap="round"></path></svg>Insights</a><a href="app-s0-settings.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #56647D; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3" fill="none" stroke="#56647D" stroke-width="1.5"></circle><path d="M11 3v2.2M11 16.8V19M3 11h2.2M16.8 11H19M5.3 5.3l1.6 1.6M15.1 15.1l1.6 1.6M5.3 16.7l1.6-1.6M15.1 6.9l1.6-1.6" fill="none" stroke="#56647D" stroke-width="1.5" stroke-linecap="round"></path></svg>Settings</a></nav><sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
 <div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 24px; z-index: 9; background: #243A63; color: #FFFFFF; font-size: 13px; line-height: 1.4; padding: 12px 14px; border-radius: 999px">{{toast}}</div>
 </sc-if>
 <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
@@ -358,6 +363,7 @@ class Component extends DCLogic {
     var s = this.state || {}, d = s.draft || {type:'task', text:'', time:'', day:'today', dur:30};
     var text = (d.text || '').trim();
     if (!text) { this.toastMsg('Type or say what to add first.'); return; }
+    if (d.day === 'other' && !d.date) { this.toastMsg('Pick a date first.'); return; }
     var now = this.props.nowMin ?? 620, items = this.getItems().slice();
     var it = {id:'n'+Date.now(), t:text, fx:1, cat:'personal', src:'Added by you', rank:'should', eff:'Personal'};
     var msg = '';
@@ -367,17 +373,17 @@ class Component extends DCLogic {
       else st = freeSlot(items, Math.max(now, 510), du);
       it.fx = 0; it.cat = 'work'; it.eff = 'Light task'; it.s = st; it.e = st + du;
       it.why = d.auto === false ? 'Task you added at the time you chose.' : 'Task you added. Placed in the next free slot that fits.';
-      msg = d.day === 'tomorrow' ? 'Task added for tomorrow.' : (d.auto === false ? 'Task added at '+fmt(st)+'.' : 'Task added. Placed at '+fmt(st)+', the next free slot.');
+      msg = d.day === 'other' ? 'Task added for '+d.date+'.' : d.day === 'tomorrow' ? 'Task added for tomorrow.' : (d.auto === false ? 'Task added at '+fmt(st)+'.' : 'Task added. Placed at '+fmt(st)+', the next free slot.');
     } else {
       if (!d.time) { this.toastMsg('Add a time for this '+(d.type === 'reminder' ? 'reminder.' : 'appointment.')); return; }
       var p = d.time.split(':'), tm = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
-      it.s = tm; it.e = tm + (d.type === 'reminder' ? 10 : 60); it.rank = 'must';
+      it.s = tm; it.e = tm + (d.type === 'reminder' ? 10 : (d.dur || 60)); it.rank = 'must';
       if (d.type === 'gcal') { it.src = 'Calendar'; it.cat = 'work'; it.eff = 'Meeting'; it.why = 'You added this. It goes to Google Calendar once write access is on.'; }
       else if (d.type === 'appt') { it.eff = 'Meeting'; it.why = 'Appointment you added.'; }
       else { it.src = 'Reminder'; it.eff = 'Errand'; it.why = 'Reminder you added.'; }
-      msg = (d.type === 'reminder' ? 'Reminder' : 'Appointment')+' added for '+(d.day === 'tomorrow' ? 'tomorrow' : 'today')+' at '+d.time+'.';
+      msg = (d.type === 'reminder' ? 'Reminder' : 'Appointment')+' added for '+(d.day === 'other' ? d.date : (d.day === 'tomorrow' ? 'tomorrow' : 'today'))+' at '+d.time+'.';
     }
-    if (d.day === 'tomorrow') it.moved = true;
+    if (d.day !== 'today') it.moved = true;
     items.push(it);
     this.setState({items:items, cmode:'', draft:null, heard:''});
     this.toastMsg(msg);
@@ -396,11 +402,13 @@ class Component extends DCLogic {
       openVoice: function(){ self.startVoice(); },
       closeComposer: function(){ self.stopVoice(); self.setState({cmode:'', draft:null, heard:''}); },
       types: types.map(function(t){ return {t:t.t, sub:t.sub, pressed: d.type === t.k, st: d.type === t.k ? on : off, pick: function(){ set({type:t.k}); }}; }),
-      days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k}); }}; }),
-      durs: [15, 30, 60].map(function(n){ return {t:n+' min', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
-      draft: {text: d.text || '', time: d.time || ''},
+      days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}, {k:'other', t:'Other day'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k}); }}; }),
+      durs: [15, 30, 60, 90].map(function(n){ return {t:n+' min', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
+      draft: {text: d.text || '', time: d.time || '', date: d.date || ''},
       isTask: d.type === 'task', notTask: d.type !== 'task',
       showTime: d.type !== 'task' || d.auto === false,
+      showDur: d.type === 'task' || d.type === 'appt', isOther: d.day === 'other',
+      onDate: function(e){ set({date: e.target.value}); },
       modes: [{k:true, t:'Automatic'}, {k:false, t:'Set a time'}].map(function(c){ var p = (d.auto !== false) === c.k; return {t:c.t, pressed:p, st: p ? on : off, pick: function(){ set({auto:c.k}); }}; }), isGcal: d.type === 'gcal', draftHint: hint,
       onText: function(e){ set({text: e.target.value}); },
       onTime: function(e){ set({time: e.target.value}); },

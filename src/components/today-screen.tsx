@@ -20,9 +20,10 @@ import {
 } from "@/components/ui";
 
 import { fmt } from "@/lib/plan/format";
-import type { Draft, PlanItem } from "@/lib/plan/types";
+import type { PlanItem } from "@/lib/plan/types";
+import type { ComposerDraft } from "@/lib/plan/draft";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
-import { addDraft, applyCorrection, deleteItem } from "@/app/actions";
+import { addDraft, applyCorrection, deleteItem, moveItem, unpinItem } from "@/app/actions";
 import type { Rhythm } from "@/lib/plan/curve";
 import type { Theme } from "@/lib/theme";
 
@@ -38,6 +39,8 @@ export function TodayScreen({
   reviewCount,
   rhythm,
   waitingForMonday,
+  todayDate,
+  tomorrowDate,
   headerRight,
   theme,
 }: {
@@ -50,6 +53,8 @@ export function TodayScreen({
   reviewCount: number;
   rhythm: Rhythm;
   waitingForMonday: number;
+  todayDate: string;
+  tomorrowDate: string;
   /** Said instead of the times when today is not a working day. */
   headerRight?: string;
   theme: Theme;
@@ -93,6 +98,26 @@ export function TodayScreen({
     });
   }
 
+  function move(id: string, when: { date: string; time: string }) {
+    setSelected(null);
+    say("Moving");
+    start(async () => {
+      const result = await moveItem(id, when);
+      say(result.message);
+      router.refresh();
+    });
+  }
+
+  function unpin(id: string) {
+    setSelected(null);
+    say("Unpinning");
+    start(async () => {
+      const result = await unpinItem(id);
+      say(result.message);
+      router.refresh();
+    });
+  }
+
   function markDone(id: string) {
     start(async () => {
       const result = await applyCorrection(id, "done");
@@ -101,17 +126,10 @@ export function TodayScreen({
     });
   }
 
-  function add(draft: Draft) {
+  function add(draft: ComposerDraft) {
     say("Adding");
     start(async () => {
-      const result = await addDraft({
-        type: draft.type,
-        title: draft.text,
-        day: draft.day,
-        time: draft.time,
-        dur: draft.dur,
-        effort: draft.type === "task" ? "light" : "meeting",
-      });
+      const result = await addDraft(draft);
       say(result.message);
       router.refresh();
     });
@@ -139,7 +157,7 @@ export function TodayScreen({
         action={<ThemeToggle theme={theme} />}
       />
 
-      <AddBar onAdd={add} />
+      <AddBar onAdd={add} today={todayDate} tomorrow={tomorrowDate} />
 
       {banners.length ? (
         <div className="flex flex-col gap-1.5">
@@ -434,7 +452,11 @@ export function TodayScreen({
           item={selectedItem}
           onAct={act}
           onDelete={remove}
+          onMove={move}
+          onUnpin={unpin}
           onClose={() => setSelected(null)}
+          today={todayDate}
+          tomorrow={tomorrowDate}
         />
       ) : null}
     </main>

@@ -166,6 +166,10 @@ model Item {
   end               DateTime?
   allDay            Boolean     @default(false)
   fixed             Boolean     @default(false)
+  /// Juan put this at a time himself: the scheduler never moves it again.
+  pinned            Boolean     @default(false)
+  /// Where an appointment happens, when it has a place.
+  location          String?
   flexibleDuration  Int?
   rank              ItemRank    @default(should)
   important         Boolean     @default(false)

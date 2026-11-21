@@ -23,6 +23,8 @@ export type PlanItem = {
   createdHere?: boolean;
   /** Came forward from an earlier day. */
   carried?: boolean;
+  /** Juan put this at a time himself. */
+  pinned?: boolean;
 };
 
 export type AddType = "gcal" | "appt" | "reminder" | "task";

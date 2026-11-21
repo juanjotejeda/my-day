@@ -40,7 +40,7 @@ const ON_WORD = /\s*\bon\s*$/i;
 const MEETING_WORDS =
   /\b(meeting|call|standup|stand-up|interview|1:1|one on one|sync|catch up|coffee with|lunch with|dinner with|drinks with)\b/i;
 const APPOINTMENT_WORDS =
-  /\b(dentist|doctor|appointment|haircut|physio|therapist|school|parents evening|viewing)\b/i;
+  /\b(dentist|doctor|appointment|haircut|physio|therapist|school|parents evening|viewing|breakfast|lunch|dinner|drinks|party|wedding|flight|train)\b/i;
 const DEEP_WORDS = /\b(write|draft|design|proposal|deck|plan|strategy|architecture|deep work|prepare|review)\b/i;
 const ERRAND_WORDS = /\b(pick up|collect|buy|post|drop off|shop|groceries|bank|pharmacy)\b/i;
 const LIGHT_WORDS = /\b(reply|answer|email|invoice|admin|expenses|book|confirm|send|check|call back|quick)\b/i;
@@ -91,11 +91,15 @@ function readDuration(text: string): number | null {
   return null;
 }
 
-function readType(text: string, hasTime: boolean): ParsedType {
+/**
+ * What kind of entry this is. A time no longer decides it: work Juan does alone
+ * is a task even at a stated hour, and the stated hour pins it. Only words that
+ * describe an event make an appointment.
+ */
+function readType(text: string): ParsedType {
   if (/\b(calendar event|calendar|in my calendar|google calendar)\b/i.test(text)) return "gcal";
   if (/\bremind(er)?\b/i.test(text)) return "reminder";
   if (MEETING_WORDS.test(text) || APPOINTMENT_WORDS.test(text)) return "appt";
-  if (hasTime) return "appt";
   return "task";
 }
 
@@ -110,7 +114,7 @@ function readEffort(text: string, type: ParsedType): ParsedEffort {
 export function parseInput(said: string, today?: string): ParsedInput {
   const text = (said ?? "").trim();
   const time = readTime(text);
-  const type = readType(text, Boolean(time));
+  const type = readType(text);
   const reference = today ?? new Date().toISOString().slice(0, 10);
   const when = readWhen(text, reference);
 

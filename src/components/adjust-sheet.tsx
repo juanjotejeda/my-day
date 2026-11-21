@@ -14,18 +14,31 @@ export function AdjustSheet({
   item,
   onAct,
   onDelete,
+  onMove,
+  onUnpin,
   onClose,
+  today,
+  tomorrow,
 }: {
   item: PlanItem;
   onAct: (action: AdjustAction) => void;
   onDelete?: (id: string) => void;
+  onMove?: (id: string, when: { date: string; time: string }) => void;
+  onUnpin?: (id: string) => void;
   onClose: () => void;
+  today: string;
+  tomorrow: string;
 }) {
   const [armed, setArmed] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [date, setDate] = useState(today);
+  const [time, setTime] = useState(item.start ? fmt(item.start) : "09:00");
   // My Day's own items can go; an event from the calendar is deleted in Google.
   const canDelete = Boolean(item.createdHere);
   const fromCalendar = item.source === "Calendar";
   const scheduled = !item.later && !item.moved;
+  // An event from the calendar is moved in Google, not here.
+  const fromCalendarOnly = item.source === "Calendar" && !item.createdHere;
   const lines = {
     kind: item.fixed ? "Fixed event" : "Flexible",
     time: scheduled ? `${fmt(item.start)}-${fmt(item.end)}` : "Not scheduled",
@@ -51,6 +64,85 @@ export function AdjustSheet({
         <p className="pb-1.5 text-[13px] leading-snug text-muted">
           {item.why} Source: {item.source}.
         </p>
+
+        {item.pinned ? (
+          <div className="flex items-center gap-3 rounded-full bg-raised px-3.5 py-2">
+            <span className="flex-1 text-[13px]">Pinned by you</span>
+            {onUnpin ? (
+              <button type="button" onClick={() => onUnpin(item.id)} className="min-h-9 text-sm text-accent">
+                Unpin
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Change date and time: a real calendar move, which pins the item. */}
+        {onMove && !fromCalendarOnly ? (
+          moving ? (
+            <div className="flex flex-col gap-2 rounded-[18px] bg-surface p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDate(today)}
+                  aria-pressed={date === today}
+                  className={`min-h-10 rounded-full border px-3.5 text-sm ${
+                    date === today ? "border-mid bg-sky" : "border-sky bg-card"
+                  }`}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDate(tomorrow)}
+                  aria-pressed={date === tomorrow}
+                  className={`min-h-10 rounded-full border px-3.5 text-sm ${
+                    date === tomorrow ? "border-mid bg-sky" : "border-sky bg-card"
+                  }`}
+                >
+                  Tomorrow
+                </button>
+                <input
+                  type="date"
+                  value={date}
+                  aria-label="Date"
+                  onChange={(event) => setDate(event.target.value)}
+                  className="min-h-10 rounded-full border border-sky bg-card px-3 text-[15px]"
+                />
+                <input
+                  type="time"
+                  value={time}
+                  aria-label="Time"
+                  onChange={(event) => setTime(event.target.value)}
+                  className="min-h-10 rounded-full border border-sky bg-card px-3 text-[15px]"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => onMove(item.id, { date, time })}
+                  className="min-h-11 flex-1 rounded-full bg-primary text-sm text-on-primary"
+                >
+                  Move it here
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMoving(false)}
+                  className="min-h-11 rounded-full border border-sky px-4 text-sm"
+                >
+                  Keep as is
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMoving(true)}
+              className="min-h-[46px] rounded-full bg-surface px-3.5 text-left text-[15px] text-navy"
+            >
+              Change date and time
+            </button>
+          )
+        ) : null}
 
         <button
           type="button"
