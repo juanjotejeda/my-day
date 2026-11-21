@@ -4,9 +4,13 @@
  */
 
 /**
- * The evening flow: the "Plan tomorrow" and "Close the day" buttons at the
- * foot of Today, and the two notifications that lead to them, at 18:30 and
- * 20:30. Off while the flow is being rethought. The screens, their routes and
- * their code all stay, and /tomorrow and /end-of-day still work when opened.
+ * The evening flow, in two parts. Off parts keep their screens, routes and
+ * code; only the entry points (the button at the foot of Today and the
+ * notification) are hidden.
+ *
+ * PLAN_TOMORROW: the "Plan tomorrow" button and the 20:30 notification.
+ * DAY_CLOSE: the "Close the day" button and the notification 30 minutes after
+ * work ends. Off while the flow is being rethought.
  */
+export const PLAN_TOMORROW = true;
 export const DAY_CLOSE = false;

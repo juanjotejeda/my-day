@@ -4,7 +4,7 @@ import { loadSettings } from "@/lib/settings";
 
 import { dueNotifications, type DayState, type DuePush, type PushSettings } from "./due";
 
-import { DAY_CLOSE } from "@/lib/flags";
+import { DAY_CLOSE, PLAN_TOMORROW } from "@/lib/flags";
 import { sendToDevices, pushReady } from "./send";
 
 export type NotificationRun = {
@@ -83,8 +83,8 @@ export async function runNotifications(userId: string, now = new Date()): Promis
   const push: PushSettings = {
     ...settings.notifications,
     workEnd: settings.work.end,
-    // Paused with the evening flow, whatever the Notifications switches say.
-    evening: settings.notifications.evening && DAY_CLOSE,
+    // Each follows its part of the evening flow, whatever the Notifications switches say.
+    evening: settings.notifications.evening && PLAN_TOMORROW,
     close: settings.notifications.close && DAY_CLOSE,
   };
   const day = await readDay(userId, now);
@@ -121,13 +121,9 @@ export async function previewNotifications(userId: string, now = new Date()): Pr
 
   const kinds: { key: string; at: number }[] = [
     { key: "morning", at: toMinutes(push.morningAt) },
-    // The two evening ones only when the evening flow is on.
-    ...(DAY_CLOSE
-      ? [
-          { key: "close", at: toMinutes(push.workEnd) + 30 },
-          { key: "evening", at: toMinutes(push.eveningAt) },
-        ]
-      : []),
+    // The evening ones only when their part of the evening flow is on.
+    ...(DAY_CLOSE ? [{ key: "close", at: toMinutes(push.workEnd) + 30 }] : []),
+    ...(PLAN_TOMORROW ? [{ key: "evening", at: toMinutes(push.eveningAt) }] : []),
   ];
 
   const previews: DuePush[] = [];

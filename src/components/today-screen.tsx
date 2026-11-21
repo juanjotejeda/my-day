@@ -25,7 +25,7 @@ import type { PlanItem } from "@/lib/plan/types";
 import type { ComposerDraft } from "@/lib/plan/draft";
 import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from "@/lib/plan/view";
 import { addDraft, applyCorrection } from "@/app/actions";
-import { DAY_CLOSE } from "@/lib/flags";
+import { DAY_CLOSE, PLAN_TOMORROW } from "@/lib/flags";
 import type { Rhythm } from "@/lib/plan/curve";
 import type { Theme, View as Appearance } from "@/lib/theme";
 
@@ -398,10 +398,10 @@ export function TodayScreen({
         </div>
       )}
 
-      {!simple && DAY_CLOSE ? (
+      {!simple && (PLAN_TOMORROW || DAY_CLOSE) ? (
         <div className="flex gap-2 pt-2 pb-5">
-          <PillLink href="/tomorrow">Plan tomorrow</PillLink>
-          <PillLink href="/end-of-day">Close the day</PillLink>
+          {PLAN_TOMORROW ? <PillLink href="/tomorrow">Plan tomorrow</PillLink> : null}
+          {DAY_CLOSE ? <PillLink href="/end-of-day">Close the day</PillLink> : null}
         </div>
       ) : null}
 
