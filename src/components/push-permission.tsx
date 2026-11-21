@@ -79,7 +79,7 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
   }
 
   async function test(all: boolean) {
-    setStatus(all ? "Sending all four" : "Sending");
+    setStatus("Sending");
     const response = await fetch("/api/push/test", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -89,7 +89,7 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
     setStatus(
       body.ok
         ? all
-          ? "All four sent. They arrive a second apart."
+          ? `${body.sent ?? 0} sent. They arrive a second apart.`
           : "Sent. It should appear in a moment."
         : (body.error ?? "That did not work."),
     );
@@ -131,7 +131,7 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
           onClick={() => test(true)}
           className="flex min-h-14 w-full items-center justify-between border-t border-divider text-[15px] text-navy"
         >
-          <span>Send all four daily notifications</span>
+          <span>Send every daily notification</span>
           <span className="text-[13px] text-muted">to check them</span>
         </button>
       ) : null}

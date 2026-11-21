@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { loadSettings } from "@/lib/settings";
 
 import { dueNotifications, type DayState, type DuePush, type PushSettings } from "./due";
+
+import { DAY_CLOSE } from "@/lib/flags";
 import { sendToDevices, pushReady } from "./send";
 
 export type NotificationRun = {
@@ -78,7 +80,13 @@ export async function runNotifications(userId: string, now = new Date()): Promis
   if (!devices) return { ran: false, due: [], sent: 0, skipped: "no device has allowed notifications" };
 
   const settings = await loadSettings(userId);
-  const push: PushSettings = { ...settings.notifications, workEnd: settings.work.end };
+  const push: PushSettings = {
+    ...settings.notifications,
+    workEnd: settings.work.end,
+    // Paused with the evening flow, whatever the Notifications switches say.
+    evening: settings.notifications.evening && DAY_CLOSE,
+    close: settings.notifications.close && DAY_CLOSE,
+  };
   const day = await readDay(userId, now);
 
   // What has already gone out today, so nothing repeats.
@@ -103,7 +111,7 @@ export async function runNotifications(userId: string, now = new Date()): Promis
 }
 
 /**
- * The four daily notifications with their real content, whatever the time is.
+ * The daily notifications with their real content, whatever the time is.
  * This is how they are checked on a new device without waiting for 07:30.
  */
 export async function previewNotifications(userId: string, now = new Date()): Promise<DuePush[]> {
@@ -113,8 +121,13 @@ export async function previewNotifications(userId: string, now = new Date()): Pr
 
   const kinds: { key: string; at: number }[] = [
     { key: "morning", at: toMinutes(push.morningAt) },
-    { key: "close", at: toMinutes(push.workEnd) + 30 },
-    { key: "evening", at: toMinutes(push.eveningAt) },
+    // The two evening ones only when the evening flow is on.
+    ...(DAY_CLOSE
+      ? [
+          { key: "close", at: toMinutes(push.workEnd) + 30 },
+          { key: "evening", at: toMinutes(push.eveningAt) },
+        ]
+      : []),
   ];
 
   const previews: DuePush[] = [];
