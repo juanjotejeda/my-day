@@ -26,8 +26,6 @@
   --idle: #b3c8ec;
   --switch-on: #243a63;
   --knob: #ffffff;
-  /* The blob behind the active tab. The one warm note in a blue app. */
-  --blob: #7b6ad6;
   --ok: #2e7a55;
   --alert: #fbedea;
   --alert-ink: #a3341f;
@@ -59,7 +57,6 @@
   /* The night design gives the switch a mid track and a background-dark knob. */
   --switch-on: #8aa9de;
   --knob: #0f1a2e;
-  --blob: #9b8bf0;
   --ok: #6fbf95;
   --alert: #3a1f1a;
   --alert-ink: #f0a89a;
@@ -88,7 +85,6 @@
   --color-energy-peak: var(--energy-peak);
   --color-idle: var(--idle);
   --color-switch-on: var(--switch-on);
-  --color-blob: var(--blob);
   --color-knob: var(--knob);
   --color-ok: var(--ok);
   --color-alert: var(--alert);

@@ -73,7 +73,7 @@ const TABS: { key: Tab; href: string; label: string; match: (path: string) => bo
 /**
  * The bottom bar. The active tab is read from the path in the browser, so the
  * highlight moves the moment you tap rather than waiting for the next page, and
- * the blob slides from the old tab to the new one.
+ * the pill behind the icon slides from the old tab to the new one.
  */
 export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCount?: number }) {
   const pathname = usePathname() ?? "/";
@@ -87,14 +87,13 @@ export function BottomNav({ active, reviewCount = 0 }: { active?: Tab; reviewCou
       className="sticky bottom-0 z-10 -mx-4 -mb-12 border-t border-line bg-card/95 px-3 pt-1.5 pb-3.5 backdrop-blur"
     >
       <div className="relative flex">
-        {/* The blob sits behind the tabs and slides between them. */}
+        {/* The pill sits behind the active icon and slides to the new tab. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-1 bottom-1 left-0 w-1/4 transition-transform duration-300 ease-out motion-reduce:transition-none"
+          className="pointer-events-none absolute top-[5px] left-0 flex h-[30px] w-1/4 justify-center transition-transform duration-[250ms] ease-out motion-reduce:transition-none"
           style={{ transform: `translateX(${current * 100}%)` }}
         >
-          <span className="block h-full w-full rounded-[18px] bg-blob/15 blur-[2px]" />
-          <span className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-blob/70" />
+          <span className="h-[30px] w-14 rounded-full bg-sky" />
         </span>
 
         {TABS.map((tab, position) => {
