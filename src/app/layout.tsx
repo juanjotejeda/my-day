@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "One calm plan for the day, around your energy.",
   applicationName: "My Day",
   appleWebApp: { capable: true, title: "My Day", statusBarStyle: "default" },
-  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
+  icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
 };
 
 export async function generateViewport(): Promise<Viewport> {
