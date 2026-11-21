@@ -84,7 +84,7 @@ function asRule(record: CorrectionRecord): Omit<RuleSuggestion, "evidenceCount">
   if (kind === "important" && context.sender) {
     return {
       kind: "vip_person",
-      text: `${context.sender} always counts`,
+      text: `${context.sender} is a priority person`,
       params: { person: context.sender },
     };
   }

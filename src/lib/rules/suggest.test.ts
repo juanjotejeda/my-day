@@ -55,7 +55,7 @@ test("three moves to tomorrow suggest a lower rank, not a silent drop", () => {
   assert.match(rule.text, /light/i);
 });
 
-test("three times important on one sender suggests they always count", () => {
+test("three times important on one sender suggests a priority person", () => {
   const three = Array.from({ length: 3 }, () =>
     correction("important", { sourceKind: "gmail", sender: "lena@northwind.com", effort: "light" }),
   );

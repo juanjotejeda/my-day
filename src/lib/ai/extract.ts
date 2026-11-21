@@ -100,7 +100,7 @@ function instructions(context: ExtractContext): string {
   return [
     `Today is ${context.today} in ${context.timezone}.`,
     `You are reading ${context.name}'s email. His addresses: ${context.addresses.join(", ")}.`,
-    context.vipPeople?.length ? `People who always count: ${context.vipPeople.join(", ")}.` : "",
+    context.vipPeople?.length ? `Priority people: ${context.vipPeople.join(", ")}.` : "",
     context.topics?.length ? `Topics that matter: ${context.topics.join(", ")}.` : "",
     "Extract only what he must do or attend himself.",
     "A promise he made counts. A request to someone else does not. A newsletter, a receipt or a notification is never an item.",

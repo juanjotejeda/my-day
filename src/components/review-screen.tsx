@@ -111,7 +111,7 @@ export function ReviewScreen({
         <SectionTitle>Auto-add</SectionTitle>
         <ListCard>
           <SwitchRow
-            label="Add items from people who always count"
+            label="Add requests from priority people automatically"
             sub="Skip review for your priority people"
             defaultOn={autoAdd}
             onChange={(on) => {

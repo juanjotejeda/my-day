@@ -256,17 +256,17 @@ export const PRIORITIES_SCREEN: ScreenSpec = {
           key: "urgentWaiting",
           label: "Someone waiting more than 2 days",
         },
-        { kind: "switch", section: "priorities", key: "urgentVip", label: "From people who always count" },
+        { kind: "switch", section: "priorities", key: "urgentVip", label: "From priority people" },
       ],
     },
     {
-      title: "People who always count",
+      title: "Priority people",
       fields: [
         {
           kind: "pills",
           section: "priorities",
           key: "vipPeople",
-          label: "Priority people",
+          label: "Who counts",
           multi: true,
           choices: [
             { value: "cof", label: "Co-founder" },

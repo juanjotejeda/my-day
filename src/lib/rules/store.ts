@@ -19,7 +19,7 @@ export async function ignoredSenders(userId: string): Promise<string[]> {
     .filter(Boolean);
 }
 
-/** People a rule says always count, on top of the ones in settings. */
+/** Priority people a rule has learned, on top of the ones in settings. */
 export async function vipFromRules(userId: string): Promise<string[]> {
   const rules = await prisma.rule.findMany({ where: { userId, active: true, kind: "vip_person" } });
   return rules

@@ -23,7 +23,7 @@ export default async function Priorities() {
   if (!user) redirect("/signin");
   const settings = await loadSettings(user.id);
 
-  const sections = ["When things clash", "People who always count", "Protected time"];
+  const sections = ["When things clash", "Priority people", "Protected time"];
 
   return (
     <Screen>
