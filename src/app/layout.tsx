@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 
 import { BottomNav } from "@/components/bottom-nav";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
 import { reviewCount } from "@/lib/plan/review-count";
 import { currentTheme, currentView } from "@/lib/theme";
@@ -39,6 +40,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         {/* One bar for every screen of the full view. The simple view is the
             day and nothing else, and the eye on Today brings the bar back. */}
         {view === "full" ? <BottomNav reviewCount={await reviewCount()} /> : null}
+        <PullToRefresh />
         <RegisterServiceWorker />
       </body>
     </html>
