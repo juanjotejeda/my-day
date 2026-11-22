@@ -128,7 +128,7 @@ export function TodayScreen({
       />
 
       {/* Adding is the full view's job; the simple view only shows the day. */}
-      {simple ? null : <AddBar onAdd={add} today={todayDate} tomorrow={tomorrowDate} />}
+      {simple ? null : <AddBar className="appear" onAdd={add} today={todayDate} tomorrow={tomorrowDate} />}
 
       {!simple && banners.length ? (
         <div className="flex flex-col gap-1.5">
@@ -141,7 +141,11 @@ export function TodayScreen({
         </div>
       ) : null}
 
-      {simple ? null : <DayStrip items={items} now={now} rhythm={rhythm} />}
+      {simple ? null : (
+        <div className="appear" style={{ animationDelay: "60ms" }}>
+          <DayStrip items={items} now={now} rhythm={rhythm} />
+        </div>
+      )}
 
       {!simple && waitingForMonday ? (
         <NoteCard label="WEEKEND">
@@ -151,7 +155,12 @@ export function TodayScreen({
       ) : null}
 
       {simple ? null : (
-      <div role="group" aria-label="View" className="grid grid-cols-2 gap-1 rounded-full bg-sky p-1">
+      <div
+        role="group"
+        aria-label="View"
+        className="appear grid grid-cols-2 gap-1 rounded-full bg-sky p-1"
+        style={{ animationDelay: "120ms" }}
+      >
         {(["now", "priority"] as const).map((key) => (
           <button
             key={key}
@@ -249,7 +258,7 @@ export function TodayScreen({
           ) : null}
 
           {!simple && rest.length ? (
-            <Card className="px-[14px]">
+            <Card className="appear px-[14px]">
               <button
                 type="button"
                 aria-expanded={restOpen}
@@ -276,7 +285,7 @@ export function TodayScreen({
           ) : null}
 
           {!simple && later.length ? (
-            <div className="rounded-card border border-dashed border-sky px-[14px]">
+            <div className="appear rounded-card border border-dashed border-sky px-[14px]">
               <button
                 type="button"
                 aria-expanded={laterOpen}
@@ -399,7 +408,7 @@ export function TodayScreen({
       )}
 
       {!simple && (PLAN_TOMORROW || DAY_CLOSE) ? (
-        <div className="flex gap-2 pt-2 pb-5">
+        <div className="appear flex gap-2 pt-2 pb-5" style={{ animationDelay: "180ms" }}>
           {PLAN_TOMORROW ? <PillLink href="/tomorrow">Plan tomorrow</PillLink> : null}
           {DAY_CLOSE ? <PillLink href="/end-of-day">Close the day</PillLink> : null}
         </div>

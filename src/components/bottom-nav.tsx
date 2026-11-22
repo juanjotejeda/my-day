@@ -96,7 +96,7 @@ export function BottomNav({ reviewCount = 0 }: { reviewCount?: number }) {
   return (
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card/95 px-3 pt-1.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur"
+        className="appear fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card/95 px-3 pt-1.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur"
       >
         <div className="relative mx-auto flex w-full max-w-[406px]">
           {/* The indicator wraps the icon and its label, and slides to the new tab. */}

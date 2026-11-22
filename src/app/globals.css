@@ -127,6 +127,24 @@ body {
   }
 }
 
+/* What the eye brings back arrives softly, instead of appearing at once. */
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.appear {
+  animation: view-in 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appear {
+    animation: none;
+  }
+}
+
 /* Dividers go between rows, so the first row in a card has no line above it. */
 .rounded-card > :first-child {
   border-top-width: 0;

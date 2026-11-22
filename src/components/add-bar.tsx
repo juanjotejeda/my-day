@@ -17,11 +17,13 @@ export function AddBar({
   today,
   tomorrow,
   busy,
+  className = "",
 }: {
   onAdd: (draft: ComposerDraft) => void;
   today: string;
   tomorrow: string;
   busy?: boolean;
+  className?: string;
 }) {
   const [mode, setMode] = useState<Mode>("");
   const [draft, setDraft] = useState<ComposerDraft>(() => draftDefaults("task", new Date(), today));
@@ -124,7 +126,7 @@ export function AddBar({
   );
 
   return (
-    <div className="sticky top-0 z-10 -mt-1.5 bg-bg pt-1.5 pb-2">
+    <div className={`sticky top-0 z-10 -mt-1.5 bg-bg pt-1.5 pb-2 ${className}`}>
       <div className="flex items-center gap-2">
         <button
           type="button"
