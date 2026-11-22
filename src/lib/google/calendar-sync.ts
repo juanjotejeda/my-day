@@ -1,6 +1,7 @@
 import { google, type calendar_v3 } from "googleapis";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { keyOf } from "@/lib/plan/dedupe";
 import { prisma } from "@/lib/prisma";
 
 import { GoogleDisconnected, googleAuth, isInvalidGrant, markDisconnected, statusOf } from "./client";
@@ -15,6 +16,8 @@ export type SyncResult = {
   upserted: number;
   deleted: number;
   fullSyncs: number;
+  /** Events already here from another calendar you follow. */
+  duplicates: number;
 };
 
 type SyncTokens = Record<string, string>;
@@ -26,7 +29,7 @@ type SyncTokens = Record<string, string>;
 export async function syncCalendars(userId: string): Promise<SyncResult> {
   const { auth, source } = await googleAuth(userId);
   const calendar = google.calendar({ version: "v3", auth });
-  const result: SyncResult = { calendars: 0, upserted: 0, deleted: 0, fullSyncs: 0 };
+  const result: SyncResult = { calendars: 0, upserted: 0, deleted: 0, fullSyncs: 0, duplicates: 0 };
 
   try {
     const known = (source.calendars as unknown as { id: string }[] | null) ?? [];
@@ -75,6 +78,23 @@ export async function syncCalendars(userId: string): Promise<SyncResult> {
           day: mapped.day,
           sourceUrl: mapped.sourceUrl,
         };
+
+        // The same meeting in two calendars arrives twice, once per calendar id.
+        // Only a new row can be a copy; a row we already keep is just updated.
+        const known = await prisma.item.findUnique({
+          where: { userId_sourceRef: { userId, sourceRef: mapped.sourceRef } },
+          select: { id: true },
+        });
+        if (!known) {
+          const sameDay = await prisma.item.findMany({
+            where: { userId, sourceKind: "calendar", day: mapped.day, archivedAt: null },
+            select: { title: true, start: true, end: true },
+          });
+          if (sameDay.some((row) => keyOf(row) === keyOf(mapped))) {
+            result.duplicates += 1;
+            continue;
+          }
+        }
 
         await prisma.item.upsert({
           where: { userId_sourceRef: { userId, sourceRef: mapped.sourceRef } },
