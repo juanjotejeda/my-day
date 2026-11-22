@@ -152,11 +152,3 @@ export async function setTheme(theme: "day" | "night") {
   return { ok: true as const };
 }
 
-/** The eye in the date line: full Today, or the simple one. */
-export async function setView(view: "full" | "simple") {
-  const user = await me();
-  if (!user) return { ok: false as const, error: "unauthorized" };
-  await saveSection(user.id, "appearance", { view });
-  revalidatePath("/", "layout");
-  return { ok: true as const };
-}

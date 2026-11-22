@@ -3,9 +3,10 @@ import { Roboto } from "next/font/google";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { PullToRefresh } from "@/components/pull-to-refresh";
+import { ViewProvider } from "@/components/view-mode";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
 import { reviewCount } from "@/lib/plan/review-count";
-import { currentTheme, currentView } from "@/lib/theme";
+import { currentTheme } from "@/lib/theme";
 
 import "./globals.css";
 
@@ -31,15 +32,16 @@ export async function generateViewport(): Promise<Viewport> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [theme, view] = await Promise.all([currentTheme(), currentView()]);
+  const theme = await currentTheme();
 
   return (
     <html lang="en" data-theme={theme} className={`${roboto.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        {children}
-        {/* One bar for every screen of the full view. The simple view is the
-            day and nothing else, and the eye on Today brings the bar back. */}
-        {view === "full" ? <BottomNav reviewCount={await reviewCount()} /> : null}
+        <ViewProvider>
+          {children}
+          {/* One bar for every screen, and the bar itself knows the view. */}
+          <BottomNav reviewCount={await reviewCount()} />
+        </ViewProvider>
         <PullToRefresh />
         <RegisterServiceWorker />
       </body>

@@ -6,6 +6,7 @@ import { useRef, useState, useTransition } from "react";
 
 import { AddBar } from "@/components/add-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useViewMode } from "@/components/view-mode";
 import { ViewToggle } from "@/components/view-toggle";
 import { DayStrip } from "@/components/day-strip";
 import {
@@ -27,7 +28,7 @@ import { ahead, laterRows, load, nowCard, prioritySections, protectedLine } from
 import { addDraft, applyCorrection } from "@/app/actions";
 import { DAY_CLOSE, PLAN_TOMORROW } from "@/lib/flags";
 import type { Rhythm } from "@/lib/plan/curve";
-import type { Theme, View as Appearance } from "@/lib/theme";
+import type { Theme } from "@/lib/theme";
 
 type View = "now" | "priority";
 
@@ -45,7 +46,6 @@ export function TodayScreen({
   tomorrowDate,
   headerRight,
   theme,
-  appearance,
 }: {
   weekday: string;
   date: string;
@@ -61,12 +61,11 @@ export function TodayScreen({
   /** Said instead of the times when today is not a working day. */
   headerRight?: string;
   theme: Theme;
-  /** The simple view keeps the date line, the add bar, Now and Next. */
-  appearance: Appearance;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
-  const simple = appearance === "simple";
+  // The simple view keeps the date line, the Now box and Next, and no more.
+  const simple = useViewMode().view === "simple";
   const [view, setView] = useState<View>("now");
   const [toast, setToast] = useState("");
   const [restOpen, setRestOpen] = useState(true);
@@ -121,7 +120,7 @@ export function TodayScreen({
         right={headerRight}
         action={
           <span className="flex items-center gap-2">
-            <ViewToggle view={appearance} />
+            <ViewToggle />
             <ThemeToggle theme={theme} />
           </span>
         }

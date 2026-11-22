@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { useViewMode } from "@/components/view-mode";
 import type { ReactNode } from "react";
 
 export type Tab = "today" | "review" | "insights" | "settings";
@@ -86,7 +88,9 @@ const WITHOUT_NAV = ["/signin", "/privacy"];
  */
 export function BottomNav({ reviewCount = 0 }: { reviewCount?: number }) {
   const pathname = usePathname() ?? "/";
-  if (WITHOUT_NAV.includes(pathname)) return null;
+  const { view } = useViewMode();
+  // The simple view is the day and nothing else, the bar included.
+  if (view === "simple" || WITHOUT_NAV.includes(pathname)) return null;
 
   const current = Math.max(
     TABS.findIndex((tab) => tab.match(pathname)),

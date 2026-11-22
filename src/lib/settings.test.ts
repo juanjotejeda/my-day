@@ -36,11 +36,11 @@ test("nonsense is refused, so one bad write cannot break a screen", () => {
 });
 
 test("saving one field leaves the others alone", () => {
-  // The bug this guards: tapping the eye saved the view and reset the theme,
-  // so night mode turned into day on the next render.
-  assert.deepEqual(suppliedFields("appearance", { view: "simple" }), { view: "simple" });
+  // The bug this guards: saving one field wrote every other default with it,
+  // so choosing anything in a section put the rest back to how it started.
   assert.deepEqual(suppliedFields("appearance", { theme: "night" }), { theme: "night" });
   assert.deepEqual(suppliedFields("work", { end: "17:00" }), { end: "17:00" });
+  assert.deepEqual(suppliedFields("rhythm", { wake: "05:30" }), { wake: "05:30" });
 });
 
 test("a saved field is still validated, and nonsense is still refused", () => {

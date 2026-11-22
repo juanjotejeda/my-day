@@ -65,11 +65,10 @@ export const privacySchema = z.object({
   processSentMail: z.boolean().default(true),
 });
 
-/** Night mode and the view: choices, remembered per user, never automatic.
- *  The app opens simple; the eye brings the rest of the day back. */
+/** Night mode: a choice, remembered per user, never automatic. The view is
+ *  not remembered: the app opens simple and the eye reveals the rest. */
 export const appearanceSchema = z.object({
   theme: z.enum(["day", "night"]).default("day"),
-  view: z.enum(["full", "simple"]).default("simple"),
 });
 
 export const profileSchema = z.object({

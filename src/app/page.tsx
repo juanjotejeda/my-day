@@ -9,7 +9,7 @@ import { DEFAULT_RHYTHM } from "@/lib/plan/curve";
 import { toPlanItems } from "@/lib/plan/from-db";
 import { carryForwardToToday } from "@/lib/plan/run";
 import { prisma } from "@/lib/prisma";
-import { currentTheme, currentView } from "@/lib/theme";
+import { currentTheme } from "@/lib/theme";
 
 
 export default async function Today() {
@@ -81,7 +81,6 @@ export default async function Today() {
       tomorrowDate={dayKey(new Date(now.getTime() + 86_400_000))}
       headerRight={isWorkday ? undefined : "no work today"}
       theme={await currentTheme()}
-      appearance={await currentView()}
       rhythm={{
         ...DEFAULT_RHYTHM,
         peakStart: settings.rhythm.peakStart,
