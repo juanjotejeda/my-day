@@ -10,8 +10,8 @@ export async function currentTheme(): Promise<Theme> {
 
 export type View = "full" | "simple";
 
-/** Full Today, or the simple one: the eye in the date line stores this. */
+/** The simple Today unless the eye says otherwise, which it remembers. */
 export async function currentView(): Promise<View> {
   const settings = await currentSettings();
-  return settings?.appearance.view ?? "full";
+  return settings?.appearance.view ?? "simple";
 }
