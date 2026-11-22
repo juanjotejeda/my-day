@@ -10,7 +10,6 @@ import {
   NoteCard,
   PrimaryLink,
   Screen,
-  SecondaryLink,
   SectionTitle,
 } from "@/components/ui";
 import { TIMEZONE, dayDate, dayKey, hhmm, minutesOfDay } from "@/lib/day";
@@ -160,7 +159,6 @@ export default async function Tomorrow() {
       ) : null}
 
       <PrimaryLink href="/">Looks right</PrimaryLink>
-      <SecondaryLink href="/">Adjust tomorrow</SecondaryLink>
 
       <div className="flex-1" />
     </Screen>
