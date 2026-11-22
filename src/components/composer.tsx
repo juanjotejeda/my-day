@@ -8,7 +8,7 @@ import { DURATIONS, draftLength, draftProblem, type ComposerDraft, type DraftTyp
 const TYPES: { key: DraftType; label: string; sub: string }[] = [
   { key: "gcal", label: "Calendar", sub: "Google event" },
   { key: "appt", label: "Appointment", sub: "Other events" },
-  { key: "reminder", label: "Reminder", sub: "At a set time" },
+  { key: "reminder", label: "Reminder", sub: "At a time, or placed for you" },
   { key: "task", label: "Task", sub: "Placed for you" },
 ];
 
@@ -36,7 +36,8 @@ export function Composer({
 }) {
   const [touched, setTouched] = useState(false);
   const problem = draftProblem(draft);
-  const timed = draft.type !== "task" || !draft.auto;
+  const places = draft.type === "task" || draft.type === "reminder";
+  const timed = !places || !draft.auto;
   const pill = (on: boolean) => (on ? "border-mid bg-sky" : "border-sky bg-card");
 
   const hint =
@@ -86,7 +87,7 @@ export function Composer({
         />
       </label>
 
-      {draft.type === "task" ? (
+      {places ? (
         <div className="flex flex-col gap-2">
           <span className="text-xs text-muted">When</span>
           <div className="flex flex-wrap gap-2">
@@ -112,7 +113,7 @@ export function Composer({
         </div>
       ) : null}
 
-      {timed || draft.type !== "task" ? (
+      {timed ? (
         <div className="flex flex-col gap-2">
           <span className="text-xs text-muted">Date</span>
           <div className="flex flex-wrap items-center gap-2">

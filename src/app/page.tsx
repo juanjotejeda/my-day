@@ -33,10 +33,17 @@ export default async function Today() {
   });
   if (stale) await carryForwardToToday(user.id, now);
 
-  const [stored, source, settings, openCandidates] = await Promise.all([
+  const tomorrow = new Date(now.getTime() + 86_400_000);
+  const [stored, storedTomorrow, source, settings, openCandidates] = await Promise.all([
     prisma.item.findMany({
       where: { userId: user.id, day: dayDate(dayKey(now)), status: { not: "dropped" }, archivedAt: null },
       orderBy: [{ start: "asc" }, { title: "asc" }],
+    }),
+    // What tomorrow holds, so the quiet view can show what is coming.
+    prisma.item.findMany({
+      where: { userId: user.id, day: dayDate(dayKey(tomorrow)), status: { not: "dropped" }, archivedAt: null },
+      orderBy: [{ start: "asc" }, { title: "asc" }],
+      take: 5,
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
     settingsFor(user.id),
@@ -47,6 +54,7 @@ export default async function Today() {
 
   // Real items only now: the scheduler fills the day, so no sample day here.
   const items = toPlanItems(stored);
+  const tomorrowItems = toPlanItems(storedTomorrow);
 
   const weekdayKeys = ["su", "mo", "tu", "we", "th", "fr", "sa"];
   const isWorkday = settings.work.days.includes(
@@ -74,11 +82,12 @@ export default async function Today() {
       now={nowMinutes}
       workEnd={settings.work.end}
       items={items}
+      tomorrowItems={tomorrowItems}
       banners={banners}
       reviewCount={openCandidates}
       waitingForMonday={waitingForMonday}
       todayDate={dayKey(now)}
-      tomorrowDate={dayKey(new Date(now.getTime() + 86_400_000))}
+      tomorrowDate={dayKey(tomorrow)}
       headerRight={isWorkday ? undefined : "no work today"}
       theme={await currentTheme()}
       rhythm={{

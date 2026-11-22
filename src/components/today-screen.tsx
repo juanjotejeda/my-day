@@ -38,6 +38,7 @@ export function TodayScreen({
   now,
   workEnd,
   items,
+  tomorrowItems,
   banners,
   reviewCount,
   rhythm,
@@ -52,6 +53,8 @@ export function TodayScreen({
   now: number;
   workEnd: string;
   items: PlanItem[];
+  /** Tomorrow's first few, so the simple view says what is coming. */
+  tomorrowItems: PlanItem[];
   banners: string[];
   reviewCount: number;
   rhythm: Rhythm;
@@ -309,6 +312,27 @@ export function TodayScreen({
                   ))
                 : null}
             </div>
+          ) : null}
+
+          {/* The quiet view still says what is coming, so tomorrow is no surprise. */}
+          {simple && tomorrowItems.length ? (
+            <section className="flex flex-col gap-2">
+              <SectionTitle>Tomorrow</SectionTitle>
+              <Card className="overflow-hidden">
+                {tomorrowItems.map((row) => (
+                  <Link
+                    key={row.id}
+                    href={`/item/${row.id}`}
+                    className="flex min-h-[52px] w-full items-center gap-3 border-b border-divider px-[14px] py-2 text-left last:border-b-0"
+                  >
+                    <span className="w-11 flex-none text-sm text-muted tabular-nums">
+                      {row.later || !row.start ? "--:--" : fmt(row.start)}
+                    </span>
+                    <span className="min-w-0 flex-1 text-[15px]">{row.title}</span>
+                  </Link>
+                ))}
+              </Card>
+            </section>
           ) : null}
         </div>
       ) : (

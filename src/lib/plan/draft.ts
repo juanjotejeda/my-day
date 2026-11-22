@@ -2,8 +2,8 @@ import type { ParsedEffort, ParsedInput } from "@/lib/parse/input";
 
 /**
  * What the composer holds, by type. An appointment has a date, a start, an end,
- * an all-day switch and a place; a reminder has a date and a time; a task has a
- * duration and either Automatic or a date and time Juan sets himself.
+ * an all-day switch and a place; a reminder and a task are either Automatic,
+ * placed by My Day, or at a date and time Juan sets himself.
  */
 export type DraftType = "gcal" | "appt" | "reminder" | "task";
 
@@ -17,7 +17,7 @@ export type ComposerDraft = {
   allDay: boolean;
   location: string;
   dur: number;
-  /** Tasks only: the scheduler places it. */
+  /** Reminders and tasks: the scheduler places it. */
   auto: boolean;
   /** What kind of work it is, which decides where the scheduler puts it. */
   effort: ParsedEffort;
@@ -64,7 +64,8 @@ export function draftDefaults(type: DraftType, now: Date, today: string): Compos
     allDay: false,
     location: "",
     dur: 30,
-    auto: true,
+    // A fresh reminder comes with a time; Automatic is a choice, not a default.
+    auto: type !== "reminder",
     effort: type === "task" ? "light" : "meeting",
   };
 }
@@ -73,8 +74,9 @@ export function draftDefaults(type: DraftType, now: Date, today: string): Compos
 export function draftFromParsed(parsed: ParsedInput, now: Date): ComposerDraft {
   const today = parsed.date ?? new Date().toISOString().slice(0, 10);
   const base = draftDefaults(parsed.type, now, today);
-  const auto = parsed.type === "task" ? (parsed.auto ?? !parsed.time) : true;
-  const startTime = parsed.time || (parsed.type === "task" ? "" : base.startTime);
+  const places = parsed.type === "task" || parsed.type === "reminder";
+  const auto = places ? (parsed.auto ?? !parsed.time) : true;
+  const startTime = parsed.time || (places && auto ? "" : base.startTime);
 
   return {
     ...base,
@@ -95,9 +97,9 @@ export function draftFromParsed(parsed: ParsedInput, now: Date): ComposerDraft {
 export function draftProblem(draft: ComposerDraft): string | null {
   if (!draft.text.trim()) return "Type or say what to add first.";
 
-  if (draft.type === "task") {
+  if (draft.type === "task" || draft.type === "reminder") {
     if (!draft.auto && !draft.startTime) return "Set a time, or switch back to Automatic.";
-    return null;
+    if (draft.auto) return null;
   }
 
   if (draft.allDay) return null;

@@ -80,10 +80,11 @@ export async function addDraft(userId: string, draft: ParsedInput | ComposerDraf
   if (problem) return { ok: false, message: problem };
 
   const day = dayDate(composed.date);
-  const auto = composed.type === "task" && composed.auto;
+  const places = composed.type === "task" || composed.type === "reminder";
+  const auto = places && composed.auto;
   const allDay = (composed.type === "appt" || composed.type === "gcal") && composed.allDay;
   // A task Juan gave a time to is pinned: the scheduler leaves it alone.
-  const pinned = composed.type === "task" && !composed.auto;
+  const pinned = places && !composed.auto;
 
   const start = auto || allDay ? null : at(day, composed.startTime);
   const end = start ? new Date(start.getTime() + draftLength(composed) * 60_000) : null;
@@ -119,7 +120,7 @@ export async function addDraft(userId: string, draft: ParsedInput | ComposerDraf
       fixed: !auto,
       pinned,
       location: composed.location || null,
-      flexibleDuration: auto ? composed.dur : null,
+      flexibleDuration: auto ? draftLength(composed) : null,
       rank: composed.type === "task" ? "should" : "must",
       category: composed.effort === "errand" ? "personal" : composed.type === "task" ? "work" : "personal",
       effort: composed.effort,
@@ -152,12 +153,13 @@ export async function addDraft(userId: string, draft: ParsedInput | ComposerDraf
     };
   }
 
+  const word = composed.type === "reminder" ? "Reminder" : "Task";
   const placed = run.reasonFor(item.id);
   if (placed?.start) {
     const where = whenWord === "today" ? "" : ` ${whenWord}`;
-    return { ok: true, message: `Task added${where} at ${hhmm(placed.start)}. ${placed.reason}` };
+    return { ok: true, message: `${word} added${where} at ${hhmm(placed.start)}. ${placed.reason}` };
   }
-  return { ok: true, message: `Task added to Later. ${placed?.reason ?? "No free slot today."}` };
+  return { ok: true, message: `${word} added to Later. ${placed?.reason ?? "No free slot today."}` };
 }
 
 export type CorrectionKind = "tomorrow" | "important" | "more_time" | "category" | "done";

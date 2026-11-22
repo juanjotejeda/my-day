@@ -51,6 +51,6 @@ export function mergeParsed(model: ModelFields, fallback: ParsedInput): ParsedIn
     dur: duration,
     effort,
     // A task with a time is one Juan placed himself.
-    auto: coherent === "task" ? !time : false,
+    auto: coherent === "task" || coherent === "reminder" ? !time : false,
   };
 }
