@@ -106,6 +106,9 @@ export function TodayScreen({
   // A day with no slot filled at all is the empty-day state.
   const scheduled = items.filter((item) => !item.later && !item.moved && item.start);
   const { next, rest } = ahead(items, now);
+  // The full view folds everything after the third into Rest of today. The
+  // simple view has no fold, so it lists the whole rest of the day.
+  const coming = simple ? [...next, ...rest] : next;
   const later = laterRows(items);
   const sections = prioritySections(
     items,
@@ -234,11 +237,11 @@ export function TodayScreen({
             </section>
           ) : null}
 
-          {next.length ? (
+          {coming.length ? (
             <section className="flex flex-col gap-2">
               <SectionTitle>Next</SectionTitle>
               <Card className="overflow-hidden">
-                {next.map((row) => (
+                {coming.map((row) => (
                   <Link
                     key={row.id}
                     aria-label={row.aria}
