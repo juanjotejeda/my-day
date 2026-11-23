@@ -52,6 +52,15 @@ button{font-family:inherit}
 </sc-for>
 </div>
 </section>
+<section style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0 4px; font-family: Roboto, system-ui, sans-serif; font-size: 22px; font-weight: 300;">Tomorrow</h2>
+<div style="background: #0F1A2E; border-radius: 22px; overflow: hidden; border: 1px solid #22324F;">
+<a href="app-d2-detail-night.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-bottom: 1px solid #1C2B47; text-decoration: none; color: #E3EBF8"><span style="width: 44px; flex: none; font-size: 14px; color: #9AA8C2; font-variant-numeric: tabular-nums">09:00</span><span style="flex: 1; min-width: 0; font-size: 15px">Morning run</span></a>
+<a href="app-d2-detail-night.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-bottom: 1px solid #1C2B47; text-decoration: none; color: #E3EBF8"><span style="width: 44px; flex: none; font-size: 14px; color: #9AA8C2; font-variant-numeric: tabular-nums">11:00</span><span style="flex: 1; min-width: 0; font-size: 15px">Thiago's football match</span></a>
+<a href="app-d2-detail-night.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-bottom: 1px solid #1C2B47; text-decoration: none; color: #E3EBF8"><span style="width: 44px; flex: none; font-size: 14px; color: #9AA8C2; font-variant-numeric: tabular-nums">15:00</span><span style="flex: 1; min-width: 0; font-size: 15px">Pick up birthday gift</span></a>
+<a href="app-d2-detail-night.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; text-decoration: none; color: #E3EBF8"><span style="width: 44px; flex: none; font-size: 14px; color: #9AA8C2; font-variant-numeric: tabular-nums">17:00</span><span style="flex: 1; min-width: 0; font-size: 15px">Dinner with friends</span></a>
+</div>
+</section>
 
 </div>
 </sc-if>
@@ -128,7 +137,7 @@ function parseSpeech(t){
   if (m) { var h = parseInt(m[1], 10), mi = m[2] ? parseInt(m[2], 10) : 0; if (m[3] === 'pm' && h < 12) h += 12; if (m[3] === 'am' && h === 12) h = 0; if (!m[3] && h < 7) h += 12; d.start = (h<10?'0':'')+h+':'+(mi<10?'0':'')+mi; if (d.type === 'appt') { var h2 = h + 1; d.end = (h2<10?'0':'')+h2+':'+(mi<10?'0':'')+mi; } }
   var txt = (t || '').replace(/^\s*(please\s+)?(remind me to|remind me|add a task to|add)\s+/i, '').replace(/\s+tomorrow/i, '').replace(/\s+today/i, '').replace(/\s+at \d{1,2}([:.]\d{2})?\s*(am|pm)?/i, '').trim();
   d.text = txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
-  if (d.type === 'task' && d.start) d.auto = false;
+  if ((d.type === 'task' || d.type === 'reminder') && d.start) d.auto = false;
   return d;
 }
 function freeSlot(items, from, dur){
@@ -261,6 +270,11 @@ class Component extends DCLogic {
       it.fx = 0; it.cat = 'work'; it.eff = 'Light task'; it.s = st; it.e = st + du;
       it.why = d.auto === false ? 'Task you added at the time you chose.' : 'Task you added. Placed in the next free slot that fits.';
       msg = d.auto === false ? 'Task added for '+when+' at '+fmt(st)+'.' : (when === 'today' ? 'Task added. Placed at '+fmt(st)+', the next free slot.' : 'Task added for '+when+'.');
+    } else if (d.type === 'reminder' && d.auto !== false) {
+      var rs = freeSlot(items, Math.max(now, 510), 10);
+      it.fx = 0; it.src = 'Reminder'; it.eff = 'Errand'; it.s = rs; it.e = rs + 10;
+      it.why = 'Reminder you added. Placed in the next free slot.';
+      msg = when === 'today' ? 'Reminder added. Placed at '+fmt(rs)+', the next free slot.' : 'Reminder added for '+when+'.';
     } else if ((d.type === 'appt' || d.type === 'gcal') && d.allDay) {
       this.setState({cmode:'', draft:null, heard:''}); this.toastMsg('All-day event added for '+when+'. It shows as a day banner.'); return;
     } else {
@@ -285,16 +299,17 @@ class Component extends DCLogic {
     var set = function(p){ self.setState({draft: Object.assign({}, d, p)}); };
     var on = 'background:#2A3D60;border-color:#8AA9DE;', off = 'background:#16233B;';
     var isAppt = d.type === 'appt' || d.type === 'gcal';
-    var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a set time'}, {k:'task', t:'Task', sub:'Placed for you'}];
+    var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a time, or placed for you'}, {k:'task', t:'Task', sub:'Placed for you'}];
     var pickType = function(k){
       var p = {type:k};
       if ((k === 'appt' || k === 'gcal') && !d.start) { p.start = fmt(nextHour * 60); p.end = fmt(nextHour * 60 + 60); }
-      if (k === 'reminder' && !d.start) p.start = fmt(nextHour * 60);
+      if (k === 'reminder' && !d.start) { p.start = fmt(nextHour * 60); p.auto = false; }
       set(p);
     };
-    var timed = d.type !== 'task' || d.auto === false;
+    var places = d.type === 'task' || d.type === 'reminder';
+    var timed = !places || d.auto === false;
     var hint = d.type === 'task' ? (d.auto === false ? 'It goes exactly where you put it, and nothing moves it.' : 'I will place it in the next free slot that fits.')
-      : d.type === 'reminder' ? 'You get a reminder at this time.'
+      : d.type === 'reminder' ? (d.auto === false ? 'You get a reminder at this time.' : 'I will find a slot for the 10 minutes it needs.')
       : d.allDay ? 'A day banner, with no time of its own.' : 'Fixed in your day at this time.';
     var heard = s.heard || '';
     return {
@@ -307,7 +322,7 @@ class Component extends DCLogic {
       days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k, date:''}); }}; }),
       durs: [15, 30, 60, 90, 120].map(function(n){ return {t: n < 60 ? n+' min' : (n/60)+'h', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
       draft: {text: d.text || '', date: d.date || '', start: d.start || '', end: d.end || '', loc: d.loc || '', allDay: !!d.allDay},
-      isTask: d.type === 'task', isAppt: isAppt, isGcal: d.type === 'gcal',
+      isTask: d.type === 'task', places: places, isAppt: isAppt, isGcal: d.type === 'gcal',
       showDate: timed, showTime: timed && !d.allDay, showEnd: isAppt,
       timeLbl: isAppt ? 'From' : 'At',
       allDayTrack: d.allDay ? 'background:#8AA9DE;' : 'background:#2A3D60;', allDayKnob: d.allDay ? 'left:23px;' : 'left:3px;',

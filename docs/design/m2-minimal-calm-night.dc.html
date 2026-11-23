@@ -36,7 +36,7 @@ button{font-family:inherit}
 <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #9AA8C2">What
 <input type="text" value="{{draft.text}}" onChange="{{onText}}" placeholder="For example: Dentist with Thiago" style="min-height: 48px; border-radius: 14px; border: 1px solid #2A3D60; background: #16233B; padding: 0 14px; font-family: inherit; font-size: 16px; font-weight: 300; color: #E3EBF8; box-sizing: border-box; width: 100%">
 </label>
-<sc-if value="{{isTask}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{places}}" hint-placeholder-val="{{ true }}">
 <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #9AA8C2">When</span><div style="display: flex; flex-wrap: wrap; gap: 8px">
 <sc-for list="{{modes}}" as="c" hint-placeholder-count="2">
 <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A3D60; font-size: 14px; color: #E3EBF8; cursor: pointer; {{c.st}}">{{c.t}}</button>
@@ -250,7 +250,7 @@ button{font-family:inherit}
 </sc-if>
 </div>
 
-<nav aria-label="Main" style="position: sticky; bottom: 0; z-index: 8; padding: 6px 12px 14px; background: rgba(15,26,46,0.96); border-top: 1px solid #22324F; display: flex"><a href="m2-minimal-calm-night.dc.html" aria-current="page" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #E3EBF8; font-size: 11px"><span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 68px; padding: 5px 12px; box-sizing: border-box; border-radius: 16px; background: #2A3D60"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="none" stroke="#E3EBF8" stroke-width="1.5"></circle><path d="M11 7v4l2.5 2" fill="none" stroke="#E3EBF8" stroke-width="1.5" stroke-linecap="round"></path></svg>Today</span></a><a href="app-d1-review-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2.5" fill="none" stroke="#9AA8C2" stroke-width="1.5"></rect><path d="M3.5 9h15M7.5 2.5v3.5M14.5 2.5v3.5" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Review<span style="position: absolute; top: 2px; left: 52%; min-width: 16px; height: 16px; border-radius: 8px; background: #8AA9DE; color: #0F1A2E; font-size: 10px; display: flex; align-items: center; justify-content: center">4</span></a><a href="app-d5-insights-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 17V11M9 17V6M14 17v-8M19 17V4" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Insights</a><a href="app-s0-settings-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3" fill="none" stroke="#9AA8C2" stroke-width="1.5"></circle><path d="M11 3v2.2M11 16.8V19M3 11h2.2M16.8 11H19M5.3 5.3l1.6 1.6M15.1 15.1l1.6 1.6M5.3 16.7l1.6-1.6M15.1 6.9l1.6-1.6" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Settings</a></nav><sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 8px; padding: 0 16px 20px"><a href="app-d3-tomorrow-night.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 999px; border: 1px solid #2A3D60; color: #E3EBF8; font-size: 15px; text-decoration: none">Plan tomorrow</a></div><nav aria-label="Main" style="position: sticky; bottom: 0; z-index: 8; padding: 6px 12px 14px; background: rgba(15,26,46,0.96); border-top: 1px solid #22324F; display: flex"><a href="m2-minimal-calm-night.dc.html" aria-current="page" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #E3EBF8; font-size: 11px"><span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 68px; padding: 5px 12px; box-sizing: border-box; border-radius: 16px; background: #2A3D60"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.5" fill="none" stroke="#E3EBF8" stroke-width="1.5"></circle><path d="M11 7v4l2.5 2" fill="none" stroke="#E3EBF8" stroke-width="1.5" stroke-linecap="round"></path></svg>Today</span></a><a href="app-d1-review-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2.5" fill="none" stroke="#9AA8C2" stroke-width="1.5"></rect><path d="M3.5 9h15M7.5 2.5v3.5M14.5 2.5v3.5" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Review<span style="position: absolute; top: 2px; left: 52%; min-width: 16px; height: 16px; border-radius: 8px; background: #8AA9DE; color: #0F1A2E; font-size: 10px; display: flex; align-items: center; justify-content: center">4</span></a><a href="app-d5-insights-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 17V11M9 17V6M14 17v-8M19 17V4" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Insights</a><a href="app-s0-settings-night.dc.html" style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-decoration: none; color: #9AA8C2; font-size: 11px"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3" fill="none" stroke="#9AA8C2" stroke-width="1.5"></circle><path d="M11 3v2.2M11 16.8V19M3 11h2.2M16.8 11H19M5.3 5.3l1.6 1.6M15.1 15.1l1.6 1.6M5.3 16.7l1.6-1.6M15.1 6.9l1.6-1.6" fill="none" stroke="#9AA8C2" stroke-width="1.5" stroke-linecap="round"></path></svg>Settings</a></nav><sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
 <div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 24px; z-index: 9; background: #D5E1F5; color: #0F1A2E; font-size: 13px; line-height: 1.4; padding: 12px 14px; border-radius: 999px">{{toast}}</div>
 </sc-if>
 <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
@@ -321,7 +321,7 @@ function parseSpeech(t){
   if (m) { var h = parseInt(m[1], 10), mi = m[2] ? parseInt(m[2], 10) : 0; if (m[3] === 'pm' && h < 12) h += 12; if (m[3] === 'am' && h === 12) h = 0; if (!m[3] && h < 7) h += 12; d.start = (h<10?'0':'')+h+':'+(mi<10?'0':'')+mi; if (d.type === 'appt') { var h2 = h + 1; d.end = (h2<10?'0':'')+h2+':'+(mi<10?'0':'')+mi; } }
   var txt = (t || '').replace(/^\s*(please\s+)?(remind me to|remind me|add a task to|add)\s+/i, '').replace(/\s+tomorrow/i, '').replace(/\s+today/i, '').replace(/\s+at \d{1,2}([:.]\d{2})?\s*(am|pm)?/i, '').trim();
   d.text = txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
-  if (d.type === 'task' && d.start) d.auto = false;
+  if ((d.type === 'task' || d.type === 'reminder') && d.start) d.auto = false;
   return d;
 }
 function freeSlot(items, from, dur){
@@ -454,6 +454,11 @@ class Component extends DCLogic {
       it.fx = 0; it.cat = 'work'; it.eff = 'Light task'; it.s = st; it.e = st + du;
       it.why = d.auto === false ? 'Task you added at the time you chose.' : 'Task you added. Placed in the next free slot that fits.';
       msg = d.auto === false ? 'Task added for '+when+' at '+fmt(st)+'.' : (when === 'today' ? 'Task added. Placed at '+fmt(st)+', the next free slot.' : 'Task added for '+when+'.');
+    } else if (d.type === 'reminder' && d.auto !== false) {
+      var rs = freeSlot(items, Math.max(now, 510), 10);
+      it.fx = 0; it.src = 'Reminder'; it.eff = 'Errand'; it.s = rs; it.e = rs + 10;
+      it.why = 'Reminder you added. Placed in the next free slot.';
+      msg = when === 'today' ? 'Reminder added. Placed at '+fmt(rs)+', the next free slot.' : 'Reminder added for '+when+'.';
     } else if ((d.type === 'appt' || d.type === 'gcal') && d.allDay) {
       this.setState({cmode:'', draft:null, heard:''}); this.toastMsg('All-day event added for '+when+'. It shows as a day banner.'); return;
     } else {
@@ -478,16 +483,17 @@ class Component extends DCLogic {
     var set = function(p){ self.setState({draft: Object.assign({}, d, p)}); };
     var on = 'background:#2A3D60;border-color:#8AA9DE;', off = 'background:#16233B;';
     var isAppt = d.type === 'appt' || d.type === 'gcal';
-    var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a set time'}, {k:'task', t:'Task', sub:'Placed for you'}];
+    var types = [{k:'gcal', t:'Calendar', sub:'Google event'}, {k:'appt', t:'Appointment', sub:'Other events'}, {k:'reminder', t:'Reminder', sub:'At a time, or placed for you'}, {k:'task', t:'Task', sub:'Placed for you'}];
     var pickType = function(k){
       var p = {type:k};
       if ((k === 'appt' || k === 'gcal') && !d.start) { p.start = fmt(nextHour * 60); p.end = fmt(nextHour * 60 + 60); }
-      if (k === 'reminder' && !d.start) p.start = fmt(nextHour * 60);
+      if (k === 'reminder' && !d.start) { p.start = fmt(nextHour * 60); p.auto = false; }
       set(p);
     };
-    var timed = d.type !== 'task' || d.auto === false;
+    var places = d.type === 'task' || d.type === 'reminder';
+    var timed = !places || d.auto === false;
     var hint = d.type === 'task' ? (d.auto === false ? 'It goes exactly where you put it, and nothing moves it.' : 'I will place it in the next free slot that fits.')
-      : d.type === 'reminder' ? 'You get a reminder at this time.'
+      : d.type === 'reminder' ? (d.auto === false ? 'You get a reminder at this time.' : 'I will find a slot for the 10 minutes it needs.')
       : d.allDay ? 'A day banner, with no time of its own.' : 'Fixed in your day at this time.';
     var heard = s.heard || '';
     return {
@@ -500,7 +506,7 @@ class Component extends DCLogic {
       days: [{k:'today', t:'Today'}, {k:'tomorrow', t:'Tomorrow'}].map(function(c){ return {t:c.t, pressed: d.day === c.k, st: d.day === c.k ? on : off, pick: function(){ set({day:c.k, date:''}); }}; }),
       durs: [15, 30, 60, 90, 120].map(function(n){ return {t: n < 60 ? n+' min' : (n/60)+'h', pressed: d.dur === n, st: d.dur === n ? on : off, pick: function(){ set({dur:n}); }}; }),
       draft: {text: d.text || '', date: d.date || '', start: d.start || '', end: d.end || '', loc: d.loc || '', allDay: !!d.allDay},
-      isTask: d.type === 'task', isAppt: isAppt, isGcal: d.type === 'gcal',
+      isTask: d.type === 'task', places: places, isAppt: isAppt, isGcal: d.type === 'gcal',
       showDate: timed, showTime: timed && !d.allDay, showEnd: isAppt,
       timeLbl: isAppt ? 'From' : 'At',
       allDayTrack: d.allDay ? 'background:#8AA9DE;' : 'background:#2A3D60;', allDayKnob: d.allDay ? 'left:23px;' : 'left:3px;',
