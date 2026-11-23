@@ -23,9 +23,10 @@
   /* The toast reads over anything, so it is the same near-black in both themes. */
   --toast: rgba(10, 14, 22, 0.82);
   --toast-ink: #ffffff;
-  --energy-low: #eaf0fa;
-  --energy-steady: #d5e1f5;
-  --energy-peak: #a3bde8;
+  /* Low, steady, peak: red, orange, green, muted enough to stay calm. */
+  --energy-low: #d9705f;
+  --energy-steady: #e0a34a;
+  --energy-peak: #4e9b76;
   --idle: #b3c8ec;
   --switch-on: #243a63;
   --knob: #ffffff;
@@ -55,9 +56,9 @@
   --on-primary: #0f1a2e;
   --toast: rgba(10, 14, 22, 0.82);
   --toast-ink: #ffffff;
-  --energy-low: #22324f;
-  --energy-steady: #3a5583;
-  --energy-peak: #7f9fd8;
+  --energy-low: #e08878;
+  --energy-steady: #e8b063;
+  --energy-peak: #6cbd93;
   --idle: #3a5583;
   /* The night design gives the switch a mid track and a background-dark knob. */
   --switch-on: #8aa9de;
