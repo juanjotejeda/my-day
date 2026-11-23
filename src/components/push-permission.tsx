@@ -46,6 +46,17 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
       setState(
         Notification.permission === "granted" && here ? "subscribed" : (Notification.permission as State),
       );
+
+      // This browser can hold a subscription the server no longer has, and then
+      // nothing arrives and the card still says yes. Register it again, always:
+      // storing is an upsert on the endpoint, so a second hello costs nothing.
+      if (here) {
+        void fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(here.toJSON()),
+        });
+      }
       const display = window.matchMedia("(display-mode: standalone)").matches;
       setStandalone(display || !/iPhone|iPad/.test(navigator.userAgent));
     }

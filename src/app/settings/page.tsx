@@ -3,7 +3,15 @@ import { redirect } from "next/navigation";
 
 import { NightModeRow } from "@/components/night-mode-row";
 import { currentTheme } from "@/lib/theme";
-import { DetailRow, LinkRow, ListCard, Screen, ScreenHeader, SettingsSection } from "@/components/ui";
+import {
+  BackRow,
+  DetailRow,
+  LinkRow,
+  ListCard,
+  Screen,
+  ScreenHeader,
+  SettingsSection,
+} from "@/components/ui";
 
 // S0 Settings hub.
 export default async function Settings() {
@@ -13,6 +21,8 @@ export default async function Settings() {
 
   return (
     <Screen>
+      {/* The simple view has no bar, so Settings needs its own way back. */}
+      <BackRow href="/" label="Today" />
       <ScreenHeader title="Settings" />
 
       <ListCard>
