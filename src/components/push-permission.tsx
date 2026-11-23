@@ -18,8 +18,9 @@ function keyToBytes(base64: string): ArrayBuffer {
 
 /**
  * Asks for notification permission, never on first load: only from this button,
- * as the spec says. On an iPhone this works once the app runs from the home
- * screen icon (iOS 16.4 or later).
+ * as the spec says. Every device asks for itself, a laptop as much as a phone,
+ * so the card reads this browser's own subscription rather than the total. On
+ * an iPhone it works once the app runs from the home screen icon (iOS 16.4).
  */
 export function PushPermission({ publicKey, devices }: { publicKey: string; devices: number }) {
   const [state, setState] = useState<State>("unknown");
@@ -27,20 +28,33 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
   const [standalone, setStandalone] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let cancelled = false;
+
+    async function look() {
       const supported =
         "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+      if (!supported) {
+        if (!cancelled) setState("unsupported");
+        return;
+      }
+
+      // Another device being subscribed says nothing about this one.
+      const registration = await navigator.serviceWorker.getRegistration();
+      const here = await registration?.pushManager.getSubscription();
+      if (cancelled) return;
+
       setState(
-        !supported
-          ? "unsupported"
-          : Notification.permission === "granted" && devices > 0
-            ? "subscribed"
-            : (Notification.permission as State),
+        Notification.permission === "granted" && here ? "subscribed" : (Notification.permission as State),
       );
       const display = window.matchMedia("(display-mode: standalone)").matches;
       setStandalone(display || !/iPhone|iPad/.test(navigator.userAgent));
-    }, 0);
-    return () => clearTimeout(timer);
+    }
+
+    const timer = setTimeout(look, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [devices]);
 
   async function allow() {
@@ -114,13 +128,17 @@ export function PushPermission({ publicKey, devices }: { publicKey: string; devi
           onClick={state === "subscribed" ? () => test(false) : allow}
           className="flex min-h-14 w-full items-center justify-between text-[15px] text-navy"
         >
-          <span>{state === "subscribed" ? "Send a test notification" : "Allow notifications"}</span>
+          <span>
+            {state === "subscribed" ? "Send a test notification" : "Allow notifications here"}
+          </span>
           <span className="text-[13px] text-muted">
             {state === "subscribed"
-              ? `${devices} ${devices === 1 ? "device" : "devices"}`
+              ? `this device, ${devices} in all`
               : state === "denied"
                 ? "blocked"
-                : "off"}
+                : devices
+                  ? `off here, ${devices} elsewhere`
+                  : "off"}
           </span>
         </button>
       )}
