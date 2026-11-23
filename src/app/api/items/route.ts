@@ -21,11 +21,16 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const source = url.searchParams.get("source");
+  // Looking for one thing: ?q=part of the title, ?day=YYYY-MM-DD.
+  const q = url.searchParams.get("q");
+  const day = url.searchParams.get("day");
 
   const items = await prisma.item.findMany({
     where: {
       userId: user.id,
       ...(source ? { sourceKind: source as "manual" | "gmail" | "voice" | "calendar" } : {}),
+      ...(q ? { title: { contains: q, mode: "insensitive" as const } } : {}),
+      ...(day ? { day: new Date(`${day}T00:00:00.000Z`) } : {}),
     },
     orderBy: [{ day: "asc" }, { start: "asc" }],
     take: 60,
@@ -44,6 +49,7 @@ export async function GET(request: Request) {
       effort: item.effort,
       category: item.category,
       archived: Boolean(item.archivedAt),
+      ref: item.sourceRef,
       reason: (item.reason ?? "").slice(0, 60),
     })),
   });
