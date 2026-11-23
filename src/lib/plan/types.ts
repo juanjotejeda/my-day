@@ -25,6 +25,8 @@ export type PlanItem = {
   carried?: boolean;
   /** Juan put this at a time himself. */
   pinned?: boolean;
+  /** From a calendar you follow rather than your own. */
+  otherCalendar?: boolean;
 };
 
 export type AddType = "gcal" | "appt" | "reminder" | "task";

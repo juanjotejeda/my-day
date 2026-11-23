@@ -2,12 +2,13 @@ import type { Item } from "@/generated/prisma/client";
 
 import { minutesOfDay } from "@/lib/day";
 
+import { fromAnotherCalendar } from "./calendars";
 import type { PlanItem } from "./types";
 
 const DEFAULT_MIN = 30;
 
 /** A stored item as the screens want it: minutes from midnight, in Juan's timezone. */
-export function toPlanItem(item: Item): PlanItem {
+export function toPlanItem(item: Item, email = ""): PlanItem {
   const start = item.start ? minutesOfDay(item.start) : 0;
   const end = item.end ? minutesOfDay(item.end) : start + DEFAULT_MIN;
 
@@ -27,6 +28,7 @@ export function toPlanItem(item: Item): PlanItem {
     createdHere: item.createdHere,
     carried: item.status === "moved",
     pinned: item.pinned,
+    otherCalendar: email ? fromAnotherCalendar(item.sourceRef, email) : false,
   };
 }
 
@@ -34,8 +36,8 @@ export function toPlanItem(item: Item): PlanItem {
  * All-day events are banners, never blocks. An item the scheduler could not
  * place has no start, so it shows under Later with its reason.
  */
-export function toPlanItems(items: Item[]): PlanItem[] {
+export function toPlanItems(items: Item[], email = ""): PlanItem[] {
   return items
     .filter((item) => !item.allDay)
-    .map((item) => (item.start ? toPlanItem(item) : { ...toPlanItem(item), later: true }));
+    .map((item) => (item.start ? toPlanItem(item, email) : { ...toPlanItem(item, email), later: true }));
 }

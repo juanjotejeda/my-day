@@ -53,8 +53,8 @@ export default async function Today() {
   if (source?.disconnectedAt) redirect("/connection-lost");
 
   // Real items only now: the scheduler fills the day, so no sample day here.
-  const items = toPlanItems(stored);
-  const tomorrowItems = toPlanItems(storedTomorrow);
+  const items = toPlanItems(stored, email);
+  const tomorrowItems = toPlanItems(storedTomorrow, email);
 
   const weekdayKeys = ["su", "mo", "tu", "we", "th", "fr", "sa"];
   const isWorkday = settings.work.days.includes(
