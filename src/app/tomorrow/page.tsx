@@ -150,7 +150,7 @@ export default async function Tomorrow() {
                 title={item.title}
                 time={item.start ? `Mon ${hhmm(item.start)}` : "Mon"}
                 meta={`${item.fixed ? "Fixed" : "Flexible"} · ${item.sourceKind === "gmail" ? "Gmail" : "Calendar"}`}
-                fill={item.start ? levelOf(minutesOfDay(item.start)).fill : "var(--energy-steady)"}
+                fill={item.start ? levelOf(minutesOfDay(item.start)).fill : "var(--idle)"}
                 variant={item.fixed ? "divider" : "sky"}
               />
             ))}

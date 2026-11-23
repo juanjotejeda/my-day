@@ -50,7 +50,7 @@ export default async function EmptyDay() {
       <section className="flex flex-col gap-1.5">
         <SectionTitle>If you want something</SectionTitle>
         <ListCard>
-          <ItemRow href="/" title="Later" time="2 items" meta="No date yet" fill="var(--energy-low)" variant="divider" />
+          <ItemRow href="/" title="Later" time="2 items" meta="No date yet" fill="var(--idle)" variant="divider" />
           <ItemRow
             href="/tomorrow"
             title="Monday preview"

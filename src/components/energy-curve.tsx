@@ -62,7 +62,7 @@ export function EnergyCurve({
           role="img"
           aria-label="Your energy curve from wake up to bedtime"
         >
-          <path d={`${line} L326 110 L0 110 Z`} fill="var(--energy-low)" />
+          <path d={`${line} L326 110 L0 110 Z`} fill="var(--raised)" />
           <path d={line} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
           <rect
             x={(((peak * 60 - 360) / 1020) * 326).toFixed(1)}

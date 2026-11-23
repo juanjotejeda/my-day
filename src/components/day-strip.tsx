@@ -57,9 +57,9 @@ export function DayStrip({
           Flexible
         </span>
         <span className="flex items-center gap-1">
-          <span className="h-1.5 w-2.5 rounded-sm bg-divider" />
-          <span className="h-1.5 w-2.5 rounded-sm bg-sky" />
-          <span className="h-1.5 w-2.5 rounded-sm bg-peak" />
+          <span className="h-1.5 w-2.5 rounded-sm bg-energy-low" />
+          <span className="h-1.5 w-2.5 rounded-sm bg-energy-steady" />
+          <span className="h-1.5 w-2.5 rounded-sm bg-energy-peak" />
           Energy low to peak
         </span>
       </div>
