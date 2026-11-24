@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 
+import { AutoRefresh } from "@/components/auto-refresh";
 import { BottomNav } from "@/components/bottom-nav";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { ViewProvider } from "@/components/view-mode";
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {/* One bar for every screen, and the bar itself knows the view. */}
           <BottomNav reviewCount={await reviewCount()} />
         </ViewProvider>
+        <AutoRefresh />
         <PullToRefresh />
         <RegisterServiceWorker />
       </body>
