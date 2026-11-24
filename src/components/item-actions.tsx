@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { applyCorrection, deleteItem, unpinItem } from "@/app/actions";
+import { ITEM_CORRECTIONS } from "@/lib/flags";
 
 /** The actions at the foot of the item detail, each one a real correction. */
 export function ItemActions({
@@ -69,20 +70,26 @@ export function ItemActions({
       >
         {done ? "Back on my list" : "Mark as done"}
       </button>
-      <button type="button" onClick={() => act("tomorrow")} className={button}>
-        Move to tomorrow
-      </button>
+      {ITEM_CORRECTIONS ? (
+        <button type="button" onClick={() => act("tomorrow")} className={button}>
+          Move to tomorrow
+        </button>
+      ) : null}
       {flexible ? (
         <button type="button" onClick={() => act("more_time")} className={button}>
           I need 30 more minutes
         </button>
       ) : null}
-      <button type="button" onClick={() => act("important")} className={button}>
-        {important ? "Remove importance" : "Mark as important"}
-      </button>
-      <button type="button" onClick={() => act("category")} className={button}>
-        Change work or personal
-      </button>
+      {ITEM_CORRECTIONS ? (
+        <>
+          <button type="button" onClick={() => act("important")} className={button}>
+            {important ? "Remove importance" : "Mark as important"}
+          </button>
+          <button type="button" onClick={() => act("category")} className={button}>
+            Change work or personal
+          </button>
+        </>
+      ) : null}
       {pinned ? (
         <button
           type="button"

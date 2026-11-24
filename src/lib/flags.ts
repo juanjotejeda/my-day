@@ -14,3 +14,11 @@
  */
 export const PLAN_TOMORROW = true;
 export const DAY_CLOSE = false;
+
+/**
+ * The three corrections on the item screen that say nothing about when an
+ * appointment happens: Move to tomorrow, Mark as important, Change work or
+ * personal. Hidden for now; the actions, the corrections they write and the
+ * rules they teach are all still here, waiting for the switch.
+ */
+export const ITEM_CORRECTIONS = false;
