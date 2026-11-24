@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-const HOUR = 60 * 60 * 1000;
+const EVERY = 30 * 60 * 1000;
 
 /**
- * The day moves on without you: once an hour the screen fetches itself again,
- * so a page left open all morning is not still showing breakfast. Only while
- * the app is on screen, and the clock counts from the last refresh, so coming
- * back to it after a long sleep reloads at once rather than up to an hour on.
+ * The day moves on without you: every half hour the screen fetches itself
+ * again, so a page left open all morning is not still showing breakfast. Only
+ * while the app is on screen, and the clock counts from the last refresh, so
+ * coming back to it after a long sleep reloads at once rather than later.
  */
 export function AutoRefresh() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export function AutoRefresh() {
 
     function refreshIfDue() {
       if (document.visibilityState !== "visible") return;
-      if (Date.now() - last.current < HOUR) return;
+      if (Date.now() - last.current < EVERY) return;
       last.current = Date.now();
       router.refresh();
     }
