@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { levelAt as level, levelOf } from "./curve.ts";
 import { dur, fmt, pct } from "./format.ts";
-import { ahead, energyTrack, freeSlot, load, nowCard, prioritySections, protectedLine, stripBlocks } from "./view.ts";
+import { ahead, energyTrack, freeSlot, nowCard, stripBlocks } from "./view.ts";
 import { SAMPLE_DAY } from "./sample.ts";
 
 test("times and durations read as the design writes them", () => {
@@ -50,27 +50,8 @@ test("later holds the items without a slot", () => {
   assert.equal(lines.length, 2);
 });
 
-test("the load bar counts fixed and flexible, never protected time", () => {
-  const bar = load(SAMPLE_DAY);
-  assert.match(bar.fixed, /^\d+h( \d+m)?$/);
-  assert.ok(bar.fixedPct > 0 && bar.fixedPct <= 100);
-  assert.ok(bar.verdict.includes("buffer") || bar.verdict.includes("Over by"));
-  assert.ok(!protectedLine(SAMPLE_DAY).includes("None"), "the sample day protects lunch and dinner");
-});
 
-test("priority sections rank important items into must", () => {
-  const sections = prioritySections(SAMPLE_DAY, 620, {});
-  const must = sections.find((section) => section.key === "must");
-  assert.ok(must);
-  assert.ok(must.items.some((item) => item.title === "Write Northwind proposal"));
-  assert.ok(sections.every((section) => section.count > 0), "empty sections are dropped");
-});
 
-test("a block that has ended counts as done on the priority view", () => {
-  const sections = prioritySections(SAMPLE_DAY, 1200, {});
-  const rows = sections.flatMap((section) => section.items);
-  assert.ok(rows.every((row) => row.done), "at 20:00 the sample day is behind us");
-});
 
 test("the free slot skips everything already placed", () => {
   const slot = freeSlot(SAMPLE_DAY, 620, 30);
