@@ -43,7 +43,8 @@ export default async function Today() {
     prisma.item.findMany({
       where: { userId: user.id, day: dayDate(dayKey(tomorrow)), status: { not: "dropped" }, archivedAt: null },
       orderBy: [{ start: "asc" }, { title: "asc" }],
-      take: 5,
+      // More than the preview shows: the calendar filter runs after this.
+      take: 12,
     }),
     prisma.source.findUnique({ where: { userId_kind: { userId: user.id, kind: "google" } } }),
     settingsFor(user.id),

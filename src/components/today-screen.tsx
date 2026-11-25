@@ -104,9 +104,11 @@ export function TodayScreen({
     });
   }
 
-  const shared = allItems.some((item) => item.otherCalendar) || allTomorrow.some((item) => item.otherCalendar);
   const items = allCalendars ? allItems : allItems.filter((item) => !item.otherCalendar);
-  const tomorrowItems = allCalendars ? allTomorrow : allTomorrow.filter((item) => !item.otherCalendar);
+  const tomorrowItems = (allCalendars ? allTomorrow : allTomorrow.filter((item) => !item.otherCalendar)).slice(
+    0,
+    5,
+  );
 
   const card = nowCard(items, now);
 
@@ -133,35 +135,33 @@ export function TodayScreen({
         right={headerRight}
         action={
           <span className="flex items-center gap-2">
-            {shared ? (
-              <button
-                type="button"
-                aria-label={allCalendars ? "Show only my calendar" : "Show every calendar"}
-                aria-pressed={allCalendars}
-                onClick={() => setAllCalendars((on) => !on)}
-                className={`flex h-11 w-11 flex-none items-center justify-center rounded-full border border-sky text-navy ${
-                  allCalendars ? "bg-sky" : ""
-                }`}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="9" cy="9" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                  <path
-                    d="M3.5 19.5c0-3 2.5-4.6 5.5-4.6s5.5 1.6 5.5 4.6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M16 6.2a3.2 3.2 0 0 1 0 5.9M17.5 15.4c2 .5 3.3 1.9 3.3 4.1"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            ) : null}
+            <button
+              type="button"
+              aria-label={allCalendars ? "Show only my calendar" : "Show every calendar"}
+              aria-pressed={allCalendars}
+              onClick={() => setAllCalendars((on) => !on)}
+              className={`flex h-11 w-11 flex-none items-center justify-center rounded-full border border-sky text-navy ${
+                allCalendars ? "bg-sky" : ""
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="9" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M3.5 19.5c0-3 2.5-4.6 5.5-4.6s5.5 1.6 5.5 4.6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M16 6.2a3.2 3.2 0 0 1 0 5.9M17.5 15.4c2 .5 3.3 1.9 3.3 4.1"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
             <ViewToggle />
             <ThemeToggle theme={theme} />
           </span>
