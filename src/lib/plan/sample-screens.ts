@@ -33,7 +33,7 @@ export const SAMPLE_CANDIDATES: Candidate[] = [
     from: "Marco Weber",
     subject: "Invoice 2026-114",
     quote: "Could you confirm the hours on line 3 before we pay?",
-    suggestion: "Suggested: Today 13:00 · 20 min · low energy",
+    suggestion: "Suggested: Today 13:00 · 20 min · lower energy",
   },
   {
     id: "c3",

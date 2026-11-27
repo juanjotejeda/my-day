@@ -14,7 +14,6 @@ export function ItemActions({
   pinned,
   fromCalendar,
   calendarOnly,
-  flexible,
 }: {
   id: string;
   done: boolean;
@@ -24,14 +23,13 @@ export function ItemActions({
   fromCalendar: boolean;
   /** An event from your own calendar: it leaves My Day and stays in Google. */
   calendarOnly: boolean;
-  flexible: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState("");
   const [armed, setArmed] = useState(false);
   const [, start] = useTransition();
 
-  function act(kind: "done" | "tomorrow" | "more_time" | "category" | "important") {
+  function act(kind: "done" | "tomorrow" | "category" | "important") {
     setStatus("Saving");
     start(async () => {
       const result = await applyCorrection(id, kind);
@@ -73,11 +71,6 @@ export function ItemActions({
       {ITEM_CORRECTIONS ? (
         <button type="button" onClick={() => act("tomorrow")} className={button}>
           Move to tomorrow
-        </button>
-      ) : null}
-      {flexible ? (
-        <button type="button" onClick={() => act("more_time")} className={button}>
-          I need 30 more minutes
         </button>
       ) : null}
       {ITEM_CORRECTIONS ? (

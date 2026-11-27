@@ -156,7 +156,6 @@ export default async function ItemDetail({ params }: PageProps<"/item/[id]">) {
         pinned={item.pinned}
         fromCalendar={item.sourceKind === "calendar"}
         calendarOnly={calendarOnly}
-        flexible={!item.fixed}
       />
     </Screen>
   );

@@ -431,7 +431,7 @@ function reasonFor(
   }
   if (item.effort === "meeting") return `Placed in steady time, ${where}, where calls sit well.`;
   if (item.effort === "light" || item.effort === "errand") {
-    return level.name === "Low energy"
+    return level.name === "Lower energy"
       ? `Placed at ${where}, in your dip, where light tasks fit.`
       : `Placed at ${where}, the first slot that fits.`;
   }

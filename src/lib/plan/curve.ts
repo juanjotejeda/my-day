@@ -5,7 +5,7 @@
  */
 /** The fills name theme tokens, so a level looks right in day and in night. */
 export const LEVELS = [
-  { name: "Low energy", fill: "var(--energy-low)", fit: "Light tasks fit" },
+  { name: "Lower energy", fill: "var(--energy-low)", fit: "Light tasks fit" },
   { name: "Steady energy", fill: "var(--energy-steady)", fit: "Meetings fit" },
   { name: "Peak energy", fill: "var(--energy-peak)", fit: "Deep work fits" },
 ] as const;
